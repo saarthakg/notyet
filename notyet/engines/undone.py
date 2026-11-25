@@ -4,8 +4,9 @@
 wasn't there before the session: the agent's fixes from earlier turns, and
 edits the user made between turns. The user's own uncommitted edits from
 before the session count too. A line that was *replaced* is work going on, not
-work undone: what counts is a removal with nothing in its place, or a change
-that puts back text the earlier work had replaced. Lines that were only moved
+work undone: what counts is a removal with nothing in its place, or a change that
+puts back text the earlier work had replaced. Imports, and a name that is now
+assigned somewhere else, have only moved. Lines that were only moved
 (the same text added elsewhere in this turn) and trivial lines (blank,
 comments, short tokens like `else:`) are ignored. Snapshots, not git blame:
 most of this work was never committed.
@@ -13,11 +14,13 @@ most of this work was never committed.
 Removing earlier work can be right, so this is fix-or-justify, never a block.
 """
 import hashlib
+import re
 from collections import Counter
 
 from notyet import snapshot
 from notyet.findings import Context, EngineResult, Finding
 
+MIN_IN_TESTS = 3  # tests get tidied; a line or two there says little
 MIN_LINE = 8   # shorter stripped lines (`return`, `else:`, `})`) say nothing about intent
 
 
@@ -41,20 +44,25 @@ def run(ctx: Context) -> EngineResult:
     if not protected:
         return result
 
-    removed = _undoings(ctx.root, turn_start, ctx.current_tree, _texts_before(ctx, turn_start))
+    removed, plus_back = _undoings(ctx.root, turn_start, ctx.current_tree, _texts_before(ctx, turn_start))
     moved = Counter(text for lines in _lines(ctx.root, turn_start, ctx.current_tree, "+").values() for text in lines)
+    assigned = {n for n in map(_name, moved) if n}
     for path in sorted(removed):
         keep = protected.get(path)
         if not keep:
             continue
         undone = []
         for text in removed[path]:
+            if text.startswith(("import ", "from ")) or _name(text) in assigned:
+                continue
             if keep[text] > 0 and moved[text] <= 0:
                 keep[text] -= 1
                 undone.append(text)
             elif moved[text] > 0:
                 moved[text] -= 1
-        if not undone:
+        reverted = set(plus_back.get(path, ()))
+        if not undone or (ctx.layout.is_test_side(path) and len(undone) < MIN_IN_TESTS and not reverted
+                          and not any(_DEFINES.match(t) for t in undone)):
             continue
         digest = hashlib.sha1("\n".join(undone).encode()).hexdigest()[:10]
         result.findings.append(Finding(
@@ -63,6 +71,16 @@ def run(ctx: Context) -> EngineResult:
             evidence=[t[:120] for t in undone[:3]], key=f"{path}|{digest}",
             action="Restore them if removing them wasn't part of the request; otherwise acknowledge why."))
     return result
+
+
+_DEFINES = re.compile(r"(async )?def |class ")
+_ASSIGNS = re.compile(r"([A-Za-z_]\w*)\s*(?::[^=]+)?=(?!=)")
+
+
+def _name(text: str) -> str:
+    """The name a line assigns, if it does."""
+    m = _ASSIGNS.match(text)
+    return m.group(1) if m else ""
 
 
 def _texts_before(ctx: Context, turn_start: str) -> dict[str, set[str]]:
@@ -76,16 +94,19 @@ def _texts_before(ctx: Context, turn_start: str) -> dict[str, set[str]]:
     return out
 
 
-def _undoings(root: str, old: str, new: str, before: dict[str, set[str]]) -> dict[str, list[str]]:
+def _undoings(root: str, old: str, new: str, before: dict[str, set[str]]) -> tuple[dict[str, list[str]], dict[str, set[str]]]:
     """Non-trivial lines removed between two trees, in hunks that add nothing of substance in their place,
-    or that add back a line earlier work had removed."""
+    or that add back a line earlier work had removed; and those lines."""
     out: dict[str, list[str]] = {}
+    back: dict[str, set[str]] = {}
     diff = snapshot.git(root, "diff", "-U0", "--no-color", "--no-ext-diff", "--no-renames", old, new)
     path, minus, plus = None, [], []
 
     def flush() -> None:
-        if path and minus and (not plus or set(plus) & before.get(path, set())):
+        restored = set(plus) & before.get(path or "", set())
+        if path and minus and (not plus or restored):
             out.setdefault(path, []).extend(minus)
+            back.setdefault(path, set()).update(restored)
         minus.clear()
         plus.clear()
 
@@ -101,7 +122,7 @@ def _undoings(root: str, old: str, new: str, before: dict[str, set[str]]) -> dic
             if len(text) >= MIN_LINE and not text.startswith(("#", "//")):
                 (minus if line[0] == "-" else plus).append(text)
     flush()
-    return out
+    return out, back
 
 
 def _add(protected: dict[str, Counter], origin: dict[str, str], lines: dict[str, list[str]], label: str) -> None:

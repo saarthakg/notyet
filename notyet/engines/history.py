@@ -11,7 +11,8 @@ import json
 from notyet import history, snapshot, store
 from notyet.findings import Context, EngineResult
 
-MIN_TOGETHER = 3
+MIN_TOGETHER = 4
+MIN_HISTORY = 50       # with a few dozen changes, everything has changed with everything
 MIN_CONFIDENCE = 0.5
 MAX_LINES = 3
 
@@ -24,7 +25,9 @@ def run(ctx: Context) -> EngineResult:
     stats = _stats(ctx.root)
     if stats is None:
         return result
-    files, pairs = stats
+    files, pairs, changes = stats
+    if changes < MIN_HISTORY:
+        return result
     existing = set(snapshot.git(ctx.root, "ls-tree", "-r", "--name-only", ctx.current_tree).splitlines())
     lines = []
     for path in sorted(changed):
@@ -52,7 +55,8 @@ def _stats(root: str):
     try:
         cached = json.loads(path.read_text())
         if cached.get("head") == head:
-            return cached["files"], {a: {b: tuple(v) for b, v in o.items()} for a, o in cached["pairs"].items()}
+            return (cached["files"], {a: {b: tuple(v) for b, v in o.items()} for a, o in cached["pairs"].items()},
+                    cached["changes"])
     except (OSError, ValueError, KeyError):
         pass
     commits = history.read_history(root, max_commits=history.MAX_CHANGES, first_parent=True)  # newest first
@@ -69,5 +73,5 @@ def _stats(root: str):
              for a, others in stats.pairs.items()}
     pairs = {a: o for a, o in pairs.items() if o}
     files = dict(stats.file_commits)
-    path.write_text(json.dumps({"head": head, "files": files, "pairs": pairs}))
-    return files, pairs
+    path.write_text(json.dumps({"head": head, "files": files, "pairs": pairs, "changes": len(commits)}))
+    return files, pairs, len(commits)

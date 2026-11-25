@@ -115,7 +115,7 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
     return "\n".join(lines) + "\n"
 
 
-def summary(verdict: str, standing: list[Finding], result: EngineResult, path: str) -> str:
+def summary(verdict: str, standing: list[Finding], result: EngineResult, path: str, earlier: int = 0) -> str:
     head = f"notyet: {VERDICT_TEXT.get(verdict, verdict)}"
     if result.gaps:     # never let "didn't check" read as "checked"
         head += f"{' (incomplete)' if verdict != 'incomplete' else ''}. {'; '.join(result.gaps)}"
@@ -128,6 +128,8 @@ def summary(verdict: str, standing: list[Finding], result: EngineResult, path: s
         detail = f"{len(standing)} open finding(s): " + "; ".join(f.title for f in standing[:2])
     else:
         detail = "; ".join(result.not_checked[:2]) or "no checks ran"
+    if earlier:
+        detail += f"; {earlier} item(s) handed to you earlier in the session still stand"
     return f"{head}. {detail} (receipt: {path})"
 
 

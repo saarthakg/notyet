@@ -29,6 +29,7 @@ from notyet.engines.execution import _BaselineCache, _canary, source_path_env
 from notyet.engines.integrity import changed_functions
 from notyet.findings import Context, EngineResult, Finding
 
+SETUP_NEEDS_CHANGE = "the session's conftest.py doesn't run there, so none of its tests passes without the change"
 MAX_TESTS = 60
 MAX_EVIDENCE = 5
 
@@ -53,6 +54,9 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
     if not passing_now:
         return
     before, why = _run_at_session_start(ctx, command, passing_now)
+    if why == SETUP_NEEDS_CHANGE:
+        result.checks.append(f"new tests against the session-start code: {why}")
+        return
     if why:
         result.not_checked.append(f"new tests against the session-start code: {why}")
         return
@@ -121,6 +125,8 @@ def _run_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tu
         # a copied-in conftest.py could change how imports resolve: prove it again
         if any(PurePosixPath(p).name == "conftest.py" for p in overlay) or not cache.canary_ok(dirs):
             ok, why = _canary(ctx, tmp, files, env)
+            if why.startswith("couldn't verify") and any(PurePosixPath(p).name == "conftest.py" for p in overlay):
+                return {}, SETUP_NEEDS_CHANGE
             if not ok:
                 return {}, why
             if not any(PurePosixPath(p).name == "conftest.py" for p in overlay):

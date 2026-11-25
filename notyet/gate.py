@@ -41,6 +41,14 @@ class Decision:
     findings: list[Finding] = field(default_factory=list)
 
 
+def handed_over_now(session: store.Session, ack: Optional[dict]) -> bool:
+    """Was this item handed to the user in the current turn? One from an earlier turn was on the receipt and in the
+    summary the user saw before prompting again: it stays listed, but it isn't news about this turn."""
+    if not ack or ack.get("category") != "needs-human":
+        return False
+    return not session.turns or ack.get("at", float("inf")) >= session.turns[-1]["at"]
+
+
 def outstanding(findings: list[Finding], acks: dict[str, dict]) -> list[Finding]:
     """Findings that still stand: blocks not marked needs-human, resolves not acknowledged."""
     out = []
@@ -113,7 +121,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
 
     if not standing and not result.checks and not result.gaps:
         verdict = "not-checked"
-    elif not standing and any((find_ack(f, session.acks) or {}).get("category") == "needs-human" for f in result.findings):
+    elif not standing and any(handed_over_now(session, find_ack(f, session.acks)) for f in result.findings):
         verdict = "needs-review"      # the agent may stop, but this is not a pass
     elif not standing:
         verdict = "incomplete" if result.gaps else "passed"     # nothing wrong in what ran isn't a pass
@@ -132,7 +140,9 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     store.save_session(root, session)
 
     decision = Decision(verdict=verdict, receipt_path=path, findings=result.findings,
-                        summary=receipt_mod.summary(verdict, standing, result, path))
+                        summary=receipt_mod.summary(verdict, standing, result, path, earlier=sum(
+                            1 for f in result.findings if (a := find_ack(f, session.acks)) and a.get("category") == "needs-human"
+                            and not handed_over_now(session, a))))
     if verdict == "blocked":
         decision.block_reason = receipt_mod.agent_message(standing, last_chance=repeats + 1 >= MAX_SAME_SET_BLOCKS,
                                                             advice=result.advice)

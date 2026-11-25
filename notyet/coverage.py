@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import time
+from collections import Counter
 from pathlib import Path
 
 from notyet.findings import Finding, digests
@@ -24,8 +25,25 @@ RECORDER = "notyet_lines_core"    # lineplugin.py, imported at start-up. A modul
                                   # warns about a plugin that was already imported (an error under -W error)
 PLUGIN_SOURCE = f"""\
 import os
+import subprocess
 import time
 import {RECORDER}
+
+_here = os.path.dirname(os.path.abspath(__file__))
+_start = subprocess.Popen.__init__
+
+
+def _traced(self, *args, **kwargs):
+    # a test that gives its child process an environment (often with a PYTHONPATH) means it for the program
+    # it starts; the recorder comes along in a copy
+    env = kwargs.get("env")
+    if env is not None and isinstance(env, dict) and _here not in str(env.get("PYTHONPATH", "")):
+        path = os.pathsep.join(p for p in (_here, str(env.get("PYTHONPATH", ""))) if p)
+        kwargs["env"] = {{**env, "PYTHONPATH": path, **{{k: v for k, v in os.environ.items() if k.startswith("NOTYET_TRACE_")}}}}
+    _start(self, *args, **kwargs)
+
+
+subprocess.Popen.__init__ = _traced
 
 
 def pytest_runtest_logstart(nodeid, location):      # which test is running, for when one never finishes
@@ -138,14 +156,27 @@ def _excluded(tree: ast.AST, source: str) -> set[int]:
     return out
 
 
-def findings(sources: dict[str, str], added: dict[str, set[int]], hits: dict[str, set[int]]) -> list[Finding]:
-    """One finding per file with changed executable lines that never ran."""
+def findings(sources: dict[str, str], added: dict[str, set[int]], hits: dict[str, set[int]],
+             removed: Counter[str] | None = None) -> list[Finding]:
+    """One finding per file with changed executable lines that never ran. `removed`: the lines the session took
+    out, anywhere; one that reappears unchanged was moved, and was as untested before."""
     out = []
+    moved: Counter[str] = Counter(removed) if removed else Counter()
     for path in sorted(sources):
         lines = sorted((added.get(path, set()) & executable_lines(sources[path], path)) - hits.get(path, set()))
         if not lines:
             continue
         text = sources[path].splitlines()
+        fresh = []
+        for n in lines:
+            line = text[n - 1].strip() if n - 1 < len(text) else ""
+            if moved[line] > 0:
+                moved[line] -= 1
+            else:
+                fresh.append(n)
+        lines = fresh
+        if not lines:
+            continue
         evidence = [f"{n}: {text[n - 1].strip()[:120]}" for n in lines[:3] if n - 1 < len(text)]
         content = [text[n - 1].strip() for n in lines if n - 1 < len(text)]
         digest = hashlib.sha1("\n".join(content).encode()).hexdigest()[:10]

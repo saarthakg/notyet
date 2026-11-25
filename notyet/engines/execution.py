@@ -22,6 +22,7 @@ import os
 import tempfile
 import time
 import traceback
+from collections import Counter
 from pathlib import PurePosixPath
 
 from notyet import coverage, layout, pyimports, snapshot, store, testrun
@@ -560,7 +561,9 @@ def _coverage_findings(ctx: Context, changed_src: list[str], hits: dict[str, set
     deltas = [d for d in ctx.deltas if d.path in set(changed_src)]
     added = snapshot.added_lines(ctx.root, ctx.baseline_tree, ctx.current_tree, deltas)
     sources = {p: snapshot.show(ctx.root, ctx.current_tree, p) or "" for p in changed_src}
-    return coverage.findings(sources, added, hits)
+    gone = Counter(line[1:].strip() for line in snapshot.unified_diff(ctx.root, ctx.baseline_tree, ctx.current_tree, "*.py").splitlines()
+                   if line.startswith("-") and not line.startswith("--- "))
+    return coverage.findings(sources, added, hits, gone)
 
 
 def _report_crash(ctx: Context, command: str, batch: list[str], why: str, result: EngineResult) -> None:

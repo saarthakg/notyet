@@ -57,7 +57,8 @@ def run(ctx: Context) -> EngineResult:
     if not py_changed:
         return result
     added_lines = snapshot.added_lines(ctx.root, ctx.baseline_tree, ctx.current_tree, py_changed)
-    result.findings += _suppressions(ctx, py_changed, added_lines)
+    # in tests they mostly silence a checker about input that's wrong on purpose
+    result.findings += _suppressions(ctx, [d for d in py_changed if not ctx.layout.is_test_side(d.path)], added_lines)
 
     tools = [t for t in ("ruff", "pyright") if getattr(ctx.config, t)]
     if not tools:

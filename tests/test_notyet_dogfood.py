@@ -99,6 +99,89 @@ def test_putting_the_old_line_back_is(repo):
     assert turns(repo, FIXED, START + "\n\ndef other():\n    return 'something else'\n") == ["undone-work"]
 
 
+def test_a_constant_that_moved_and_its_import_are_not_undone(repo):
+    payload = {"cwd": str(repo), "session_id": "m"}
+    claude.handle("session-start", {**payload, "source": "startup"})
+    claude.handle("prompt", {**payload, "prompt": "a limit"})
+    _write(repo, "pkg/limits.py", "MAX_FAILED = 3\n")
+    _write(repo, "pkg/strings.py", "from pkg.limits import MAX_FAILED\n" + START)
+    claude.handle("prompt", {**payload, "prompt": "put it in config"})
+    _write(repo, "pkg/limits.py", "")
+    _write(repo, "pkg/config.py", "MAX_FAILED = 5\n")
+    _write(repo, "pkg/strings.py", START)
+    claude.handle("stop", payload)
+    assert "undone-work" not in [f["rule"] for f in store.load_session(str(repo), "m").runs[-1].result["findings"]]
+
+
+def test_lines_run_in_a_child_with_its_own_pythonpath_count(repo):
+    """The usual CLI test: subprocess.run(..., env={**os.environ, "PYTHONPATH": SRC})."""
+    _write(repo, "pkg/__main__.py", "print(1)\n")
+    _write(repo, "tests/test_cli.py", "import os\nimport subprocess\nimport sys\n\n\ndef test_cli():\n"
+           "    env = {**os.environ, 'PYTHONPATH': os.getcwd()}\n"
+           "    p = subprocess.run([sys.executable, '-m', 'pkg'], capture_output=True, text=True, env=env)\n"
+           "    assert p.returncode == 0 and 'NOTYET_TRACE_OUT' not in {}\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "cli")
+    _, result = play(repo, lambda: _write(repo, "pkg/__main__.py", "value = 2\nprint(value)\n"))
+    assert [f for f in result["findings"] if f["rule"] == "untested-change"] == []
+
+
+def test_untested_lines_that_only_moved_are_not_raised(repo):
+    body = "\n\ndef rare(x):\n    if x == 'never':\n        return 'this line was never run'\n    return x\n"
+    _write(repo, "pkg/strings.py", START + body)
+    _write(repo, "tests/test_rare.py", "from pkg.strings import rare\n\n\ndef test_rare():\n    assert rare(1) == 1\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "rare")
+
+    def change():
+        _write(repo, "pkg/strings.py", "from pkg.rare import rare  # moved\n\n\n" + START)
+        _write(repo, "pkg/rare.py", body.lstrip())
+    _, result = play(repo, change)
+    assert [f for f in result["findings"] if f["rule"] == "untested-change"] == []
+
+
+def test_suppressions_in_tests_are_not_raised(repo):
+    _, result = play(repo, lambda: _write(repo, "tests/test_bad_input.py", "from pkg.calc import add\n\n\ndef test_x():\n"
+                                                                         "    assert add('a', 'b') == 'ab'  # type: ignore\n"))
+    assert "suppression-added" not in [f["rule"] for f in result["findings"]]
+
+
+def test_a_test_setup_that_cannot_call_the_new_code_is_not_a_block(repo):
+    """An internal constructor gained an argument; conftest builds one for every test."""
+    _write(repo, "pkg/deps.py", "class Deps:\n    def __init__(self, a):\n        self.a = a\n")
+    _write(repo, "tests/conftest.py", "import pytest\n\nfrom pkg.deps import Deps\n\n\n@pytest.fixture\ndef deps():\n    return Deps(1)\n")
+    _write(repo, "tests/test_deps.py", "def test_deps(deps):\n    assert deps.a == 1\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "deps")
+
+    def change():
+        _write(repo, "pkg/deps.py", "class Deps:\n    def __init__(self, a, b):\n        self.a, self.b = a, b\n")
+        _write(repo, "tests/conftest.py", (repo / "tests/conftest.py").read_text().replace("Deps(1)", "Deps(1, 2)"))
+    _, result = play(repo, change)
+    assert [f["severity"] for f in result["findings"] if f["rule"] == "test-changed-to-pass"] == ["resolve"]
+
+
+def test_a_hand_over_is_this_turns_news_only_once(repo):
+    root, payload = str(repo), {"cwd": str(repo), "session_id": "h"}
+    claude.handle("session-start", {**payload, "source": "startup"})
+    claude.handle("prompt", {**payload, "prompt": "reverse sub"})
+    _write(repo, "pkg/calc.py", "def add(a, b):\n    return a + b\n\n\ndef sub(a, b):\n    return b - a\n")
+    _write(repo, "tests/test_calc.py", (repo / "tests/test_calc.py").read_text().replace("sub(3, 1) == 2", "sub(3, 1) == -2"))
+    assert claude.handle("stop", payload)["decision"] == "block"
+    session = store.load_session(root, "h")
+    fid = session.runs[-1].finding_ids[0]
+    session.acks[fid] = {"category": "needs-human", "reason": "asked for", "at": session.turns[-1]["at"] + 1}
+    store.save_session(root, session)
+    assert "NEEDS YOUR REVIEW" in claude.handle("stop", payload)["systemMessage"]
+    claude.handle("prompt", {**payload, "prompt": "now something unrelated"})
+    session = store.load_session(root, "h")
+    session.turns[-1]["at"] += 5
+    store.save_session(root, session)
+    _write(repo, "pkg/strings.py", "def shout(s):\n    return s.upper()  # louder\n")
+    message = claude.handle("stop", payload)["systemMessage"]
+    assert message.startswith("notyet: PASSED") and "1 item(s) handed to you earlier" in message
+
+
 def test_the_receipt_says_where_the_time_went(repo):
     session, result = play(repo, lambda: _write(repo, "pkg/calc.py", "def add(a, b):\n    return a + b + 1\n"))
     assert result["timings"]["tests"] > 0 and "failures vs session start" in result["timings"]

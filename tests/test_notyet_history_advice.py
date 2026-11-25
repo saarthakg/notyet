@@ -16,7 +16,8 @@ def check(repo):
     return advice.run(ctx)
 
 
-def test_a_usual_companion_left_untouched_is_mentioned(repo):
+def test_a_usual_companion_left_untouched_is_mentioned(repo, monkeypatch):
+    monkeypatch.setattr(advice, "MIN_HISTORY", 3)
     _write(repo, "CHANGES.md", "")
     for i in range(4):   # calc.py and CHANGES.md change together 4 times; strings.py once
         _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + f"\n# v{i}\n")
@@ -33,6 +34,16 @@ def test_a_usual_companion_left_untouched_is_mentioned(repo):
     assert result.findings == []
 
     _write(repo, "CHANGES.md", (repo / "CHANGES.md").read_text() + "- now\n")   # touched: nothing to say
+    assert check(repo).advice == []
+
+
+def test_a_short_history_gives_no_advice(repo):
+    for i in range(6):
+        _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + f"\n# v{i}\n")
+        _write(repo, "CHANGES.md", f"- change {i}\n")
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-qm", f"change {i}")
+    _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + "\n# now\n")
     assert check(repo).advice == []
 
 

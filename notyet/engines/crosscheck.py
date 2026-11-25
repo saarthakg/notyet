@@ -291,15 +291,18 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
             _disabled(fn, fn, True, [], result)
             tally["switched off"] += 1
     if by_support:
+        # a setup that can't construct or import something any more says names moved, not that behavior did
+        calls = all(_cannot_call(_evidence(old.results, fails.get(fn), fn)) for fn in by_support)
         shown = ", ".join(side.infra[:4]) + (" …" if len(side.infra) > 4 else "")
         result.findings.append(Finding(
-            rule="test-changed-to-pass", severity="block" if not why else "resolve",
+            rule="test-changed-to-pass", severity="block" if not why and not calls else "resolve",
             location=by_support[0] if len(by_support) == 1 else side.infra[0],
             key="support|" + "|".join(by_support[:50]),
             title=f"{len(by_support)} test(s) pass only with this session's changes to {shown}; with the session-start "
-                  f"test setup they fail on the new code",
+                  f"test setup they " + ("can't call the new code (names or signatures changed)" if calls else "fail on the new code"),
             evidence=[f"{fn}: {(_evidence(old.results, fails.get(fn), fn) or [''])[0][:140]}" for fn in by_support[:3]],
-            action="Fix the code so they pass with the original setup. If the behavior change was asked for, hand it "
+            action="If the old way of calling it was meant to keep working, restore it; otherwise acknowledge the change."
+            if calls else "Fix the code so they pass with the original setup. If the behavior change was asked for, hand it "
                    "to the user: `ack <id> --needs-human \"the change that was requested\"`."))
     if tally:
         result.checks.append(
@@ -312,8 +315,11 @@ _CALL_ERROR = re.compile(r"^(TypeError: .*(positional argument|keyword argument|
                          r"|AttributeError: .*has no attribute|ImportError|ModuleNotFoundError|NameError: name)")
 
 
+_AT_SETUP = re.compile(r'^failed on (?:setup|teardown) with "')
+
+
 def _cannot_call(evidence: list[str]) -> bool:
-    return bool(evidence) and bool(_CALL_ERROR.match(evidence[0]))
+    return bool(evidence) and bool(_CALL_ERROR.match(_AT_SETUP.sub("", evidence[0])))
 
 
 def _lost_constants(ctx: Context, then: str, now: str | None, name: str) -> bool:
