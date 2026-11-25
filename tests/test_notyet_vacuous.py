@@ -123,7 +123,14 @@ def test_the_session_start_run_is_cached(repo, monkeypatch):
     first = check(repo)
     calls = []
     real = snapshot.materialize
-    monkeypatch.setattr(snapshot, "materialize", lambda *a: calls.append(a) or real(*a))
+    base = snapshot.head_tree(str(repo))
+
+    def spy(root, tree, dest, paths=None):
+        if tree == base and paths is None:      # a checkout of the session-start tree
+            calls.append(dest)
+        return real(root, tree, dest, paths)
+
+    monkeypatch.setattr(snapshot, "materialize", spy)
     _write(repo, "pkg/calc.py", FIXED_SUB + "\n# same fix\n")
     assert rules(check(repo)) == rules(first) and calls == []
 

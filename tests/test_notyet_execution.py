@@ -22,11 +22,17 @@ def check(repo, baseline_tree=None):
     return execution.run(ctx)
 
 
+def _no_widening(repo):
+    _write(repo, ".notyet.toml", (repo / ".notyet.toml").read_text().replace("budget_seconds", "widen_seconds = 0\nbudget_seconds"))
+    _git(repo, "commit", "-qam", "only selected tests")
+
+
 def rules(result):
     return sorted((f.rule, f.severity, f.location) for f in result.findings)
 
 
 def test_a_regression_blocks_and_only_relevant_tests_run(repo):
+    _no_widening(repo)
     _write(repo, "pkg/calc.py", "def add(a, b):\n    return a + b + 1\n\n\ndef sub(a, b):\n    return a - b\n")
     result = check(repo)
     assert rules(result) == [("test-regression", "block", "tests/test_calc.py::test_add"),
@@ -60,9 +66,16 @@ def test_flaky_failure_is_a_note(repo):
     assert rules(check(repo)) == [("test-flaky", "note", "tests/test_flaky.py::test_sometimes")]
 
 
-def test_removed_test_blocks(repo):
+def test_removed_test_is_fix_or_justify_when_it_would_still_pass(repo):
     _write(repo, "tests/test_calc.py", "from pkg.calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n")
-    assert rules(check(repo)) == [("test-removed", "block", "tests/test_calc.py::test_sub")]
+    """The removed test would still pass, so nothing broken is hidden: fix or justify."""
+    assert rules(check(repo)) == [("test-removed", "resolve", "tests/test_calc.py::test_sub")]
+
+
+def test_removing_the_test_that_shows_the_bug_blocks(repo):
+    _write(repo, "pkg/calc.py", "def add(a, b):\n    return a + b\n\n\ndef sub(a, b):\n    return b - a\n")
+    _write(repo, "tests/test_calc.py", "from pkg.calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n")
+    assert ("test-removed", "block", "tests/test_calc.py::test_sub") in rules(check(repo))
 
 
 def test_deleting_or_renaming_a_test_file_is_a_removal(repo):
@@ -70,8 +83,8 @@ def test_deleting_or_renaming_a_test_file_is_a_removal(repo):
     (repo / "tests/test_calc.py").rename(repo / "tests/test_arith.py")
     _write(repo, "tests/test_arith.py", "from pkg.calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n")
     assert [r for r in rules(check(repo)) if r[0] == "test-removed"] == [
-        ("test-removed", "block", "tests/test_calc.py::test_sub"),
-        ("test-removed", "block", "tests/test_strings.py::test_shout")]
+        ("test-removed", "resolve", "tests/test_calc.py::test_sub"),
+        ("test-removed", "resolve", "tests/test_strings.py::test_shout")]
 
 
 def test_added_test_that_pytest_never_collects(repo):
@@ -91,6 +104,7 @@ def test_docs_only_changes_run_nothing(repo):
 
 
 def test_no_relevant_tests_is_reported_not_passed(repo):
+    _no_widening(repo)
     _write(repo, "pkg/orphan.py", "def lonely():\n    return 1\n")
     result = check(repo)
     assert result.checks == [] and any("no tests exercise" in n for n in result.not_checked)
@@ -302,7 +316,7 @@ def test_harmless_config_change_is_quiet(repo):
     _write(repo, "pytest.ini", "[pytest]\nmarkers =\n    slow: slow tests\n")
     _write(repo, "pkg/calc.py", "def add(a, b):\n    return b + a\n\n\ndef sub(a, b):\n    return a - b\n")
     result = check(repo)
-    assert result.findings == [] and any("test collection compared" in c for c in result.checks)
+    assert result.findings == [] and any("session-start tests on the new code" in c for c in result.checks)
 
 
 def test_a_test_file_that_stops_importing_blocks_and_others_still_run(repo):
@@ -311,7 +325,7 @@ def test_a_test_file_that_stops_importing_blocks_and_others_still_run(repo):
     blocks = [(f.rule, f.location) for f in result.findings if f.severity == "block"]
     assert blocks == [("test-regression", "tests/test_calc.py")]
     assert "can't be collected now, so none of its 2 test(s) run" in result.findings[0].title
-    assert "1 passed" in result.checks[0]                                     # test_shapes still ran
+    assert "(2 passed, 1 failed" in result.checks[0]             # test_shapes and test_strings still ran
 
 
 def test_a_collection_error_that_existed_at_session_start_is_a_note(repo):
@@ -329,7 +343,7 @@ def test_session_start_results_are_reused_by_later_checks(repo, monkeypatch):
     first = check(repo)
     calls = []
     real = snapshot.materialize
-    monkeypatch.setattr(snapshot, "materialize", lambda *a: calls.append(a) or real(*a))
+    monkeypatch.setattr(snapshot, "materialize", lambda *a, **k: calls.append(a) or real(*a, **k))
     _write(repo, "pkg/calc.py", BROKEN_ADD + "\n# still broken\n")
     second = check(repo)
     assert rules(second) == rules(first) and {r for r, _, _ in rules(second)} == {"test-regression"}
@@ -356,4 +370,4 @@ def test_a_venv_that_cannot_import_the_project_is_not_blamed_on_the_session(repo
     _write(repo, "src/pkg/calc.py", (repo / "src/pkg/calc.py").read_text() + "\n# a comment\n")
     result = check(repo)
     assert [r for r in rules(result) if r[1] == "block"] == []
-    assert "3 passed" in result.checks[0]
+    assert "4 passed" in result.checks[0]

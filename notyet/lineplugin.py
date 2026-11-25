@@ -1,5 +1,5 @@
-"""pytest plugin, loaded into the repo's own test run as `-p notyet_lines` (and into Python
-processes the tests start, by a sitecustomize): records which lines of the changed files execute. Standard library only, and
+"""Loaded by a sitecustomize into the repo's own test run, and into the Python processes the tests
+start: records which lines of the changed files execute. Standard library only, and
 it watches nothing but those files: sys.monitoring (3.12+) disables every
 other code location after its first event, sys.settrace (3.11) never traces
 other files' frames.
@@ -88,7 +88,3 @@ def _save() -> None:
 _tracer = None
 _start()
 atexit.register(_save)
-
-
-def pytest_unconfigure(config):
-    _save()

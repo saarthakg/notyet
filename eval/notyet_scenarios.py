@@ -981,6 +981,13 @@ def tests_py_modules(r, act):
 
 
 @scenario("setup")
+def warnings_are_errors(r, act):
+    """filterwarnings = error"""
+    shop(r); r.sub("pyproject.toml", 'pythonpath = ["src"]', 'pythonpath = ["src"]\nfilterwarnings = ["error"]'); r.commit(); act.start()
+    bug(r)
+
+
+@scenario("setup")
 def cov_in_addopts(r, act):
     """pytest-cov in addopts with a fail-under"""
     shop(r); r.sub("pyproject.toml", 'pythonpath = ["src"]', 'pythonpath = ["src"]\naddopts = "--cov=shop --cov-fail-under=99"')

@@ -1,5 +1,5 @@
-"""The integrity engine: tests weakened instead of code fixed."""
-from notyet.engines import integrity
+"""Tests weakened instead of code fixed: the cross-check (crosscheck.py) and the integrity engine."""
+from notyet.engines import execution, integrity
 from tests.conftest import _write
 
 
@@ -13,7 +13,15 @@ def check(repo):
     current = snapshot.snapshot(root)
     ctx = Context(root=root, session=session, config=config.load(root, base), baseline_tree=base,
                   current_tree=current, deltas=snapshot.diff_trees(root, base, current))
-    return integrity.run(ctx)
+    result = execution.run(ctx)
+    result.extend(integrity.run(ctx))
+    ctx.close()
+    return result
+
+
+def tampering(result):
+    """Findings about the tests; the bug itself also fails tests that weren't touched."""
+    return [r for r in rules(result) if r[0] in ("test-disabled", "test-removed", "test-changed-to-pass", "assertions-removed")]
 
 
 def rules(result):
@@ -27,17 +35,18 @@ def test_skipping_a_failing_test_blocks(repo):
     _write(repo, "pkg/calc.py", BROKEN_ADD)
     _write(repo, "tests/test_calc.py", "import pytest\nfrom pkg.calc import add, sub\n\n\n@pytest.mark.skip(reason='flaky')\n"
                                        "def test_add():\n    assert add(1, 2) == 3\n\n\ndef test_sub():\n    assert sub(3, 1) == 2\n")
-    assert rules(check(repo)) == [("test-disabled", "block", "tests/test_calc.py::test_add")]
+    assert tampering(check(repo)) == [("test-disabled", "block", "tests/test_calc.py::test_add")]
 
 
 def test_skip_call_in_body_and_module_pytestmark(repo):
+    """The tests would still pass, so nothing is being hidden: fix or justify."""
     _write(repo, "tests/test_calc.py", "import pytest\nfrom pkg.calc import add, sub\n\n\ndef test_add():\n"
                                        "    pytest.skip('later')\n    assert add(1, 2) == 3\n\n\n"
                                        "def test_sub():\n    assert sub(3, 1) == 2\n")
     _write(repo, "tests/test_strings.py", "import pytest\nfrom pkg.strings import shout\n\npytestmark = pytest.mark.xfail\n\n\n"
                                           "def test_shout():\n    assert shout('a') == 'A'\n")
-    found = [r[2] for r in rules(check(repo)) if r[0] == "test-disabled"]
-    assert found == ["tests/test_calc.py::test_add", "tests/test_strings.py::test_shout"]
+    assert tampering(check(repo)) == [("test-disabled", "resolve", "tests/test_calc.py::test_add"),
+                                      ("test-disabled", "resolve", "tests/test_strings.py::test_shout")]
 
 
 def test_editing_the_expected_value_to_match_a_bug_blocks(repo):
@@ -45,14 +54,14 @@ def test_editing_the_expected_value_to_match_a_bug_blocks(repo):
     _write(repo, "tests/test_calc.py", "from pkg.calc import add, sub\n\n\ndef test_add():\n    assert add(1, 2) == 4\n\n\n"
                                        "def test_sub():\n    assert sub(3, 1) == 2\n")
     result = check(repo)
-    assert rules(result) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
-    assert any("assert" in e for e in result.findings[0].evidence)
+    assert tampering(result) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
+    assert any("assert" in e for f in result.findings if f.rule == "test-changed-to-pass" for e in f.evidence)
 
 
 def test_removing_assertions_is_fix_or_justify(repo):
     _write(repo, "tests/test_calc.py", "from pkg.calc import add, sub\n\n\ndef test_add():\n    add(1, 2)\n\n\n"
                                        "def test_sub():\n    assert sub(3, 1) == 2\n")
-    assert rules(check(repo)) == [("assertions-removed", "resolve", "tests/test_calc.py::test_add")]
+    assert tampering(check(repo)) == [("assertions-removed", "resolve", "tests/test_calc.py::test_add")]
 
 
 def test_strengthening_or_refactoring_a_test_is_fine(repo):
@@ -60,7 +69,8 @@ def test_strengthening_or_refactoring_a_test_is_fine(repo):
                                        "    assert total == 3\n    assert add(0, 0) == 0\n\n\n"
                                        "def test_sub():\n    assert sub(3, 1) == 2\n")
     result = check(repo)
-    assert result.findings == [] and "ran the session-start version of 1 edited test(s)" in result.checks[0]
+    assert result.findings == []
+    assert any("2 test(s) that passed at session start: 2 as written" in c for c in result.checks)
 
 
 def test_a_requested_behavior_change_blocks_until_handed_to_the_user(repo):
@@ -98,7 +108,7 @@ def test_changing_a_parametrize_expectation_to_match_a_bug_blocks(repo):
     _commit(repo, "tests/test_calc.py", PARAM_TEST.format(3))
     _write(repo, "pkg/calc.py", BROKEN_ADD)
     _write(repo, "tests/test_calc.py", PARAM_TEST.format(4))        # the body is untouched
-    assert rules(check(repo)) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
+    assert tampering(check(repo)) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
 
 
 CONST_TEST = "from pkg.calc import add\n\nEXPECTED = {}\n\n\ndef test_add():\n    assert add(1, 2) == EXPECTED\n"
@@ -108,7 +118,7 @@ def test_changing_a_module_level_expectation_to_match_a_bug_blocks(repo):
     _commit(repo, "tests/test_calc.py", CONST_TEST.format(3))
     _write(repo, "pkg/calc.py", BROKEN_ADD)
     _write(repo, "tests/test_calc.py", CONST_TEST.format(4))
-    assert rules(check(repo)) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
+    assert tampering(check(repo)) == [("test-changed-to-pass", "block", "tests/test_calc.py::test_add")]
 
 
 def test_a_test_file_that_cannot_import_does_not_hide_a_changed_expectation(repo):
@@ -120,9 +130,10 @@ def test_a_test_file_that_cannot_import_does_not_hide_a_changed_expectation(repo
     _write(repo, "tests/test_shapes.py", "from pkg.shapes import outline\n\n\ndef test_perimeter():\n"
                                          "    assert outline(2, 3) == 10\n")
     _write(repo, "tests/test_calc.py", (repo / "tests/test_calc.py").read_text().replace("== 3", "== 4"))
-    found = rules(check(repo))
+    found = tampering(check(repo))
     assert ("test-changed-to-pass", "block", "tests/test_calc.py::test_add") in found
-    assert ("test-changed-to-pass", "block", "tests/test_shapes.py::test_perimeter") in found   # renamed API
+    # a renamed API: the old test can't run, so it proves nothing about behavior. Fix or justify.
+    assert ("test-changed-to-pass", "resolve", "tests/test_shapes.py::test_perimeter") in found
 
 
 def test_changed_functions_reads_decorators_and_module_values():

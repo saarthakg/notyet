@@ -17,7 +17,16 @@ from pathlib import Path
 
 from notyet.findings import Finding
 
-PLUGIN = "notyet_lines"
+PLUGIN = "notyet_lines"          # what pytest loads with -p: it saves when the run ends
+RECORDER = "notyet_lines_core"    # lineplugin.py, imported at start-up. A module of its own, because pytest
+                                  # warns about a plugin that was already imported (an error under -W error)
+PLUGIN_SOURCE = f"""\
+import {RECORDER}
+
+
+def pytest_unconfigure(config):
+    {RECORDER}._save()
+"""
 
 
 # Watches the changed files in every Python the tests start (a CLI run as a subprocess, an xdist worker),
@@ -26,7 +35,7 @@ SITECUSTOMIZE = f"""\
 import importlib.machinery, importlib.util, os, sys
 _here = os.path.dirname(os.path.abspath(__file__))
 try:
-    import {PLUGIN}
+    import {RECORDER}
 except Exception:
     pass
 _spec = importlib.machinery.PathFinder.find_spec("sitecustomize", [p for p in sys.path if os.path.abspath(p or ".") != _here])
@@ -37,7 +46,9 @@ if _spec is not None and _spec.loader is not None:
 
 def setup(tmp: str, root: str, files: list[str]) -> tuple[dict, str]:
     """(env for the test run, path of the JSON it writes)."""
-    shutil.copy(Path(__file__).with_name("lineplugin.py"), os.path.join(tmp, f"{PLUGIN}.py"))
+    shutil.copy(Path(__file__).with_name("lineplugin.py"), os.path.join(tmp, f"{RECORDER}.py"))
+    with open(os.path.join(tmp, f"{PLUGIN}.py"), "w") as f:
+        f.write(PLUGIN_SOURCE)
     with open(os.path.join(tmp, "sitecustomize.py"), "w") as f:     # child processes the tests start
         f.write(SITECUSTOMIZE)
     out = os.path.join(tmp, "lines.json")
