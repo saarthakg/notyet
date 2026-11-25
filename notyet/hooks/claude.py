@@ -24,7 +24,9 @@ from typing import Optional
 from notyet import gate, moves, snapshot, store
 
 EVENTS = {"session-start": "SessionStart", "prompt": "UserPromptSubmit", "stop": "Stop"}
-MARKER = " -m notyet hook claude "
+NAME = "Claude Code"
+AFTER_INSTALL = ""
+MARKER = " -m notyet hook "
 
 
 def handle(event: str, payload: dict) -> Optional[dict]:
@@ -126,11 +128,11 @@ def settings_path(root: str, scope: str) -> Path:
     raise ValueError(f"scope must be project, local or user, not {scope!r}")
 
 
-def hook_command(event: str) -> str:
-    return f"{shlex.quote(sys.executable)}{MARKER}{event}"
+def hook_command(event: str, agent: str = "claude") -> str:
+    return f"{shlex.quote(sys.executable)}{MARKER}{agent} {event}"
 
 
-def merged_settings(existing: dict, stop_timeout: int) -> dict:
+def merged_settings(existing: dict, stop_timeout: int, agent: str = "claude") -> dict:
     """`existing` with notyet's hooks replacing any earlier notyet hooks."""
     settings = json.loads(json.dumps(existing))  # deep copy
     hooks = settings.setdefault("hooks", {})
@@ -139,7 +141,7 @@ def merged_settings(existing: dict, stop_timeout: int) -> dict:
                   if not any(MARKER in h.get("command", "") for h in g.get("hooks", []))]
         groups.append({"hooks": [{
             "type": "command",
-            "command": hook_command(event),
+            "command": hook_command(event, agent),
             "timeout": stop_timeout if event == "stop" else 60,
         }]})
         hooks[host_event] = groups
@@ -147,10 +149,13 @@ def merged_settings(existing: dict, stop_timeout: int) -> dict:
 
 
 def install(root: str, scope: str, stop_timeout: int, confirm) -> tuple[Path, bool]:
+    return write_hooks(settings_path(root, scope), "claude", stop_timeout, confirm)
+
+
+def write_hooks(path: Path, agent: str, stop_timeout: int, confirm) -> tuple[Path, bool]:
     """Show the settings change and write it if `confirm(diff_text)` says yes."""
-    path = settings_path(root, scope)
     before = json.loads(path.read_text()) if path.exists() else {}
-    after = merged_settings(before, stop_timeout)
+    after = merged_settings(before, stop_timeout, agent)
     old_text = json.dumps(before, indent=2) + "\n" if before else ""
     new_text = json.dumps(after, indent=2) + "\n"
     if old_text == new_text:
