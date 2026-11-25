@@ -76,7 +76,8 @@ def select_tests(ctx: Context, graph: pyimports.ImportGraph) -> tuple[list[tuple
     other = [p for p in [d.path for d in changed] + gone if not p.endswith(".py") and not _is_doc(ctx, p)]
     users: set[str] = set()
     if other:
-        names = {PurePosixPath(o).name: o for o in other}
+        # a name with no extension (scripts/notyet) is a word that can be anywhere: look for its path
+        names = {PurePosixPath(o).name if "." in PurePosixPath(o).name.lstrip(".") else o: o for o in other}
         for rel in graph.blobs:
             try:
                 with open(os.path.join(ctx.root, rel), encoding="utf-8", errors="replace") as f:
@@ -267,6 +268,8 @@ def run(ctx: Context) -> EngineResult:
     if stuck[0]:
         result.findings += _hang(ctx, command, *stuck)
 
+    result.timings["tests"] = time.monotonic() - started
+    mark = time.monotonic()
     failing = current.failures
     flaky: list[str] = []
     alone = testrun.Run()
@@ -323,6 +326,7 @@ def run(ctx: Context) -> EngineResult:
     if failing and ctx.shared.get("left_out"):
         result.not_checked.append("the session-start checkout lacks ignored files too large to copy "
                                   f"({', '.join(ctx.shared['left_out'][:3])}), so failures there prove nothing")
+    result.timings["failures vs session start"] = time.monotonic() - mark
     unverified: list[testrun.TestResult] = []
     regressions: list[Finding] = []
     before_too: list[Finding] = []
@@ -424,6 +428,7 @@ def run(ctx: Context) -> EngineResult:
 
     # ── the session-start tests on the new code; the new tests on the session-start code ─
     from notyet.engines import crosscheck, vacuous
+    mark = time.monotonic()
     try:
         if ctx.time_left() > 30:
             crosscheck.run(ctx, command, current, set(skipped_files), [t for t, _, _ in tests], result)
@@ -432,6 +437,8 @@ def run(ctx: Context) -> EngineResult:
     except Exception as e:      # what was found so far still counts
         store.log_error(ctx.root, f"cross-check: {e}\n{traceback.format_exc()}")
         result.gaps.append(f"session-start tests NOT run on the new code: internal error ({e})")
+    result.timings["old tests on new code"] = time.monotonic() - mark
+    mark = time.monotonic()
     try:
         if changed_tests and not skipped_files and ctx.time_left() > 30:
             vacuous.check(ctx, command, current.results, result)
@@ -439,6 +446,7 @@ def run(ctx: Context) -> EngineResult:
         store.log_error(ctx.root, f"vacuous: {e}\n{traceback.format_exc()}")
         result.not_checked.append(f"new tests against the session-start code: internal error ({e})")
 
+    result.timings["new tests on old code"] = time.monotonic() - mark
     passed = sum(1 for r in current.results.values() if r.outcome == "passed")
     bad = sum(1 for r in current.results.values() if r.bad)
     skipped = sum(1 for r in current.results.values() if r.outcome == "skipped")
@@ -446,7 +454,7 @@ def run(ctx: Context) -> EngineResult:
     scope = "the whole suite" if set(others) <= set(widened) and not skipped_files else \
         f"{len(ran_files)} of {len(all_tests)} test files"
     result.checks.insert(0, f"tests: ran {len(current.results)} test(s) in {len(ran_files)} file(s), {scope} "
-                         f"({passed} passed, {bad} failed, {skipped} skipped) in {time.monotonic() - started:.0f}s"
+                         f"({passed} passed, {bad} failed, {skipped} skipped) in {result.timings['tests']:.0f}s"
                          + (f"; selected because: {', '.join(why)}" if why else "")
                          + (f"; plus {len(widened)} other file(s) while time allowed" if widened and why else ""))
     if baseline_ok:

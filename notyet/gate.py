@@ -60,12 +60,16 @@ def run_engines(ctx: Context, engines: Optional[list[Engine]] = None) -> EngineR
             name = getattr(engine, "__module__", "engine").rsplit(".", 1)[-1]
             result.not_checked.append(f"{name}: skipped; the check used its {ctx.config.check_seconds}s limit")
             continue
+        started = time.monotonic()
         try:
             result.extend(engine(ctx))
         except Exception as e:  # an engine failure is reported, never fatal
             name = getattr(engine, "__module__", "engine").rsplit(".", 1)[-1]
             store.log_error(ctx.root, f"{name}: {e}\n{traceback.format_exc()}")
             result.gaps.append(f"the {name} check failed: {e}")
+        name = getattr(engine, "__module__", "engine").rsplit(".", 1)[-1]
+        if name != "execution":      # times its own parts
+            result.timings[name] = result.timings.get(name, 0.0) + time.monotonic() - started
     for f in result.findings:       # text from the repo can hold bytes that aren't UTF-8
         f.title, f.location, f.evidence = printable(f.title), printable(f.location), [printable(e) for e in f.evidence]
     return result
@@ -164,10 +168,11 @@ def _same_set_streak(session: store.Session, ids: list[str]) -> int:
 
 def _result_to(result: EngineResult) -> dict:
     return {"findings": [asdict(f) for f in result.findings], "checks": result.checks,
-            "not_checked": result.not_checked, "advice": result.advice, "gaps": result.gaps}
+            "not_checked": result.not_checked, "advice": result.advice, "gaps": result.gaps,
+            "timings": {k: round(v, 1) for k, v in result.timings.items()}}
 
 
 def _result_from(data: dict) -> EngineResult:
     return EngineResult(findings=[Finding(**f) for f in data.get("findings", [])],
                         checks=data.get("checks", []), not_checked=data.get("not_checked", []),
-                        advice=data.get("advice", []), gaps=data.get("gaps", []))
+                        advice=data.get("advice", []), gaps=data.get("gaps", []), timings=data.get("timings", {}))

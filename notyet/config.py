@@ -22,7 +22,8 @@ TEMPLATE = """\
 # How to run this repo's tests. notyet adds its own flags (test selection,
 # junit output), so this must be a pytest invocation for now.
 command = "{command}"
-# Seconds the gate may spend running tests at each check.
+# Seconds for running the tests at each check. The whole check, with the comparisons against
+# session start, takes at most twice that plus two minutes; usually far less.
 budget_seconds = 60
 # Of those, seconds for tests beyond the ones that use the changed code (0: never).
 widen_seconds = 20
@@ -63,8 +64,8 @@ class Config:
 
     @property
     def check_seconds(self) -> int:
-        """Upper bound for one whole check: tests, session-start comparison, the other engines."""
-        return self.budget_seconds * 4 + self.static_budget_seconds + 60
+        """Upper bound for one whole check: the tests, their comparison with session start, the other engines."""
+        return self.budget_seconds * 2 + self.static_budget_seconds + 60
 
     @property
     def hook_timeout(self) -> int:

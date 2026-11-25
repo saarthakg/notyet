@@ -96,6 +96,9 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
         lines.append("")
 
     lines += ["## Checks run", ""] + ([f"- {c}" for c in result.checks] or ["- none"]) + [""]
+    slow = sorted(((s, part) for part, s in result.timings.items() if s >= 1), reverse=True)
+    if slow:
+        lines += ["Time: " + ", ".join(f"{part} {s:.0f}s" for s, part in slow), ""]
     lines += ["## Not checked", ""] + ([f"- {c}" for c in result.not_checked] or ["- nothing left out"]) + [""]
     for m in session.moves:
         what = f"{m['commits']} commit(s) that arrived during the session (up to {m['head'][:8]})" if m["commits"] else \
