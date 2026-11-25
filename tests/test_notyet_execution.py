@@ -340,7 +340,8 @@ def test_a_collection_error_that_existed_at_session_start_is_a_note(repo):
 
 def test_session_start_results_are_reused_by_later_checks(repo, monkeypatch):
     _write(repo, "pkg/calc.py", BROKEN_ADD)
-    first = check(repo)
+    check(repo)
+    first = check(repo)         # by now it knows how long the suite takes, and runs it in one go
     calls = []
     real = snapshot.materialize
     monkeypatch.setattr(snapshot, "materialize", lambda *a, **k: calls.append(a) or real(*a, **k))

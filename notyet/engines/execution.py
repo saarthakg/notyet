@@ -46,6 +46,12 @@ def source_path_env(root: str, env: dict | None = None) -> dict:
     return env
 
 
+def _is_doc(ctx: Context, path: str) -> bool:
+    """Documentation, as opposed to a text file the code or the tests read (a template, a golden file)."""
+    lay = ctx.layout
+    return path.endswith(DOC_SUFFIXES) and not lay.is_test_side(path) and not lay.in_package(path)
+
+
 def select_tests(ctx: Context, graph: pyimports.ImportGraph) -> tuple[list[tuple[str, int, str]], list[str]]:
     """[(test file, priority, why)] and notes about the selection."""
     notes: list[str] = []
@@ -62,7 +68,7 @@ def select_tests(ctx: Context, graph: pyimports.ImportGraph) -> tuple[list[tuple
     gone = [p for d in ctx.deltas for p in [d.path if d.status == "D" else d.old_path] if p]
 
     # data, templates, config: whatever names the file is using it
-    other = [p for p in [d.path for d in changed] + gone if not p.endswith(".py") and not p.endswith(DOC_SUFFIXES)]
+    other = [p for p in [d.path for d in changed] + gone if not p.endswith(".py") and not _is_doc(ctx, p)]
     users: set[str] = set()
     if other:
         names = {PurePosixPath(o).name: o for o in other}
@@ -77,8 +83,11 @@ def select_tests(ctx: Context, graph: pyimports.ImportGraph) -> tuple[list[tuple
                     pick(rel, 1, f"mentions {name}")
                     users.add(rel)
 
+        for o in other:       # package data can be read without being named ("templates/" + name)
+            users.update(p for p in lay.in_package(o) if p in graph.blobs)
+
     for d in changed:
-        if lay.is_test_module(d.path):
+        if lay.is_test_module(d.path) or d.path in lay.doctests:
             pick(d.path, 0, "changed test")
     for path, depth in graph.importers(changed_src + sorted(users)).items():
         pick(path, depth, "imports a changed module" if depth == 1 else f"imports a changed module ({depth} steps)")
@@ -141,7 +150,7 @@ def run(ctx: Context) -> EngineResult:
     if not cfg.test_command:
         result.not_checked.append("tests: no test command configured (run `notyet init`)")
         return result
-    if all(d.path.endswith(DOC_SUFFIXES) for d in ctx.deltas):
+    if all(_is_doc(ctx, d.path) for d in ctx.deltas):
         result.checks.append("tests: not needed; only documentation changed")
         return result
 
@@ -160,6 +169,7 @@ def run(ctx: Context) -> EngineResult:
     crashed: list[tuple[list[str], str]] = []
     ran_nothing: set[str] = set()
     widened: list[str] = []
+    batches_run: list[list[str]] = []
     times = _Durations(ctx.root)
     with tempfile.TemporaryDirectory(prefix="notyet-lines-") as trace_dir:
         env, trace_out = coverage.setup(trace_dir, ctx.root, changed_src)
@@ -170,13 +180,18 @@ def run(ctx: Context) -> EngineResult:
             run_ = testrun.run_pytest(command, ctx.root, batch, timeout=timeout, env=env, extra=["-p", coverage.PLUGIN])
             if not run_.crashed:
                 current.results.update(run_.results)
+                batches_run.append(batch)
                 times.record(batch, run_)
                 if not run_.timed_out:
                     seen = {n.split("::")[0] for n in run_.results}
                     ran_nothing.update(f for f in batch if f not in seen)
             return run_
 
-        for batch in _batches(tests):
+        selected_batches = _batches(tests)
+        if tests and others and times.all_known(all_tests) and times.total(all_tests) <= min(cfg.widen_seconds, cfg.budget_seconds) * 0.7:
+            # the whole suite is quick: one run, in its usual order, which is how it's meant to pass
+            selected_batches, widened, others = [sorted(all_tests)], others, []
+        for batch in selected_batches:
             remaining = cfg.budget_seconds - (time.monotonic() - started)
             if remaining <= 1:
                 skipped_files += batch
@@ -184,6 +199,7 @@ def run(ctx: Context) -> EngineResult:
             run_ = run_batch(batch, remaining)
             if run_.crashed:
                 crashed.append((batch, run_.crashed))
+                widened = [w for w in widened if w not in batch]
             elif run_.timed_out:
                 skipped_files += [f for f in batch if not any(n.startswith(f + "::") for n in run_.results)]
                 stuck = max(stuck, coverage.running(trace_out), key=lambda s: s[1])
@@ -241,27 +257,45 @@ def run(ctx: Context) -> EngineResult:
 
     failing = current.failures
     flaky: list[str] = []
-    if failing:  # re-run failures once: a pass means flaky, not broken
-        rerun = testrun.run_pytest(command, ctx.root, [f.nodeid for f in failing], env=source_path_env(ctx.root),
+    alone = testrun.Run()
+    if failing:  # re-run failures by themselves
+        alone = testrun.run_pytest(command, ctx.root, [f.nodeid for f in failing], env=source_path_env(ctx.root),
                                    timeout=max(30, cfg.budget_seconds / 2))
-        for f in list(failing):
-            again = rerun.results.get(f.nodeid)
-            if again is not None and not again.bad:
-                flaky.append(f.nodeid)
-                current.results[f.nodeid] = again
-        failing = [f for f in failing if f.nodeid not in flaky]
 
-    # ── compare with session start ───────────────────────────────────────────
+    # ── compare with session start: the same files, in the same order, on that tree ─
     changed_tests = [d.path for d in ctx.deltas if d.status != "D" and lay.is_test_module(d.path)]
     baseline: dict[str, testrun.TestResult] = {}
     baseline_collected: dict[str, set[str]] = {}
     baseline_errors: set[str] = set()
     baseline_ok = False
     if failing:
-        baseline_ok, baseline_note, baseline, baseline_collected, baseline_errors = _baseline(
-            ctx, [f.nodeid for f in failing], [])
+        baseline_ok, baseline_note = True, ""
+        for batch in batches_run:
+            mine = [f.nodeid for f in failing if f.nodeid.split("::")[0] in batch]
+            if not mine:
+                continue
+            ok, baseline_note, then = _baseline_batch(ctx, command, batch, mine)
+            if not ok:
+                baseline_ok = False
+                break
+            for nid, r in then.items():
+                if "::" not in nid:
+                    baseline_errors.update([nid] if r.bad else [])
+                    continue
+                baseline[nid] = r
+                baseline_collected.setdefault(nid.split("::")[0], set()).add(nid)
         if not baseline_ok:
             result.not_checked.append(f"comparison with session start: {baseline_note}")
+        # passed by itself the second time: either flaky, or it only fails in company. Its company then decides.
+        passed_alone = [f for f in failing if f.nodeid in alone.results and not alone.results[f.nodeid].bad]
+        if passed_alone:
+            together = [f for f in passed_alone if baseline_ok and f.nodeid in baseline and not baseline[f.nodeid].bad]
+            again = _once_more(ctx, command, batches_run, together, cfg.budget_seconds) if together else {}
+            for f in passed_alone:
+                if not (f.nodeid in again and again[f.nodeid].bad):
+                    flaky.append(f.nodeid)
+                    current.results[f.nodeid] = alone.results[f.nodeid]
+        failing = [f for f in failing if f.nodeid not in flaky]
 
     unverified: list[testrun.TestResult] = []
     regressions: list[Finding] = []
@@ -456,6 +490,12 @@ class _Durations:
                 if f not in spent:       # whatever it needs, it's more than it got
                     self.seconds[f] = max(self.seconds.get(f, 0.0), round(run.seconds, 2)) * 2
 
+    def all_known(self, files) -> bool:
+        return all(f in self.seconds for f in files)
+
+    def total(self, files) -> float:
+        return sum(self.seconds.get(f, self.UNKNOWN) for f in files)
+
     def affordable(self, files: list[str], budget: float) -> list[list[str]]:
         """Batches of `files`, quickest first, that should fit in `budget` together (with a margin, since
         pytest's own start-up and slow collection aren't in the per-test times)."""
@@ -551,6 +591,61 @@ def _baseline(ctx: Context, wanted: list[str], whole_files: list[str]):
     return True, "", results, collected, errors
 
 
+COMPANY_SECONDS = 60
+
+
+def _baseline_batch(ctx: Context, command: str, batch: list[str], failing: list[str]) -> tuple[bool, str, dict[str, testrun.TestResult]]:
+    """The results of `batch` on the session-start tree, run together as they were now (some tests only pass,
+    or only fail, after others). Cached per set of files; a test known to have failed there needs no new run."""
+    cache = _BaselineCache(ctx.root, ctx.baseline_tree, command)
+    tmp_paths = set(snapshot.git(ctx.root, "ls-tree", "-r", "-z", "--name-only", ctx.baseline_tree).split("\0"))
+    files = [f for f in batch if f in tmp_paths]
+    if not files:
+        return True, "", {}
+    key = hashlib.sha1("|".join(files).encode()).hexdigest()[:12]
+
+    def saved(k: str) -> dict[str, testrun.TestResult]:
+        return {n: testrun.TestResult(n, r[0], r[1]) for n, r in cache.batches.get(k, {}).items()}
+
+    if key in cache.batches:
+        return True, "", saved(key)
+    if all(cache.failed.get(n) for n in failing):
+        return True, "", {n: testrun.TestResult(n, "failed", cache.failed[n]) for n in failing}
+    tmp = ctx.baseline_checkout()
+    env = source_path_env(tmp, {})
+    dirs = sorted({os.path.dirname(f) for f in files})
+    if not cache.canary_ok(dirs):
+        ok, why = _canary(ctx, tmp, files, env)
+        if not ok:
+            return False, why, {}
+        cache.canary_passed(dirs)
+    limit = max(30.0, min(COMPANY_SECONDS, ctx.time_left() - 20))
+    run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=limit)
+    if run_.timed_out:       # too slow to repeat whole: the failing files, together
+        files = sorted({n.split("::")[0] for n in failing} & set(files))
+        run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=max(30, min(ctx.config.budget_seconds, ctx.time_left() - 10)))
+    if run_.crashed:
+        return False, f"the test command failed on the session-start tree ({run_.crashed})", {}
+    if not run_.timed_out:
+        cache.batches[key] = {n: [r.outcome, r.message[:500]] for n, r in run_.results.items()}
+    for n, r in run_.results.items():
+        if r.bad:
+            cache.failed[n] = r.message[:500] or "failed"
+    cache.save()
+    return True, "", run_.results
+
+
+def _once_more(ctx: Context, command: str, batches: list[list[str]], failing: list[testrun.TestResult],
+               budget: float) -> dict[str, testrun.TestResult]:
+    """The batches these failures were in, run again: does the failure repeat in the same company?"""
+    out: dict[str, testrun.TestResult] = {}
+    for batch in batches:
+        if any(f.nodeid.split("::")[0] in batch for f in failing) and ctx.time_left() > 30:
+            run_ = testrun.run_pytest(command, ctx.root, batch, env=source_path_env(ctx.root), timeout=max(30, budget))
+            out.update(run_.results)
+    return out
+
+
 def passed_at_session_start(ctx: Context, command: str, node_ids: list[str], whole_files: list[str]) -> tuple[set[str], str]:
     """Which of `node_ids`, and of all tests in `whole_files`, passed on the session-start tree."""
     if not node_ids and not whole_files:
@@ -588,6 +683,8 @@ class _BaselineCache:
         self.errors: dict[str, bool] = data.get("errors", {})
         self.results: dict[str, list[str]] = data.get("results", {})
         self.canaries: list[str] = data.get("canaries", [])
+        self.batches: dict[str, dict[str, list[str]]] = data.get("batches", {})    # files run together → results
+        self.failed: dict[str, str] = data.get("failed", {})                       # tests that failed in some run
         self.vacuous: dict[str, dict[str, list[str]]] = data.get("vacuous", {})   # see engines/vacuous.py
 
     def canary_ok(self, dirs: list[str]) -> bool:
@@ -599,7 +696,7 @@ class _BaselineCache:
     def save(self) -> None:
         self.path.write_text(json.dumps({"collected": self.collected, "errors": self.errors,
                                          "results": self.results, "canaries": self.canaries,
-                                         "vacuous": self.vacuous}))
+                                         "vacuous": self.vacuous, "batches": self.batches, "failed": self.failed}))
         old = sorted(self.path.parent.glob("baseline-*.json"), key=lambda p: p.stat().st_mtime)
         for p in old[:-self.KEEP]:
             p.unlink(missing_ok=True)

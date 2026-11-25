@@ -67,6 +67,7 @@ class Layout:
     paths: set[str]
     python_files: dict[str, list[str]] = field(default_factory=dict)    # config directory -> patterns
     testpaths: list[list[str]] = field(default_factory=list)            # one list per tree read
+    doctests: set[str] = field(default_factory=set)                     # modules --doctest-modules runs examples of
 
     @classmethod
     def read(cls, root: str, trees: Iterable[str]) -> "Layout":
@@ -90,6 +91,8 @@ class Layout:
                     known += [p for p in patterns if p not in known]
                 if folder == "":
                     out.testpaths.append(_words(section.get("testpaths")))
+                    if "--doctest-modules" in _words(section.get("addopts")):
+                        out.doctests |= _with_examples(root, tree)
             if "" not in configs:
                 out.testpaths.append([])
         return out
@@ -131,7 +134,25 @@ class Layout:
         return bool(tests) and tests * 2 >= len(here)
 
     def tests(self, among: Optional[Iterable[str]] = None) -> set[str]:
-        return {p for p in (self.paths if among is None else among) if self.is_test_module(p) and self.in_testpaths(p)}
+        return {p for p in (self.paths if among is None else among)
+                if (self.is_test_module(p) or p in self.doctests) and self.in_testpaths(p)}
+
+    def in_package(self, path: str) -> list[str]:
+        """The modules of the nearest package around a file (its data, templates, ...), if it's in one."""
+        folder = PurePosixPath(path).parent
+        while str(folder) != ".":
+            if f"{folder}/__init__.py" in self.paths:
+                return [p for p in self.paths if p.startswith(f"{folder}/") and p.endswith(".py")]
+            folder = folder.parent
+        return []
+
+
+def _with_examples(root: str, tree: str) -> set[str]:
+    try:
+        out = snapshot.git(root, "grep", "-l", "-z", "-F", ">>>", tree, "--", "*.py")
+    except snapshot.GitError:       # nothing found
+        return set()
+    return {p.split(":", 1)[1] for p in out.split("\0") if ":" in p}
 
 
 def _under(path: str, folder: str) -> bool:

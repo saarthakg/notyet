@@ -6,6 +6,7 @@ body, its decorators (a `parametrize` expectation is part of the test) or its cl
 or a module-level value, helper or fixture it uses did.
 """
 import ast
+from collections import Counter
 from dataclasses import dataclass
 
 from notyet import snapshot
@@ -75,6 +76,13 @@ def changed_functions(before_source: str, after_source: str) -> dict[str, str]:
 def test_bodies(source: str) -> dict[str, str]:
     """{test name: its body and decorators, normalized}, to recognize a test that moved."""
     return {name: "\n".join(_signature(f)[:2]) for name, f in _functions(source).items()}
+
+
+def constants_of(source: str, name: str) -> Counter:
+    """The literal values a test mentions, with how often (None, True and False aside)."""
+    func = _functions(source).get(name)
+    return Counter(repr(n.value) for n in ast.walk(func.node) if isinstance(n, ast.Constant)
+                   and not isinstance(n.value, bool) and n.value is not None) if func else Counter()
 
 
 def test_names(source: str) -> set[str]:

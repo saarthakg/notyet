@@ -27,12 +27,13 @@ imported on the new code (a renamed import), its unedited tests are judged by
 their new run, and only its edited ones are raised, as fix-or-justify.
 """
 import os
+import re
 import time
 from collections import Counter
 from dataclasses import dataclass, field
 
 from notyet import snapshot, testrun
-from notyet.engines.integrity import changed_functions, test_bodies
+from notyet.engines.integrity import changed_functions, constants_of, test_bodies
 from notyet.findings import Context, EngineResult, Finding
 from notyet.pyresolve import find_python_source_roots
 
@@ -92,7 +93,7 @@ def impacted(ctx: Context, side: Side, selected: list[str]) -> list[str]:
     """Session-start test modules whose tests the changed test side decides, most direct first."""
     from notyet.engines.execution import _support_scope
     then = {p for p in snapshot.git(ctx.root, "ls-tree", "-r", "-z", "--name-only", ctx.baseline_tree).split("\0")
-            if p and ctx.layout.is_test_module(p)}
+            if p} & (ctx.layout.tests() | set(side.modules))
     out = [p for p in side.modules if p in then]
     if side.infra:
         scope = {t for p in side.support for t in _support_scope(ctx.layout, p)}
@@ -220,6 +221,13 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
                     action="Check that only names changed, not what the test expects; acknowledge that, or restore "
                            "the expectations."))
             tally["import moved"] += 1
+        elif fn in fails and edited and _cannot_call(evidence) and not _lost_constants(ctx, then, now_file, name):
+            result.findings.append(Finding(
+                rule="test-changed-to-pass", severity="resolve", location=here or fn, evidence=evidence,
+                title=f"{here} was edited, and its session-start version can't call the new code (names or signatures "
+                      f"changed); the values it checks are unchanged",
+                action="If the old way of calling it was meant to keep working, restore it; otherwise acknowledge the change."))
+            tally["call changed"] += 1
         elif fn in fails and (edited or not side.infra):
             result.findings.append(Finding(
                 rule="test-changed-to-pass", severity="block" if not why else "resolve", location=here or fn,
@@ -255,6 +263,21 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
             f"session-start tests on the new code: {sum(tally.values())} test(s) that passed at session start: "
             + ", ".join(f"{n} {k}" for k, n in tally.most_common()))
     ctx.shared["crosscheck"] = {f.location for f in result.findings if f.rule == "test-disabled"}
+
+
+_CALL_ERROR = re.compile(r"^(TypeError: .*(positional argument|keyword argument|required argument)"
+                         r"|AttributeError: .*has no attribute|ImportError|ModuleNotFoundError|NameError: name)")
+
+
+def _cannot_call(evidence: list[str]) -> bool:
+    return bool(evidence) and bool(_CALL_ERROR.match(evidence[0]))
+
+
+def _lost_constants(ctx: Context, then: str, now: str | None, name: str) -> bool:
+    """Is a value the test used to mention (an input or an expectation) gone from it now?"""
+    before = constants_of(snapshot.show(ctx.root, ctx.baseline_tree, then) or "", name)
+    after = constants_of(snapshot.show(ctx.root, ctx.current_tree, now) or "" if now else "", name)
+    return bool(before - after)
 
 
 def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:

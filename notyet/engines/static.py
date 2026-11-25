@@ -28,7 +28,7 @@ from notyet.findings import Context, EngineResult, Finding
 LINT_CONFIGS = ("pyproject.toml", "ruff.toml", ".ruff.toml", "pyrightconfig.json", "setup.cfg")
 SUPPRESSION = re.compile(
     r"#\s*(noqa\b|type:\s*ignore|pyright:\s*ignore|pyright:\s*basic|mypy:\s*ignore-errors"
-    r"|ruff:\s*noqa|pragma:\s*no\s*cover|fmt:\s*off)", re.IGNORECASE)
+    r"|ruff:\s*noqa|pragma:\s*no\s*cover|fmt:\s*off|doctest:\s*\+SKIP)", re.IGNORECASE)
 MAX_FINDINGS_PER_TOOL = 15
 MAX_PYRIGHT_FILES = 150
 
@@ -225,7 +225,7 @@ def _suppressions(ctx: Context, deltas, added_lines: dict[str, set[int]]) -> lis
                     continue   # moved or reformatted, not new
                 gained[kind] -= 1
                 findings.append(Finding(
-                    rule="suppression-added", severity="resolve", location=f"{d.path}:{n}",
+                    rule="test-disabled" if "doctest" in kind else "suppression-added", severity="resolve", location=f"{d.path}:{n}",
                     title=f"added `# {m.group(1)}` at {d.path}:{n}",
                     evidence=[now[n - 1].strip()[:160]],
                     action="Fix what it silences, or acknowledge it with the reason it's needed.",
