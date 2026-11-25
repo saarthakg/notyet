@@ -24,6 +24,7 @@ select = ["E4", "E7", "E9", "F", "B", "PLE"]
 ignore = ["B005", "B007", "B904", "B905"]
 
 [tool.ruff.lint.per-file-ignores]
+"eval/redteam/*.py" = ["E402", "E702", "E741", "F403", "F405"]
 "eval/notyet_scenarios.py" = ["E702"]       # one-line setups read better as a table
 
 [tool.setuptools.packages.find]
