@@ -20,9 +20,26 @@ from notyet.findings import Finding
 PLUGIN = "notyet_lines"
 
 
+# Watches the changed files in every Python the tests start (a CLI run as a subprocess, an xdist worker),
+# then hands over to the sitecustomize this one stands in front of, if there is one.
+SITECUSTOMIZE = f"""\
+import importlib.machinery, importlib.util, os, sys
+_here = os.path.dirname(os.path.abspath(__file__))
+try:
+    import {PLUGIN}
+except Exception:
+    pass
+_spec = importlib.machinery.PathFinder.find_spec("sitecustomize", [p for p in sys.path if os.path.abspath(p or ".") != _here])
+if _spec is not None and _spec.loader is not None:
+    _spec.loader.exec_module(importlib.util.module_from_spec(_spec))
+"""
+
+
 def setup(tmp: str, root: str, files: list[str]) -> tuple[dict, str]:
     """(env for the test run, path of the JSON it writes)."""
     shutil.copy(Path(__file__).with_name("lineplugin.py"), os.path.join(tmp, f"{PLUGIN}.py"))
+    with open(os.path.join(tmp, "sitecustomize.py"), "w") as f:     # child processes the tests start
+        f.write(SITECUSTOMIZE)
     out = os.path.join(tmp, "lines.json")
     existing = os.environ.get("PYTHONPATH")
     env = {
@@ -34,12 +51,19 @@ def setup(tmp: str, root: str, files: list[str]) -> tuple[dict, str]:
 
 
 def read(out: str, root: str) -> dict[str, set[int]] | None:
-    try:
-        with open(out) as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return None
-    return {os.path.relpath(k, root): set(v) for k, v in data.items()}
+    """What every process recorded, or None if nothing could be (another tracer took over)."""
+    hits: dict[str, set[int]] = {}
+    files = list(Path(out).parent.glob(Path(out).name + ".*"))
+    for path in files:
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, ValueError):
+            continue
+        if data.pop("lost", None):
+            return None
+        for k, v in data.items():
+            hits.setdefault(os.path.relpath(k, root), set()).update(v)
+    return hits if files else None
 
 
 def executable_lines(source: str, filename: str = "<changed>") -> set[int]:
@@ -61,8 +85,9 @@ def _excluded(tree: ast.AST, source: str) -> set[int]:
     pragma = {i for i, text in enumerate(source.splitlines(), 1) if "pragma: no cover" in text}
     out = set(pragma)
     for node in ast.walk(tree):
-        if getattr(node, "body", None) and getattr(node, "lineno", None) in pragma:  # the whole block, as coverage.py does
-            out |= set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+        start = getattr(node, "lineno", None)
+        if getattr(node, "body", None) and start in pragma:  # the whole block, as coverage.py does
+            out |= set(range(start, (getattr(node, "end_lineno", None) or start) + 1))
         if isinstance(node, ast.If):
             test = ast.unparse(node.test)
             if test in ("TYPE_CHECKING", "typing.TYPE_CHECKING") or test.replace("'", '"') == '__name__ == "__main__"':
