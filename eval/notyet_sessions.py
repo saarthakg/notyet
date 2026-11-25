@@ -60,7 +60,7 @@ from notyet_replay import candidate_commits  # noqa: E402
 
 from notyet import store  # noqa: E402
 from notyet.engines.execution import is_test_module  # noqa: E402
-from notyet.engines.vacuous import is_test_side  # noqa: E402
+from notyet.layout import is_test_side  # noqa: E402
 
 NOTYET_PY = Path.home() / ".local/share/uv/tools/notyet/bin/python3"
 BENCH = Path.home() / "code/notyet-bench"
