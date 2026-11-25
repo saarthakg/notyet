@@ -295,6 +295,16 @@ def run(ctx: Context) -> EngineResult:
                 if not (f.nodeid in again and again[f.nodeid].bad):
                     flaky.append(f.nodeid)
                     current.results[f.nodeid] = alone.results[f.nodeid]
+        # about to block on these: make sure none of them just fails now and then
+        suspects = [f.nodeid for f in failing if f.nodeid not in flaky and f.nodeid in baseline
+                    and baseline[f.nodeid].outcome == "passed" and f.nodeid in alone.results and alone.results[f.nodeid].bad]
+        for _ in range(CONFIRMATIONS if len(suspects) <= MAX_CONFIRMED else 0):
+            if alone.seconds > 10 or not suspects:
+                break
+            repeat = testrun.run_pytest(command, ctx.root, suspects, env=source_path_env(ctx.root), timeout=60)
+            steady = [n for n in suspects if not (n in repeat.results and repeat.results[n].outcome == "passed")]
+            flaky += [n for n in suspects if n not in steady]
+            suspects = steady
         failing = [f for f in failing if f.nodeid not in flaky]
 
     unverified: list[testrun.TestResult] = []
@@ -592,6 +602,7 @@ def _baseline(ctx: Context, wanted: list[str], whole_files: list[str]):
 
 
 COMPANY_SECONDS = 60
+CONFIRMATIONS, MAX_CONFIRMED = 2, 20
 
 
 def _baseline_batch(ctx: Context, command: str, batch: list[str], failing: list[str]) -> tuple[bool, str, dict[str, testrun.TestResult]]:
