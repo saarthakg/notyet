@@ -4,7 +4,7 @@ import os
 import tempfile
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 
 from notyet import layout as layout_mod
 from notyet import snapshot
@@ -84,6 +84,7 @@ class EngineResult:
     checks: list[str] = field(default_factory=list)       # what was checked, for the receipt
     not_checked: list[str] = field(default_factory=list)  # negative space
     advice: list[str] = field(default_factory=list)       # advisory lines (history, etc.)
+    timings: dict[str, float] = field(default_factory=dict)      # seconds per part of the check
     gaps: list[str] = field(default_factory=list)         # a core check that didn't run: the summary leads with it
 
     def extend(self, other: "EngineResult") -> None:
@@ -92,6 +93,19 @@ class EngineResult:
         self.not_checked += other.not_checked
         self.advice += other.advice
         self.gaps += other.gaps
+        for part, seconds in other.timings.items():
+            self.timings[part] = self.timings.get(part, 0.0) + seconds
+
+
+def digests(items: Iterable[str]) -> list[str]:
+    """One digest per item, for `covers`: by content, so edits elsewhere don't move it; the k-th copy of a
+    repeated item is its own."""
+    seen: dict[str, int] = {}
+    out = []
+    for item in items:
+        seen[item] = seen.get(item, 0) + 1
+        out.append(hashlib.sha1(f"{item}#{seen[item]}".encode(errors="replace")).hexdigest()[:10])
+    return out
 
 
 def group(f: Finding) -> str:

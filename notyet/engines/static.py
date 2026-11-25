@@ -11,6 +11,9 @@ changed modules: that's where a changed signature breaks callers.
 
 Nothing here blocks: a new lint or type error is fix-or-justify.
 """
+import ast
+import hashlib
+import io
 import json
 import os
 import re
@@ -18,18 +21,21 @@ import shlex
 import subprocess
 import tempfile
 import time
+import tokenize
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
 from notyet import pyimports, snapshot
-from notyet.findings import Context, EngineResult, Finding
+from notyet.findings import Context, EngineResult, Finding, digests
+from notyet.source import parse
 
 LINT_CONFIGS = ("pyproject.toml", "ruff.toml", ".ruff.toml", "pyrightconfig.json", "setup.cfg")
 SUPPRESSION = re.compile(
     r"#\s*(noqa\b|type:\s*ignore|pyright:\s*ignore|pyright:\s*basic|mypy:\s*ignore-errors"
-    r"|ruff:\s*noqa|pragma:\s*no\s*cover|fmt:\s*off|doctest:\s*\+SKIP)", re.IGNORECASE)
-MAX_FINDINGS_PER_TOOL = 15
+    r"|ruff:\s*noqa|pragma:\s*no\s*cover|fmt:\s*off)", re.IGNORECASE)
+SKIPPED_EXAMPLE = re.compile(r"#\s*(doctest:\s*\+SKIP)", re.IGNORECASE)
+MAX_SEPARATE = 5      # beyond this many, one item per file
 MAX_PYRIGHT_FILES = 150
 
 
@@ -122,7 +128,21 @@ def _findings(tool: str, new: list[Diagnostic]) -> list[Finding]:
     rule = "lint-new" if tool == "ruff" else "type-error-new"
     out = []
     occurrence: Counter = Counter()
-    for d in new[:MAX_FINDINGS_PER_TOOL]:
+    if len(new) > MAX_SEPARATE:         # one item per file: the count is the news, not each line
+        by_file: dict[str, list[Diagnostic]] = {}
+        for d in new:
+            by_file.setdefault(d.path, []).append(d)
+        for path, ds in sorted(by_file.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+            codes = Counter(d.code for d in ds)
+            items = digests(f"{d.code} {d.message}" for d in ds)
+            out.append(Finding(
+                rule=rule, severity="resolve", location=f"{path}:{ds[0].line}", covers=items, key=f"{path}|{_short(items)}",
+                title=f"{tool}: {len(ds)} new diagnostic(s) in {path} ("
+                      + ", ".join(f"{code} ×{n}" if n > 1 else code for code, n in codes.most_common(4)) + ")",
+                evidence=[f"{d.line}: {d.code} {(d.message.splitlines() or [''])[0][:110]}" for d in ds[:3]],
+                action="Fix them, or acknowledge them with the reason they're intended."))
+        return out
+    for d in new:
         occurrence[d.key] += 1
         first_line = d.message.splitlines()[0] if d.message else ""
         out.append(Finding(
@@ -131,15 +151,11 @@ def _findings(tool: str, new: list[Diagnostic]) -> list[Finding]:
             evidence=[line.strip() for line in d.message.splitlines()[1:3] if line.strip()],
             action="Fix it, or acknowledge it with the reason it's intended.",
             key=f"{tool}|{d.path}|{d.code}|{d.message}|{occurrence[d.key]}"))
-    if len(new) > MAX_FINDINGS_PER_TOOL:
-        rest = new[MAX_FINDINGS_PER_TOOL:]
-        out.append(Finding(
-            rule=rule, severity="resolve", location=rest[0].path,
-            title=f"{tool}: {len(rest)} more new diagnostic(s)",
-            evidence=[f"{d.path}:{d.line} {d.code}" for d in rest[:5]],
-            action=f"Run {tool} on the changed files and fix them.",
-            key=f"{tool}|more|{len(rest)}"))
     return out
+
+
+def _short(items: list[str]) -> str:
+    return hashlib.sha1("".join(sorted(items)).encode()).hexdigest()[:10]
 
 
 # ── running the tools ──────────────────────────────────────────────────────────
@@ -209,28 +225,63 @@ def _use_baseline_configs(ctx: Context, after_dir: str) -> list[str]:
 
 def _suppressions(ctx: Context, deltas, added_lines: dict[str, set[int]]) -> list[Finding]:
     """Suppression comments on lines this session wrote, when the file now has
-    more of that kind than it had at session start."""
-    findings = []
+    more of that kind than it had at session start. Comments only: the same text in a string is data."""
+    found: list[tuple[str, int, str, str]] = []
     for d in deltas:
-        now = (snapshot.show(ctx.root, ctx.current_tree, d.path) or "").splitlines()
-        then = snapshot.show(ctx.root, ctx.baseline_tree, d.old_path or d.path) or ""
-        had = Counter(_kind(m) for m in SUPPRESSION.finditer(then))
-        gained = Counter(_kind(m) for line in now for m in SUPPRESSION.finditer(line)) - had
-        for n in sorted(added_lines.get(d.path, ())):
-            if n - 1 >= len(now):
-                continue
-            for m in SUPPRESSION.finditer(now[n - 1]):
-                kind = _kind(m)
-                if gained[kind] <= 0:
-                    continue   # moved or reformatted, not new
+        source = snapshot.show(ctx.root, ctx.current_tree, d.path) or ""
+        lines = source.splitlines()
+        now = _suppression_comments(source)
+        had = Counter(kind for _, kind, _ in _suppression_comments(snapshot.show(ctx.root, ctx.baseline_tree, d.old_path or d.path) or ""))
+        gained = Counter(kind for _, kind, _ in now) - had
+        for n, kind, text in now:
+            if n in added_lines.get(d.path, ()) and gained[kind] > 0 and n <= len(lines):     # not moved or reformatted
                 gained[kind] -= 1
-                findings.append(Finding(
-                    rule="test-disabled" if "doctest" in kind else "suppression-added", severity="resolve", location=f"{d.path}:{n}",
-                    title=f"added `# {m.group(1)}` at {d.path}:{n}",
-                    evidence=[now[n - 1].strip()[:160]],
-                    action="Fix what it silences, or acknowledge it with the reason it's needed.",
-                    key=f"{d.path}|{kind}|{now[n - 1].strip()}"))
-    return findings
+                found.append((d.path, n, kind, text))
+    out: list[Finding] = []
+    plain = [f for f in found if "doctest" not in f[2]]
+    if len(plain) > MAX_SEPARATE:
+        by_file: dict[str, list] = {}
+        for f in plain:
+            by_file.setdefault(f[0], []).append(f)
+        for path, group in by_file.items():
+            items = digests(text for _, _, _, text in group)
+            out.append(Finding(
+                rule="suppression-added", severity="resolve", location=f"{path}:{group[0][1]}", covers=items,
+                key=f"{path}|{_short(items)}",
+                title=f"added {len(group)} suppression comment(s) in {path} ({', '.join(sorted({f'# {k}' for _, _, k, _ in group}))})",
+                evidence=[f"{n}: {text[:120]}" for _, n, _, text in group[:3]],
+                action="Fix what they silence, or acknowledge them with the reason they're needed."))
+        found = [f for f in found if "doctest" in f[2]]
+    occurrence: Counter = Counter()
+    for path, n, kind, text in found:
+        occurrence[(path, kind, text)] += 1
+        out.append(Finding(
+            rule="test-disabled" if "doctest" in kind else "suppression-added", severity="resolve", location=f"{path}:{n}",
+            title=f"added `# {kind}` at {path}:{n}", evidence=[text[:160]],
+            action="Fix what it silences, or acknowledge it with the reason it's needed.",
+            key=f"{path}|{kind}|{text}|{occurrence[(path, kind, text)]}"))
+    return out
+
+
+def _suppression_comments(source: str) -> list[tuple[int, str, str]]:
+    """(line, kind, line's text) for each suppression in a comment, and each skipped doctest example."""
+    lines = source.splitlines()
+    out = []
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
+    except (tokenize.TokenError, SyntaxError, IndentationError):
+        tokens = []
+    for tok in tokens:
+        if tok.type == tokenize.COMMENT:
+            out += [(tok.start[0], _kind(m), lines[tok.start[0] - 1].strip()) for m in SUPPRESSION.finditer(tok.string)]
+    tree = parse(source)
+    for node in ast.walk(tree) if tree is not None else ():      # examples live in docstrings
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and ast.get_docstring(node, clean=False):
+            doc = node.body[0]
+            for n in range(doc.lineno, (doc.end_lineno or doc.lineno) + 1):
+                if ">>>" in lines[n - 1] and (m := SKIPPED_EXAMPLE.search(lines[n - 1])):
+                    out.append((n, _kind(m), lines[n - 1].strip()))
+    return sorted(out)
 
 
 def _kind(m: re.Match) -> str:

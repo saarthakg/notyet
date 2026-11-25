@@ -284,6 +284,7 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
             action="Fix the code so the original test passes. If the test itself was wrong, acknowledge that and say why."))
         tally["failing before, only the test changed"] += len(never_fixed)
 
+    _group_edited(result)
     confirmed = _skips_here(ctx, command, skip_to_confirm)
     for fn in skip_to_confirm:
         if fn in confirmed:
@@ -320,6 +321,28 @@ def _lost_constants(ctx: Context, then: str, now: str | None, name: str) -> bool
     before = constants_of(snapshot.show(ctx.root, ctx.baseline_tree, then) or "", name)
     after = constants_of(snapshot.show(ctx.root, ctx.current_tree, now) or "" if now else "", name)
     return bool(before - after)
+
+
+def _group_edited(result: EngineResult) -> None:
+    """Past a handful of edited tests, one item per file and level: the same decision, asked once."""
+    mine = [f for f in result.findings if f.rule == "test-changed-to-pass" and "::" in f.location]
+    if len(mine) <= MAX_ITEMS // 2:
+        return
+    by_file: dict[tuple[str, str], list[Finding]] = {}
+    for f in mine:
+        by_file.setdefault((f.location.split("::")[0], f.severity), []).append(f)
+    for (path, severity), group in by_file.items():
+        if len(group) == 1:
+            continue
+        names = [f.location.split("::", 1)[1] for f in group]
+        result.findings = [f for f in result.findings if f not in group]
+        result.findings.append(Finding(
+            rule="test-changed-to-pass", severity=severity, location=path, key=f"{path}|" + "|".join(sorted(names)),
+            title=f"{len(group)} edited tests in {path} fail on the new code as they were at session start"
+                  if severity == "block" else f"{len(group)} edited tests in {path} can't be run on the new code as they were",
+            evidence=[f"{n}: {(f.evidence or [''])[0][:120]}" for n, f in list(zip(names, group))[:4]]
+            + ([f"and: {', '.join(names[4:16])}"] if len(names) > 4 else []),
+            action=group[0].action))
 
 
 def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:

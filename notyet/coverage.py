@@ -16,7 +16,7 @@ import shutil
 import time
 from pathlib import Path
 
-from notyet.findings import Finding
+from notyet.findings import Finding, digests
 from notyet.source import parse
 
 PLUGIN = "notyet_lines"          # what pytest loads with -p: it saves when the run ends
@@ -152,7 +152,7 @@ def findings(sources: dict[str, str], added: dict[str, set[int]], hits: dict[str
         out.append(Finding(
             rule="untested-change", severity="resolve", location=f"{path}:{lines[0]}",
             title=f"{len(lines)} changed line(s) in {path} never ran in the selected tests ({_ranges(lines)})",
-            evidence=evidence, key=f"{path}|{digest}", covers=_line_digests(content),
+            evidence=evidence, key=f"{path}|{digest}", covers=digests(content),
             action="Add or extend a test that exercises them, or acknowledge why they can't be tested."))
     return out
 
@@ -167,14 +167,3 @@ def _ranges(lines: list[int]) -> str:
         if n is not None:
             start = prev = n
     return ", ".join(parts[:6]) + (" …" if len(parts) > 6 else "")
-
-
-def _line_digests(content: list[str]) -> list[str]:
-    """One digest per line, by content rather than line number (so edits elsewhere don't move it);
-    the k-th copy of a repeated line (`return out`) is its own item."""
-    seen: dict[str, int] = {}
-    out = []
-    for line in content:
-        seen[line] = seen.get(line, 0) + 1
-        out.append(hashlib.sha1(f"{line}#{seen[line]}".encode()).hexdigest()[:10])
-    return out
