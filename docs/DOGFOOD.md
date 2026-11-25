@@ -7,7 +7,7 @@ use session quota.
 ## Setup, per repo (asks before changing anything)
 
 ```sh
-pip install git+https://github.com/saarthakg/notyet   # or: pip install -e <this checkout>
+pip install git+https://github.com/saarthakg/notyet   # or the plugin: /plugin install notyet --marketplace saarthakg/notyet
 cd <repo>
 notyet init              # proposes .notyet.toml (test command, budget); review it
 notyet install claude    # shows the diff to .claude/settings.local.json; asks first
@@ -37,7 +37,7 @@ notyet export --out labels-<repo>.csv
 - **`label` column:** fill in with `tp` (a real problem, or something you'd want to know),
   `fp` (wrong, or noise), or `unclear`. Use `label_note` for why.
 
-The write-up (`docs/EVAL.md`) will report:
+`notyet stats` shows what findings led to without any labeling. The write-up (`docs/EVAL.md`) will report:
 - findings per session;
 - precision per rule;
 - false blocks per session;

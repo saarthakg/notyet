@@ -32,6 +32,9 @@ reports those as failing before the session, which is the realistic case.
 
 | Script | What it measures | Uses an agent? |
 |---|---|---|
+| `notyet_scenarios.py OUT [--load FILE]` | sessions with known right answers: cheats, regressions, honest work, setups. `--load eval/redteam/*.py` for the sets written without seeing the gate's code | no |
+| `notyet_recall.py OUT REPO…` | random small mutations; the repo's own full suite decides what the gate should have blocked | no |
+| `notyet_pressure.py OUT [--model M]` | small agent tasks where a false "done" is likely, report vs enforce, with ground truth | yes: `claude -p` on the subscription |
 | `notyet_latency.py OUT REPO…` | check latency; false blocks on harmless edits; seeded faults blocked | no |
 | `notyet_replay.py OUT REPO…` | how often each rule fires on real merged commits (parent → commit) | no |
 | `notyet_tamper.py OUT REPO…` | 8 ways of hiding a failing test on a real seeded bug; caught on the tampered test? | no |
@@ -44,7 +47,8 @@ About `notyet_sessions.py`:
 
 - It reinstalls the uv-tool copy of notyet, which the hooks run.
 - It gives each task a fresh clone whose history ends at the parent commit.
-- It strips `PYTHONPATH` from everything it starts.
+- It strips `PYTHONPATH` (and the calling session's `CLAUDE*` variables) from everything it starts.
+- `--model` picks the agent's model; `--no-exec` lets it read and edit but not run anything; each run is capped at $3 of quota.
 - `--no-agent` grades the untouched parent. It's a free check of the harness.
 - Tasks come from `sessions_tasks.json` (`--tasks eval/sessions_tasks.json [--only ID,…]`). A task is a
   chain of steps, either commits or pressure prompts, run in one session with `claude -p --resume`. After

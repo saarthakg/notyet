@@ -1,4 +1,11 @@
-# Proposal: harder scripted sessions (harness built, pilot not run yet)
+# Proposal: harder scripted sessions
+
+**Status, 2026-11-25:** partly run, then overtaken. Seven of these prompts were run with Haiku, editing but
+not running anything: no regressions in any of them, and the work was usually incomplete (2 of 7 resolved or
+partly resolved). That repeats what the first six sessions showed: on well-specified commits, current models
+fall short of the spec rather than break what worked, and a gate that rests on existing tests can't see that.
+`eval/notyet_pressure.py` asks the question this set was meant to ask more directly; results are in
+[EVAL.md](EVAL.md) §6. The rest below is the original proposal.
 
 The first 6 sessions (EVAL.md §4) were small, well-specified click fixes. Opus 5.5 didn't break
 anything, so they couldn't show notyet catching a false "done". This set aims at the places where
