@@ -13,14 +13,11 @@ code through them all the time:
 And a conftest.py is used by every test module under its directory.
 
 Imports are parsed with `ast` and resolved with notyet.pyresolve
-(source roots, relative imports, submodule names). Results are cached in
-.git/notyet/cache/ per file content (git blob id); the cache is dropped when
-the set of Python files changes, since that changes how imports resolve. On
-a repo the size of Django the first build takes seconds; later checks only
-re-resolve changed files.
+(source roots, relative imports, submodule names), and cached in
+.git/notyet/cache/ per file content. On a repo the size of Django the first
+build takes about ten seconds; later checks only read what changed.
 """
 import ast
-import hashlib
 import json
 import os
 import re
@@ -72,10 +69,18 @@ def _imports_of(source: str) -> tuple[list[tuple[str, list[str]]], set[str]]:
     return specs, strings
 
 
+def _mentions(path: str) -> list[str]:
+    """Regexes for what a use of this file has to contain: its module name (its package's, for an
+    __init__.py), or its package's name at the end of a string ("pkg.backends." + name)."""
+    p = PurePosixPath(path)
+    package = re.escape(p.parent.name)
+    out = [rf"\b{package if p.stem == '__init__' else re.escape(p.stem)}\b"]
+    return out + ([rf"\b{package}\.[\"'{{]"] if package else [])
+
+
 class ImportGraph:
     """`checkout`: where the files of `tree` can be read, when that isn't the working tree."""
-    VERSION = 2      # bump when edges are computed differently, so cached ones aren't reused
-    KEEP = 3
+    VERSION = 3      # bump when edges are computed differently, so cached ones aren't reused
 
     def __init__(self, root: str, tree: str, checkout: Optional[str] = None):
         self.root, self.files_root = root, checkout or root
@@ -94,23 +99,23 @@ class ImportGraph:
                 self.reverse.setdefault(p, set()).update(
                     q for q in self.blobs if q != p and (not folder or q.startswith(folder + "/")))
 
-    def _cache_path(self) -> Path:
-        layout = hashlib.sha1("\n".join([str(self.VERSION), *sorted(self.blobs)]).encode(errors="replace")).hexdigest()[:16]
-        d = store.state_dir(self.root) / "cache"
-        d.mkdir(exist_ok=True)
-        return d / f"imports-{layout}.json"
-
     def _load_or_build(self) -> dict[str, list[str]]:
-        path = self._cache_path()
+        """From the cache where possible: a file's edges depend on its content (its blob id), and on which
+        files exist. When files come or go, only those whose text mentions one of their names can resolve
+        differently, so only they are read again."""
+        path = store.state_dir(self.root) / "cache" / f"imports-v{self.VERSION}.json"
+        path.parent.mkdir(exist_ok=True)
         try:
             cached = json.loads(path.read_text())
         except (OSError, ValueError):
             cached = {}
+        moved = {m for p in cached.keys() ^ self.blobs.keys() for m in _mentions(p)} if cached else set()
+        mentions = re.compile("|".join(sorted(moved))) if moved else None
         roots = None
         edges, fresh = {}, {}
         for rel, blob in self.blobs.items():
             hit = cached.get(rel)
-            if hit and hit[0] == blob:
+            if hit and hit[0] == blob and not (mentions and mentions.search(self._read(rel))):
                 edges[rel] = hit[1]
             else:
                 if roots is None:
@@ -119,19 +124,18 @@ class ImportGraph:
             fresh[rel] = [blob, edges[rel]]
         if fresh != cached:
             path.write_text(json.dumps(fresh))
-            old = sorted(path.parent.glob("imports-*.json"), key=lambda p: p.stat().st_mtime)
-            for p in old[:-self.KEEP]:
-                p.unlink(missing_ok=True)
         return edges
+
+    def _read(self, rel: str) -> str:
+        try:
+            return Path(os.path.join(self.files_root, rel)).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return ""
 
     def _resolve(self, rel: str, roots) -> list[str]:
         full = os.path.join(self.files_root, rel)
-        try:
-            source = Path(full).read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            return []
         targets = set()
-        specs, strings = _imports_of(source)
+        specs, strings = _imports_of(self._read(rel))
         for module, names in specs:
             hits = self._files(module, full, names, roots)
             if not hits and not module.startswith("."):
