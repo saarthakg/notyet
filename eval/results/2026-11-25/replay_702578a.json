@@ -1,0 +1,1043 @@
+{
+ "click": {
+  "commits": 15,
+  "verdicts": {
+   "blocked": 12,
+   "passed": 3
+  },
+  "commits_with_rule": {
+   "suppression-added/resolve": 1,
+   "test-changed-to-pass/block": 7,
+   "test-changed-to-pass/resolve": 1,
+   "test-failing-before/note": 15,
+   "test-removed/block": 1,
+   "test-vacuous/resolve": 1,
+   "untested-change/resolve": 6
+  },
+  "findings_by_rule": {
+   "suppression-added/resolve": 1,
+   "test-changed-to-pass/block": 12,
+   "test-changed-to-pass/resolve": 1,
+   "test-failing-before/note": 15,
+   "test-removed/block": 1,
+   "test-vacuous/resolve": 1,
+   "untested-change/resolve": 7
+  },
+  "rows": [
+   {
+    "sha": "c3535905c7",
+    "subject": "Fix broken fish completion and multiline help string",
+    "seconds": 8.0,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-removed",
+      "severity": "block",
+      "title": "tests/test_shell_completion.py::test_fish_multiline_help_complete existed at session start and is gone now; it passed then and fails on the new code"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_shell_completion.py::test_full_complete as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 1569 test(s) in 21 file(s), the whole suite (1542 passed, 1 failed, 26 skipped) in 7s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 36 test(s): 34 as written, 1 gone, 1 changed",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "fc6c7c47ed",
+    "subject": "`FuncParamType` should use `ValueError` message in `self.fail()` (#3211)",
+    "seconds": 7.2,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "2 changed line(s) in src/click/types.py never ran in the selected tests (204-205)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 1431 test(s) in 21 file(s), the whole suite (1405 passed, 1 failed, 25 skipped) in 7s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 10 test(s): 10 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "831c8f0948",
+    "subject": "Add NoSuchCommand exception with suggestions for misspelled commands (#3228)",
+    "seconds": 11.1,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_options.py::test_suggest_possible_options as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_options.py::test_unknown_options as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 1429 test(s) in 21 file(s), the whole suite (1403 passed, 1 failed, 25 skipped) in 10s; selected because: changed test, imports a changed module",
+     "session-start tests on the new code: 109 test(s): 107 as written, 2 changed",
+     "new tests against the session-start code: 3 of 4 fail there, so they test the change; 1 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 4 file(s) ran"
+    ]
+   },
+   {
+    "sha": "19fd4d6e18",
+    "subject": "Fix: Ensure fish completion handles multiline help strings correctly (#3126)",
+    "seconds": 7.8,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_shell_completion.py::test_full_complete as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 1426 test(s) in 21 file(s), the whole suite (1400 passed, 1 failed, 25 skipped) in 7s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 34 test(s): 33 as written, 1 changed",
+     "new tests against the session-start code: 2 of 2 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "2468b70997",
+    "subject": "Fix readline backspace/line-wrapping on linux (#2969)",
+    "seconds": 8.2,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_utils.py::test_echo_writing_to_standard_error as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_utils.py::test_prompts_abort as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "2 changed line(s) in src/click/termui.py never ran in the selected tests (72, 75)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 1425 test(s) in 21 file(s), the whole suite (1399 passed, 1 failed, 25 skipped) in 8s; selected because: changed test, imports a changed module, imports a changed module (2 steps), named after a changed module",
+     "session-start tests on the new code: 29 test(s): 27 as written, 2 changed",
+     "new tests against the session-start code: 3 of 3 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "701b313160",
+    "subject": "Fix completions for quoted/escaped parameters in Fish (#3013)",
+    "seconds": 5.6,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 866 test(s) in 20 file(s), the whole suite (842 passed, 1 failed, 23 skipped) in 5s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 34 test(s): 34 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "a1235aacb1",
+    "subject": "Fix Zsh completions with colons (#2846)",
+    "seconds": 5.5,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 838 test(s) in 20 file(s), the whole suite (814 passed, 1 failed, 23 skipped) in 5s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 32 test(s): 32 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "f14b75063f",
+    "subject": "update dev dependencies",
+    "seconds": 6.2,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "1 changed line(s) in src/click/_winconsole.py never ran in the selected tests (112)"
+     },
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "2 changed line(s) in src/click/core.py never ran in the selected tests (1620, 1669)"
+     },
+     {
+      "rule": "suppression-added",
+      "severity": "resolve",
+      "title": "added `# type: ignore` at src/click/_winconsole.py:112"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 684 test(s) in 20 file(s), the whole suite (660 passed, 1 failed, 23 skipped) in 5s; selected because: changed test, imports a changed module, imports a changed module (2 steps), named after a changed module",
+     "session-start tests on the new code: 58 test(s): 58 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 4 file(s) ran"
+    ]
+   },
+   {
+    "sha": "4ece17a107",
+    "subject": "Expand `Choice` token normalization + make generic (#2796)",
+    "seconds": 6.6,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_formatting.py::test_formatting_custom_type_metavar as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_info_dict.py::test_parameter as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_types.py::test_choice_get_invalid_choice_message was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 593 test(s) in 20 file(s), the whole suite (569 passed, 1 failed, 23 skipped) in 6s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 34 test(s): 31 as written, 2 changed, 1 call changed",
+     "new tests against the session-start code: 3 of 4 fail there, so they test the change; 1 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 3 file(s) ran"
+    ]
+   },
+   {
+    "sha": "b5464b7e06",
+    "subject": "Only try to set flag_value if is_flag is true (#2829)",
+    "seconds": 5.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_info_dict.py::test_command as it was at session start fails on the new code; changes elsewhere in tests/test_info_dict.py make it pass"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_info_dict.py::test_context as it was at session start fails on the new code; changes elsewhere in tests/test_info_dict.py make it pass"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_info_dict.py::test_parameter as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 593 test(s) in 20 file(s), the whole suite (569 passed, 1 failed, 23 skipped) in 5s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 4 test(s): 3 changed, 1 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "88328fc874",
+    "subject": "Add CliRunner default `catch_exceptions` parameter (#2818)",
+    "seconds": 4.7,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 593 test(s) in 20 file(s), the whole suite (569 passed, 1 failed, 23 skipped) in 4s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 20 test(s): 20 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "5961d31fb5",
+    "subject": "Introduce Parameter.deprecated + Command.deprecated message customization (#2271)",
+    "seconds": 6.7,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_commands.py::test_deprecated_in_help_messages as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "6 changed line(s) in src/click/core.py never ran in the selected tests (1065-1068, 1070-1071)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 592 test(s) in 20 file(s), the whole suite (568 passed, 1 failed, 23 skipped) in 6s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 110 test(s): 109 as written, 1 changed",
+     "new tests against the session-start code: 9 of 9 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "3b06e0b75a",
+    "subject": "Improve echo_via_pager behaviour in face of errors (#2775)",
+    "seconds": 94.8,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "3 changed line(s) in src/click/_termui_impl.py never ran in the selected tests (446, 460-461)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 579 test(s) in 20 file(s), the whole suite (555 passed, 1 failed, 23 skipped) in 94s; selected because: changed test, imports a changed module, imports a changed module (3 steps)",
+     "session-start tests on the new code: 27 test(s): 27 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "0d69b6ce8b",
+    "subject": "Adds support for editing multiple files (#2068)",
+    "seconds": 5.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-vacuous",
+      "severity": "resolve",
+      "title": "none of the 1 new or edited test(s) fails on the session-start code, so none of them tests what this session changed"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 584 test(s) in 20 file(s), the whole suite (560 passed, 1 failed, 23 skipped) in 5s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 28 test(s): 28 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 2 file(s) ran"
+    ]
+   },
+   {
+    "sha": "0ef55fda47",
+    "subject": "Close contexts created during shell completion #2644. (#2800)",
+    "seconds": 5.1,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "1 changed line(s) in src/click/shell_completion.py never ran in the selected tests (572)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_basic.py can't be collected, but it couldn't at session start either"
+     }
+    ],
+    "checks": [
+     "tests: ran 582 test(s) in 20 file(s), the whole suite (558 passed, 1 failed, 23 skipped) in 4s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 30 test(s): 30 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 2 file(s) ran"
+    ]
+   }
+  ]
+ },
+ "attrs": {
+  "commits": 15,
+  "verdicts": {
+   "blocked": 11,
+   "passed": 4
+  },
+  "commits_with_rule": {
+   "assertions-removed/resolve": 1,
+   "suppression-added/resolve": 3,
+   "test-changed-to-pass/block": 2,
+   "test-changed-to-pass/resolve": 1,
+   "test-failing-before/note": 15,
+   "test-removed/resolve": 1,
+   "test-vacuous/resolve": 3,
+   "untested-change/resolve": 5
+  },
+  "findings_by_rule": {
+   "assertions-removed/resolve": 1,
+   "suppression-added/resolve": 3,
+   "test-changed-to-pass/block": 6,
+   "test-changed-to-pass/resolve": 10,
+   "test-failing-before/note": 15,
+   "test-removed/resolve": 5,
+   "test-vacuous/resolve": 3,
+   "untested-change/resolve": 5
+  },
+  "rows": [
+   {
+    "sha": "f53fc5440d",
+    "subject": "Stop evolve dunders from being modified (#1606)",
+    "seconds": 17.1,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "3 changed line(s) in src/attr/_make.py never ran in the selected tests (1112-1113, 1115)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1413 test(s) in 25 file(s), the whole suite (1401 passed, 1 failed, 11 skipped) in 17s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 33 test(s): 33 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "9b98a730bf",
+    "subject": "Drop Python 3.9 (#1603)",
+    "seconds": 42.3,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-vacuous",
+      "severity": "resolve",
+      "title": "none of the 32 new or edited test(s) fails on the session-start code, so none of them tests what this session changed"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1412 test(s) in 25 file(s), the whole suite (1401 passed, 1 failed, 10 skipped) in 41s; selected because: changed test, imports a changed module",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 3 file(s) ran"
+    ]
+   },
+   {
+    "sha": "116681b67e",
+    "subject": "update",
+    "seconds": 19.3,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "suppression-added",
+      "severity": "resolve",
+      "title": "added `# noqa` at src/attr/_compat.py:35"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1413 test(s) in 25 file(s), the whole suite (1401 passed, 1 failed, 11 skipped) in 19s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 228 test(s): 228 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "5aa76a4450",
+    "subject": "Add `ne` validator (#1571)",
+    "seconds": 14.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-removed",
+      "severity": "resolve",
+      "title": "tests/test_validators.py::TestLtLeGeGt::test_check_invalid existed at session start and is gone now; it would still pass"
+     },
+     {
+      "rule": "test-removed",
+      "severity": "resolve",
+      "title": "tests/test_validators.py::TestLtLeGeGt::test_check_valid existed at session start and is gone now; it would still pass"
+     },
+     {
+      "rule": "test-removed",
+      "severity": "resolve",
+      "title": "tests/test_validators.py::TestLtLeGeGt::test_in_all existed at session start and is gone now; it would still pass"
+     },
+     {
+      "rule": "test-removed",
+      "severity": "resolve",
+      "title": "tests/test_validators.py::TestLtLeGeGt::test_repr existed at session start and is gone now; it would still pass"
+     },
+     {
+      "rule": "test-removed",
+      "severity": "resolve",
+      "title": "tests/test_validators.py::TestLtLeGeGt::test_retrieve_bound existed at session start and is gone now; it would still pass"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1413 test(s) in 25 file(s), the whole suite (1401 passed, 1 failed, 11 skipped) in 14s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 101 test(s): 96 as written, 5 gone",
+     "new tests against the session-start code: 5 of 5 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "4b5b295bb8",
+    "subject": "Make on_setattr hooks accept generators (#1592)",
+    "seconds": 20.6,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "6 changed line(s) in typing-examples/baseline.py never ran in the selected tests (10, 133-136, 152)"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1408 test(s) in 25 file(s), the whole suite (1396 passed, 1 failed, 11 skipped) in 20s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 24 test(s): 24 as written",
+     "new tests against the session-start code: 11 of 11 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 5 file(s) ran"
+    ]
+   },
+   {
+    "sha": "97f8d17565",
+    "subject": "Fix ClassVar forward reference detection (#1593)",
+    "seconds": 17.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "suppression-added",
+      "severity": "resolve",
+      "title": "added `# noqa` at tests/test_annotations.py:448"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1397 test(s) in 25 file(s), the whole suite (1385 passed, 1 failed, 11 skipped) in 17s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 35 test(s): 35 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "6851ab593c",
+    "subject": "Defer imports on the cold import path (#1600)",
+    "seconds": 19.6,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "1 changed line(s) in src/attr/_compat.py never ran in the selected tests (23)"
+     },
+     {
+      "rule": "test-vacuous",
+      "severity": "resolve",
+      "title": "none of the 2 new or edited test(s) fails on the session-start code, so none of them tests what this session changed"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1394 test(s) in 25 file(s), the whole suite (1384 passed, 1 failed, 9 skipped) in 19s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 1 test(s): 1 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 5 file(s) ran"
+    ]
+   },
+   {
+    "sha": "0f758fe54a",
+    "subject": "Expose converter as a decorator (#1541)",
+    "seconds": 29.9,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1392 test(s) in 25 file(s), the whole suite (1382 passed, 1 failed, 9 skipped) in 29s; selected because: changed test, imports a changed module",
+     "session-start tests on the new code: 640 test(s): 640 as written",
+     "new tests against the session-start code: 3 of 3 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "48b8611c27",
+    "subject": "Add instance support to attrs.fields() (#1529)",
+    "seconds": 39.9,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_make.py::TestFields::test_instance as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "assertions-removed",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestFields::test_instance checks less than it did: 2 assertion(s) at session start, 1 now"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1387 test(s) in 25 file(s), the whole suite (1377 passed, 1 failed, 9 skipped) in 39s; selected because: changed test, imports a changed module",
+     "session-start tests on the new code: 639 test(s): 638 as written, 1 changed",
+     "new tests against the session-start code: 2 of 2 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "a572c3a4c5",
+    "subject": "Allow field(on_setattr=NO_OP) on frozen classes",
+    "seconds": 17.1,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1386 test(s) in 25 file(s), the whole suite (1376 passed, 1 failed, 9 skipped) in 17s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 20 test(s): 20 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "af9c510912",
+    "subject": "Fix validators.disabled() to save/restore state on nesting (#1513)",
+    "seconds": 15.4,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1384 test(s) in 25 file(s), the whole suite (1374 passed, 1 failed, 9 skipped) in 15s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 100 test(s): 100 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "ce89f5d11f",
+    "subject": "Fix message passing in frozen errors",
+    "seconds": 15.6,
+    "verdict": "passed",
+    "findings": [
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1383 test(s) in 25 file(s), the whole suite (1373 passed, 1 failed, 9 skipped) in 15s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 33 test(s): 33 as written",
+     "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "862696afb5",
+    "subject": "Resolve field aliases before calling field_transformer (#1509)",
+    "seconds": 31.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_functional.py::TestFunctional::test_fields as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_functional.py::TestFunctional::test_programmatic as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_hooks.py::TestTransformHook::test_hook_conflicting_defaults_after_reorder as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "tests/test_make.py::TestTransformAttrs::test_conflicting_defaults as it was at session start fails on the new code; the test was edited instead"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "block",
+      "title": "1 test(s) pass only with this session's changes to tests/utils.py; with the session-start test setup they fail on the new code"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1383 test(s) in 25 file(s), the whole suite (1373 passed, 1 failed, 9 skipped) in 31s; selected because: changed test, imports a changed module, imports a changed module (2 steps), under changed utils.py",
+     "session-start tests on the new code: 628 test(s): 623 as written, 5 changed",
+     "new tests against the session-start code: 13 of 15 fail there, so they test the change; 2 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "c44b8b0052",
+    "subject": "update dev (#1507)",
+    "seconds": 24.3,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "1 changed line(s) in src/attr/_make.py never ran in the selected tests (1099)"
+     },
+     {
+      "rule": "test-vacuous",
+      "severity": "resolve",
+      "title": "none of the 2 new or edited test(s) fails on the session-start code, so none of them tests what this session changed"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1372 test(s) in 25 file(s), the whole suite (1362 passed, 1 failed, 9 skipped) in 24s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 145 test(s): 145 as written",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "112dd1d498",
+    "subject": "Expose effective class construction properties (#1454)",
+    "seconds": 27.0,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "10 changed line(s) in typing-examples/baseline_examples.py never ran in the selected tests (195-197, 200-203, 206-208)"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestClassBuilder::test_handles_missing_meta_on_class was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are uncha"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestClassBuilder::test_repr was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestClassBuilder::test_returns_self was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_conflicting_defaults was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_empty was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_kw_only was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_no_modifications was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_normal was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_these was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "test-changed-to-pass",
+      "severity": "resolve",
+      "title": "tests/test_make.py::TestTransformAttrs::test_transforms_to_attribute was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged"
+     },
+     {
+      "rule": "suppression-added",
+      "severity": "resolve",
+      "title": "added `# noqa` at src/attr/_make.py:2900"
+     },
+     {
+      "rule": "test-failing-before",
+      "severity": "note",
+      "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 1372 test(s) in 25 file(s), the whole suite (1362 passed, 1 failed, 9 skipped) in 26s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+     "session-start tests on the new code: 214 test(s): 203 as written, 10 call changed, 1 moved",
+     "new tests against the session-start code: 16 of 17 fail there, so they test the change; 1 pass on both sides (regression or characterization tests)",
+     "failures compared with an isolated checkout of the session-start tree",
+     "coverage: recorded which changed lines in 4 file(s) ran"
+    ]
+   }
+  ]
+ },
+ "flask": {
+  "commits": 9,
+  "verdicts": {
+   "blocked": 2,
+   "not-checked": 7
+  },
+  "commits_with_rule": {
+   "tests-failing-unverified/resolve": 2,
+   "untested-change/resolve": 1
+  },
+  "findings_by_rule": {
+   "tests-failing-unverified/resolve": 2,
+   "untested-change/resolve": 1
+  },
+  "rows": [
+   {
+    "sha": "06ea505ce2",
+    "subject": "separate copy per call",
+    "seconds": 8.4,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "untested-change",
+      "severity": "resolve",
+      "title": "3 changed line(s) in src/flask/ctx.py never ran in the selected tests (193, 195, 203)"
+     },
+     {
+      "rule": "tests-failing-unverified",
+      "severity": "resolve",
+      "title": "434 selected tests fail, and they couldn't be compared with session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 434 test(s) in 22 file(s), the whole suite (0 passed, 434 failed, 0 skipped) in 8s; selected because: changed test, imports a changed module (2 steps)",
+     "session-start tests on the new code: 9 test(s): 9 failing",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "438edcdf01",
+    "subject": "Allow self as an argument to url_for",
+    "seconds": 8.5,
+    "verdict": "blocked",
+    "findings": [
+     {
+      "rule": "tests-failing-unverified",
+      "severity": "resolve",
+      "title": "425 selected tests fail, and they couldn't be compared with session start"
+     }
+    ],
+    "checks": [
+     "tests: ran 427 test(s) in 21 file(s), the whole suite (0 passed, 425 failed, 2 skipped) in 8s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+     "session-start tests on the new code: 22 test(s): 22 failing",
+     "coverage: recorded which changed lines in 1 file(s) ran"
+    ]
+   },
+   {
+    "sha": "22987b6817",
+    "subject": "include samesite and secure when removing session cookie (#3726)",
+    "seconds": 3.3,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "7a444c5dab",
+    "subject": "update tests for new werkzeug client (#3827)",
+    "seconds": 3.1,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "373f0dd82e",
+    "subject": "update requirements (#3823)",
+    "seconds": 3.2,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "8efea0ccbb",
+    "subject": "Break reference cycle created by default in Flask instances.",
+    "seconds": 3.2,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "e08bcf9f97",
+    "subject": "Fix #2935: Copy current session object in copy_current_request_context (#2936)",
+    "seconds": 3.2,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "2433522d29",
+    "subject": "Add Support for FLASK_ENV (#2570)",
+    "seconds": 3.4,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   },
+   {
+    "sha": "59f7966e31",
+    "subject": "support passing environ to test client (#2412)",
+    "seconds": 3.3,
+    "verdict": "not-checked",
+    "findings": [],
+    "checks": []
+   }
+  ]
+ }
+}

@@ -131,7 +131,20 @@ Notyet-Ack: 9c1f02aa totals no longer include tax, as decided in #412
 
 ## Does it work?
 
-EVAL_PLACEHOLDER
+Measured in November 2026, against ground truth that doesn't come from notyet itself:
+
+| | |
+|---|---|
+| **Agents.** Small tasks with hidden couplings, agents that can edit but not run anything (Haiku, Sonnet): sessions left with broken behavior | alone **14 / 36**, with notyet **1 / 36** (that one handed to the user for review) |
+| **Held-out scenarios.** 60 cheats, regressions, honest sessions and odd setups, written by an agent that hadn't seen notyet's code; first run | **60 / 60** (September's version: 42) |
+| **Mutations** of flask, click, attrs, httpx and rich that break their own suite: blocked | **160 / 161** |
+| **False blocks** on mutations their suite passes | **0 / 39** |
+| Reviewed human commits that get a block-level finding (deliberate behavior changes) | 9 / 39 |
+| Time per check on those repos, median | 6–16s |
+
+What it doesn't do matters as much. It can't see work that is incomplete rather than broken, the agent tasks were built
+to have couplings, and real use over weeks hasn't been measured yet. The method, the caveats and the mistakes are in
+[docs/EVAL.md](docs/EVAL.md).
 
 ## Commands
 
