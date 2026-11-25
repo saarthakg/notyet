@@ -1,6 +1,6 @@
 """Feature work on real projects with notyet installed, as a user would have it.
 
-A session spec (JSON) is a list of {"id", "repo", "mode", "prompts": [...]}. Each session runs in a
+Keep specs and results with the projects (they quote them), not in this repo. A session spec (JSON) is a list of {"id", "repo", "mode", "prompts": [...]}. Each session runs in a
 fresh copy of BENCH/<repo> (a clone with its .venv, set up by `notyet init` and `notyet install claude`),
 one `claude -p` turn per prompt, resumed; the agent can edit and run Python and git. After each turn:
 what notyet said (runs, findings, acks, receipt), and, independently, the suite as the agent left it and

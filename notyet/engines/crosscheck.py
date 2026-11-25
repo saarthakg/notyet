@@ -40,7 +40,6 @@ from notyet import snapshot, testrun
 from notyet.engines.integrity import changed_functions, constants_of, test_bodies
 from notyet.findings import Context, EngineResult, Finding
 
-MAX_ITEMS = 10
 BATCH = 12
 
 
@@ -332,7 +331,7 @@ def _lost_constants(ctx: Context, then: str, now: str | None, name: str) -> bool
 def _group_edited(result: EngineResult) -> None:
     """Past a handful of edited tests, one item per file and level: the same decision, asked once."""
     mine = [f for f in result.findings if f.rule == "test-changed-to-pass" and "::" in f.location]
-    if len(mine) <= MAX_ITEMS // 2:
+    if len(mine) < 3:
         return
     by_file: dict[tuple[str, str], list[Finding]] = {}
     for f in mine:
