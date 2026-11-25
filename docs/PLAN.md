@@ -7,6 +7,25 @@ may stop. The human gets a receipt of what was checked, what passed, and what wa
 Evidence: [RESEARCH.md](RESEARCH.md), and the source notes in [research/](research/). This plan
 incorporates an independent review of the earlier draft; §9 lists what changed and why.
 
+**Status, 2026-11-25.** The MVP (§4) is built, weeks 1-3 were re-evaluated against ground truth and largely
+reworked ([EVAL.md](EVAL.md)), and the gate also runs in CI, in Codex and as a Claude Code plugin. What changed
+in the design since this was written:
+
+- **The test side is swapped as a whole** (§3.3-3.4). Detecting edited test functions by their syntax missed
+  fixtures, helpers, golden files, hooks and configuration; running the session-start test side on the new code
+  doesn't care how a test was made to pass. `engines/crosscheck.py`.
+- **Block only when something broke.** A removed or skipped test that would still pass is now fix-or-justify; it
+  blocks when it would fail.
+- **Failures are compared with the same run** on the session-start tree: same files, same order.
+- **The starting point follows `HEAD`** past commits the session didn't write (§3.1). `moves.py`.
+- **A long-lived background process no longer switches the gate off** (§3.6): in dogfooding, 29 of 41 stops had gone
+  unchecked.
+- **Failing to check is never a pass:** INCOMPLETE is its own verdict.
+
+Next, in order: (1) the dogfooding of §4 week 4, now that most stops are checked, in repos other than this one;
+(2) TypeScript (vitest/jest), where the same four-way comparison applies; (3) `declare()` (§3.8), which is the only
+idea here for the failure the evaluation shows the gate can't see: work that is incomplete rather than broken.
+
 ## 1. The problem
 
 - **False "done".** This is the most frequently *reported* failure (F1). The agent stops when the
@@ -191,7 +210,8 @@ notyet/
 | Name | **notyet** (PyPI and npm free, Sept 2026) |
 | Language | **Python first**; TypeScript after the MVP |
 | End-to-end study budget | **None for now.** Free evaluation first; I'll say plainly when paid evidence is needed, starting with the $40–80 pilot |
-| Repos without tests or with slow suites | **Open.** Default "not checked, don't block", configurable |
+| Repos without tests or with slow suites | "Not checked" or INCOMPLETE, never a block; the summary leads with it |
+| Requested behavior changes block once (`test-changed-to-pass`) | **Default kept**: one hand-off, and the receipt says NEEDS YOUR REVIEW. `[rules]` can lower it per repo |
 | Installing hooks in your real repos for dogfooding (week 4) | Needs your approval, per repo |
 
 ## 9. What changed after the review
