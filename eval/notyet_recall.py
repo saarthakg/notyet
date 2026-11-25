@@ -135,7 +135,7 @@ def one_repo(repo: str, n: int, seed: int, budget: int) -> dict:
             finally:
                 path.write_text(original)
             res = session.runs[-1].result if session.runs else {}
-            found = [f for f in decision.findings if f.rule in ("test-regression", "test-run-broken", "test-failing",
+            found = [f for f in decision.findings if f.rule in ("test-regression", "test-run-broken", "test-hangs", "test-failing",
                                                                 "tests-failing-unverified")]
             blocked = any(f.severity == "block" for f in found)
             row = {"repo": root.name, "file": rel, "op": op, "line": line, "broken": len(broken), "broken_sample": broken[:3],

@@ -469,13 +469,13 @@ def _hang(ctx: Context, command: str, nodeid: str, seconds: float) -> list[Findi
         before = None
     else:
         run_ = testrun.run_pytest(command, tmp, [nodeid], timeout=ctx.cap(HANG_SECONDS), env=source_path_env(tmp, {}))
-        if run_.timed_out or testrun.outcome_of(nodeid, run_.results) != "passed":
+        if run_.timed_out or testrun.outcome_of(nodeid, run_.results) == "missing":      # passing or failing, it has to end
             return []
         before = run_.seconds
     return [Finding(
         rule="test-hangs", severity="block" if before is not None else "resolve", location=nodeid,
         title=f"{nodeid} was still running after {seconds:.0f}s"
-              + (f"; at session start it passes in {before:.1f}s" if before is not None else " (it's new in this session)"),
+              + (f"; at session start it finishes in {before:.1f}s" if before is not None else " (it's new in this session)"),
         action="Find the endless loop or the wait that never ends, and fix it.")]
 
 
