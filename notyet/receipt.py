@@ -8,6 +8,7 @@ and how to acknowledge.
 import shlex
 import sys
 import time
+from typing import Sequence
 
 from notyet import store
 from notyet.findings import Context, EngineResult, Finding, find_ack, uncovered
@@ -92,6 +93,10 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
 
     lines += ["## Checks run", ""] + ([f"- {c}" for c in result.checks] or ["- none"]) + [""]
     lines += ["## Not checked", ""] + ([f"- {c}" for c in result.not_checked] or ["- nothing left out"]) + [""]
+    for m in session.moves:
+        lines += [f"Note: {m['commits']} commit(s) that arrived during the session (up to {m['head'][:8]}) "
+                  + ("are part of the starting point, not of the change." if m["ok"] else
+                     f"couldn't be separated from the change ({m['why']}), so they count as part of it."), ""]
     if session.baseline_source != "session-start":
         lines += [f"Note: {_baseline_note(session)}", ""]
     lines.append("Edits you made yourself during this session count as part of the change.")
@@ -116,7 +121,7 @@ def summary(verdict: str, standing: list[Finding], result: EngineResult, path: s
     return f"{head}. {detail} (receipt: {path})"
 
 
-def agent_message(standing: list[Finding], last_chance: bool, advice: list[str] = ()) -> str:
+def agent_message(standing: list[Finding], last_chance: bool, advice: Sequence[str] = ()) -> str:
     cmd = invocation()
     lines = [f"notyet: not done yet. {len(standing)} item(s) to resolve before stopping.", ""]
     for i, f in enumerate(standing[:MAX_AGENT_FINDINGS], 1):

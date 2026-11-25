@@ -26,6 +26,9 @@ def run(ctx: Context) -> EngineResult:
     if turn_start == ctx.current_tree:
         return result
 
+    if s.turns and s.turns[-1].get("lost"):
+        result.not_checked.append("undone work: commits arrived during this turn and couldn't be told apart from it")
+        return result
     protected: dict[str, Counter] = {}
     origin: dict[str, str] = {}
     if s.baseline_head and s.baseline_source == "session-start" and s.baseline_head != ctx.baseline_tree:

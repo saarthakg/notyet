@@ -8,7 +8,7 @@ import os
 import re
 import tempfile
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Optional
 
@@ -46,6 +46,9 @@ class Session:
     acks: dict[str, dict] = field(default_factory=dict)   # finding id → {category, reason, at}
     turns: list[dict] = field(default_factory=list)      # {"at", "tree"}: the working tree at each prompt
     stops: list[dict] = field(default_factory=list)      # {"at", "busy"}: each Stop, including skipped ones
+    baseline_commit: Optional[str] = None                # the commit the starting point is based on (see moves.py)
+    head_seen: Optional[str] = None                      # HEAD when moves were last looked for
+    moves: list[dict] = field(default_factory=list)      # commits from elsewhere the starting point moved past
 
 
 def _session_path(root: str, session_id: str) -> Path:
@@ -59,6 +62,8 @@ def load_session(root: str, session_id: str) -> Optional[Session]:
     if not path.exists():
         return None
     data = json.loads(path.read_text())
+    known = {f.name for f in fields(Session)}      # a state file from a newer notyet may have more
+    data = {k: v for k, v in data.items() if k in known}
     data["runs"] = [GateRun(**r) for r in data.get("runs", [])]
     return Session(**data)
 
@@ -69,9 +74,12 @@ def save_session(root: str, session: Session) -> None:
 
 def start_session(root: str, session_id: str, source: str) -> Session:
     """Create the session with a baseline snapshot of the tree as it is now."""
+    from notyet import moves
+    commit = moves.head_commit(root)
     session = Session(
         session_id=session_id, started=time.time(), baseline_tree=snapshot.snapshot(root),
         baseline_head=snapshot.head_tree(root), baseline_source=source,
+        baseline_commit=commit, head_seen=commit,
     )
     save_session(root, session)
     return session

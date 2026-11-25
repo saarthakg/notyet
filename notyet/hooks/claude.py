@@ -21,7 +21,7 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
-from notyet import gate, snapshot, store
+from notyet import gate, moves, snapshot, store
 
 EVENTS = {"session-start": "SessionStart", "prompt": "UserPromptSubmit", "stop": "Stop"}
 MARKER = " -m notyet hook claude "
@@ -55,6 +55,7 @@ def _dispatch(root: str, event: str, payload: dict) -> Optional[dict]:
     if event == "prompt":
         if session is None:
             session = store.start_session(root, session_id, "first-prompt")
+        moves.follow(root, session)
         prompt = (payload.get("prompt") or "").strip()
         if prompt:
             session.prompts.append(prompt[:2000])
@@ -70,11 +71,12 @@ def _dispatch(root: str, event: str, payload: dict) -> Optional[dict]:
             head = snapshot.head_tree(root)
             session.baseline_tree = head or snapshot.EMPTY_TREE
             store.save_session(root, session)
-        tasks = payload.get("background_tasks") or []
-        busy = any(t.get("status") in (None, "running", "pending") for t in tasks)
+        moves.follow(root, session)
+        tasks = [t for t in payload.get("background_tasks") or [] if t.get("status") in (None, "running", "pending")]
+        busy = any(_is_pending_work(t, session) for t in tasks)
         # a skipped check leaves no gate run, so record every Stop to tell "skipped" from "never fired"
         session.stops = (session.stops + [{"at": time.time(), "busy": busy,
-                                           "tasks": [t.get("status") for t in tasks][:10]}])[-50:]
+                                           "tasks": [t.get("id") for t in tasks][:20]}])[-50:]
         store.save_session(root, session)
         decision = gate.check(root, session, background_busy=busy)
         if decision.verdict == "blocked":
@@ -84,6 +86,21 @@ def _dispatch(root: str, event: str, payload: dict) -> Optional[dict]:
         return None
 
     raise ValueError(f"unknown hook event {event!r}")
+
+
+# Work the agent is waiting for: it will be woken when this finishes, and stop again.
+DELEGATED = {"subagent", "teammate", "workflow", "cloud session"}
+SEEN_BEFORE = 2
+
+
+def _is_pending_work(task: dict, session: store.Session) -> bool:
+    """Is the session unfinished because of this background task? A shell or monitor still running at its
+    third Stop is a server or a watcher, not something being waited for: treating it as pending work would
+    switch the gate off for as long as it runs."""
+    if task.get("type") in DELEGATED:
+        return True
+    seen = sum(1 for stop in session.stops if task.get("id") and task.get("id") in stop.get("tasks", []))
+    return seen < SEEN_BEFORE
 
 
 def main(event: str) -> int:
