@@ -29,6 +29,7 @@ class GateRun:
     at: float
     verdict: str                       # passed | blocked | reported | not-checked
     finding_ids: list[str] = field(default_factory=list)   # standing (unresolved) findings
+    sent_ids: list[str] = field(default_factory=list)      # those the agent was, or would have been, sent back for
     receipt: Optional[str] = None      # path of the receipt file
     result: dict = field(default_factory=dict)             # the engines' full result, to re-decide without re-running
     seconds: float = 0.0

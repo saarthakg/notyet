@@ -1,5 +1,5 @@
 """Vacuous new tests: new or edited tests run against the session-start code."""
-from notyet import gate, snapshot, store
+from notyet import config, gate, snapshot, store
 from notyet.engines import execution
 from tests.conftest import _git, _write
 from tests.test_notyet_execution import check, rules
@@ -100,8 +100,8 @@ def test_new_conftest_fixture_is_copied_to_the_session_start_side(repo):
 
 
 def test_a_refactor_with_characterization_tests_is_acknowledged_not_blocked(repo):
-    """The legitimate both-sides case, through the gate in enforce mode: a
-    fix-or-justify item, cleared by an acknowledgment with the reason."""
+    """The legitimate both-sides case, through the gate in enforce mode: shown to the user, who wasn't
+    interrupted for it; with send_back = "all", cleared by an acknowledgment with the reason."""
     _write(repo, "pkg/calc.py", "def add(a, b):\n    return sum((a, b))\n\n\ndef sub(a, b):\n    return a - b\n")
     _write(repo, "tests/test_calc.py", (repo / "tests/test_calc.py").read_text()
            + "\n\ndef test_add_negative():\n    assert add(-1, -2) == -3\n")
@@ -111,9 +111,15 @@ def test_a_refactor_with_characterization_tests_is_acknowledged_not_blocked(repo
     session = store.Session(session_id="r", started=0, baseline_tree=head, baseline_head=head,
                             baseline_source="session-start")
     first = gate.check(root, session)
+    assert first.verdict == "passed" and "no new test fails without the change" in first.summary
+    _write(repo, ".notyet.toml", (repo / ".notyet.toml").read_text().replace("[gate]\n", '[gate]\nsend_back = "all"\n'))
+    session = store.Session(session_id="r2", started=0, baseline_tree=head, baseline_head=head, baseline_source="session-start")
+    cfg = config.load(root)
+    assert cfg.send_back == "all"
+    first = gate.check(root, session, cfg=cfg)
     assert first.verdict == "blocked" and [f.rule for f in first.findings] == ["test-vacuous"]
     session.acks[first.findings[0].id] = {"category": "acknowledge", "reason": "refactor; behavior unchanged"}
-    assert gate.check(root, session).verdict == "passed"
+    assert gate.check(root, session, cfg=cfg).verdict == "passed"
 
 
 def test_the_session_start_run_is_cached(repo, monkeypatch):

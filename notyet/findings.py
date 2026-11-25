@@ -31,6 +31,8 @@ class Finding:
     # line). An acknowledgment of such a finding carries over to later findings of the same group
     # while the items it didn't cover stay few (see find_ack), even though the id changes.
     covers: list[str] = field(default_factory=list)
+    tests: list[str] = field(default_factory=list)      # node ids it's about, when it's about tests
+    diff: list[str] = field(default_factory=list)       # what a test checked and checks now: "- old" / "+ new" lines
 
     @property
     def id(self) -> str:
@@ -84,6 +86,7 @@ class EngineResult:
     checks: list[str] = field(default_factory=list)       # what was checked, for the receipt
     not_checked: list[str] = field(default_factory=list)  # negative space
     advice: list[str] = field(default_factory=list)       # advisory lines (history, etc.)
+    facts: dict[str, int] = field(default_factory=dict)          # counts for the evidence line (receipt.evidence)
     timings: dict[str, float] = field(default_factory=dict)      # seconds per part of the check
     gaps: list[str] = field(default_factory=list)         # a core check that didn't run: the summary leads with it
 
@@ -93,6 +96,7 @@ class EngineResult:
         self.not_checked += other.not_checked
         self.advice += other.advice
         self.gaps += other.gaps
+        self.facts.update(other.facts)
         for part, seconds in other.timings.items():
             self.timings[part] = self.timings.get(part, 0.0) + seconds
 

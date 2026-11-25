@@ -37,6 +37,9 @@ widen_seconds = 20
 # "report": never block; leave a receipt and a short summary.
 # "enforce": block the agent's stop on execution evidence (see docs/PLAN.md).
 mode = "report"
+# When enforcing, what the agent is sent back for: "unknown" (what it doesn't know or didn't say: broken tests,
+# untested new code, tests it changed without telling you) or "all" (every finding; for unattended agents).
+send_back = "unknown"
 
 # [rules]
 # How a rule's findings are treated: "block", "resolve" (fix or justify), "note", or "off".
@@ -51,6 +54,7 @@ class Config:
     budget_seconds: int = 60
     widen_seconds: int = 20                   # time for tests beyond the selected ones
     mode: str = "report"                      # report | enforce
+    send_back: str = "unknown"                # unknown | all: what an enforcing gate sends the agent back for
     ruff: Optional[str] = None                # command that runs ruff, e.g. ".venv/bin/ruff"
     pyright: Optional[str] = None             # command that runs pyright
     static_budget_seconds: int = 60
@@ -118,6 +122,10 @@ def parse(text: Optional[str], source: str) -> Config:
         cfg.problems.append(f"gate.mode {mode!r} isn't report or enforce; using report")
         mode = "report"
     cfg.mode = mode
+    cfg.send_back = gate.get("send_back", cfg.send_back)
+    if cfg.send_back not in ("unknown", "all"):
+        cfg.problems.append(f"gate.send_back {cfg.send_back!r} isn't unknown or all; using unknown")
+        cfg.send_back = "unknown"
     return cfg
 
 

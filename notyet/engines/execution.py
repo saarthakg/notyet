@@ -452,6 +452,8 @@ def run(ctx: Context) -> EngineResult:
     bad = sum(1 for r in current.results.values() if r.bad)
     skipped = sum(1 for r in current.results.values() if r.outcome == "skipped")
     why = sorted({w for _, _, w in tests})
+    result.facts.update(passed=passed, ran=len(current.results), whole=int(set(others) <= set(widened) and not skipped_files),
+                        lines_checked=int(coverage_check is not None))
     scope = "the whole suite" if set(others) <= set(widened) and not skipped_files else \
         f"{len(ran_files)} of {len(all_tests)} test files"
     result.checks.insert(0, f"tests: ran {len(current.results)} test(s) in {len(ran_files)} file(s), {scope} "

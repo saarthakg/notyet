@@ -21,7 +21,7 @@ DISABLING_CALLS = ("pytest.skip", "pytest.xfail", "self.skipTest", "pytest.impor
 @dataclass
 class TestFunc:
     name: str                 # "test_x" or "TestC::test_x"
-    node: ast.AST
+    node: ast.FunctionDef | ast.AsyncFunctionDef
     disablers: frozenset[str]
     assertions: int
     body: str                 # normalized source of the body, to tell edits apart
@@ -84,6 +84,14 @@ def constants_of(source: str, name: str) -> Counter:
     func = _functions(source).get(name)
     return Counter(repr(n.value) for n in ast.walk(func.node) if isinstance(n, ast.Constant)
                    and not isinstance(n.value, bool) and n.value is not None) if func else Counter()
+
+
+def function_source(source: str, name: str) -> str:
+    func = _functions(source).get(name)
+    if func is None:
+        return ""
+    start = min([func.node.lineno, *(d.lineno for d in getattr(func.node, "decorator_list", []))])
+    return "\n".join(source.splitlines()[start - 1:func.node.end_lineno])
 
 
 def test_names(source: str) -> set[str]:

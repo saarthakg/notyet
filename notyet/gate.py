@@ -17,12 +17,21 @@ from typing import Callable, Optional
 from notyet import config as config_mod
 from notyet import receipt as receipt_mod
 from notyet import snapshot, store
+from notyet.disclosure import disclosed
 from notyet.source import printable
 from notyet.findings import Context, EngineResult, Finding, find_ack
 
 MAX_BLOCKS = 6
 SEVERITY_ORDER = {"block": 0, "resolve": 1, "note": 2}
 MAX_SAME_SET_BLOCKS = 2
+
+# What an agent can't know or hasn't said is worth sending it back for. The rest is for the user to see: interrupting
+# for it mostly produced acknowledgments, and once worse code (docs/EVAL.md §6).
+SEND_BACK = {"untested-change", "test-failing", "tests-failing-unverified", "type-error-new", "test-not-collected",
+             "failing-test-changed", "test-removed", "test-disabled", "assertions-removed",      # when not told to the user
+             "source-detects-tests", "always-equal"}
+TEST_CHANGES = {"test-changed-to-pass", "test-removed", "test-disabled", "failing-test-changed", "assertions-removed"}
+HANDED_OVER = ("needs-human", "disclosed")
 
 Engine = Callable[[Context], EngineResult]
 
@@ -44,7 +53,7 @@ class Decision:
 def handed_over_now(session: store.Session, ack: Optional[dict]) -> bool:
     """Was this item handed to the user in the current turn? One from an earlier turn was on the receipt and in the
     summary the user saw before prompting again: it stays listed, but it isn't news about this turn."""
-    if not ack or ack.get("category") != "needs-human":
+    if not ack or ack.get("category") not in HANDED_OVER:
         return False
     return not session.turns or ack.get("at", float("inf")) >= session.turns[-1]["at"]
 
@@ -54,7 +63,7 @@ def outstanding(findings: list[Finding], acks: dict[str, dict]) -> list[Finding]
     out = []
     for f in findings:
         ack = find_ack(f, acks)
-        if f.severity == "block" and not (ack and ack.get("category") == "needs-human"):
+        if f.severity == "block" and not (ack and ack.get("category") in HANDED_OVER):
             out.append(f)
         elif f.severity == "resolve" and not ack:
             out.append(f)
@@ -79,12 +88,14 @@ def run_engines(ctx: Context, engines: Optional[list[Engine]] = None) -> EngineR
         if name != "execution":      # times its own parts
             result.timings[name] = result.timings.get(name, 0.0) + time.monotonic() - started
     for f in result.findings:       # text from the repo can hold bytes that aren't UTF-8
-        f.title, f.location, f.evidence = printable(f.title), printable(f.location), [printable(e) for e in f.evidence]
+        f.title, f.location = printable(f.title), printable(f.location)
+        f.evidence, f.diff = [printable(e) for e in f.evidence], [printable(e) for e in f.diff]
     return result
 
 
 def check(root: str, session: store.Session, engines: Optional[list[Engine]] = None,
-          background_busy: bool = False, cfg: Optional[config_mod.Config] = None) -> Decision:
+          background_busy: bool = False, cfg: Optional[config_mod.Config] = None, message: str = "") -> Decision:
+    """`message`: what the agent told the user as it tried to stop."""
     if background_busy:
         return Decision(verdict="no-change")  # the session isn't done; check when it is
     current = snapshot.snapshot(root)
@@ -116,14 +127,20 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
                                  f"the gate used the version from session start")
 
     result.findings.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))   # blocks first, for agent and receipt
+    for f in result.findings:       # already told to the user: theirs to review, no reason to send the agent back
+        if f.rule in TEST_CHANGES and f.severity != "note" and not find_ack(f, session.acks) \
+                and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []))):
+            session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title}
     standing = outstanding(result.findings, session.acks)
-    repeats = _same_set_streak(session, [f.id for f in standing])
+    send = [f for f in standing if cfg.send_back == "all" or f.severity == "block" or f.rule in SEND_BACK]
+    repeats = _same_set_streak(session, [f.id for f in send])
 
     if not standing and not result.checks and not result.gaps:
         verdict = "not-checked"
-    elif not standing and any(handed_over_now(session, find_ack(f, session.acks)) for f in result.findings):
+    elif not send and any((f.severity == "block" or f.rule == "failing-test-changed")
+                          and handed_over_now(session, find_ack(f, session.acks)) for f in result.findings):
         verdict = "needs-review"      # the agent may stop, but this is not a pass
-    elif not standing:
+    elif not send:
         verdict = "incomplete" if result.gaps else "passed"     # nothing wrong in what ran isn't a pass
     elif not cfg.enforce:
         verdict = "reported"
@@ -135,16 +152,14 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     path = receipt_mod.write(root, session, ctx, result, standing, verdict)
     session.runs.append(store.GateRun(
         tree=current, at=time.time(), verdict=verdict, finding_ids=[f.id for f in standing],
-        receipt=path, result=_result_to(result), seconds=round(time.monotonic() - started, 1)))
+        sent_ids=[f.id for f in send], receipt=path, result=_result_to(result), seconds=round(time.monotonic() - started, 1)))
     session.consecutive_blocks = session.consecutive_blocks + 1 if verdict == "blocked" else 0
     store.save_session(root, session)
 
     decision = Decision(verdict=verdict, receipt_path=path, findings=result.findings,
-                        summary=receipt_mod.summary(verdict, standing, result, path, earlier=sum(
-                            1 for f in result.findings if (a := find_ack(f, session.acks)) and a.get("category") == "needs-human"
-                            and not handed_over_now(session, a))))
+                        summary=receipt_mod.summary(verdict, session, result, standing, path))
     if verdict == "blocked":
-        decision.block_reason = receipt_mod.agent_message(standing, last_chance=repeats + 1 >= MAX_SAME_SET_BLOCKS,
+        decision.block_reason = receipt_mod.agent_message(send, last_chance=repeats + 1 >= MAX_SAME_SET_BLOCKS,
                                                             advice=result.advice)
     return decision
 
@@ -161,7 +176,7 @@ def _as_configured(findings: list[Finding], rules: dict[str, str]) -> list[Findi
 
 
 def _gate_settings(cfg: config_mod.Config) -> tuple:
-    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.widen_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds,
+    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.widen_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds, cfg.send_back,
             tuple(sorted(cfg.rules.items())))
 
 
@@ -169,7 +184,7 @@ def _same_set_streak(session: store.Session, ids: list[str]) -> int:
     """How many of the latest runs in a row were blocked with exactly this finding set."""
     want, n = sorted(ids), 0
     for run in reversed(session.runs):
-        if run.verdict == "blocked" and sorted(run.finding_ids) == want:
+        if run.verdict == "blocked" and sorted(run.sent_ids) == want:
             n += 1
         else:
             break
@@ -179,10 +194,10 @@ def _same_set_streak(session: store.Session, ids: list[str]) -> int:
 def _result_to(result: EngineResult) -> dict:
     return {"findings": [asdict(f) for f in result.findings], "checks": result.checks,
             "not_checked": result.not_checked, "advice": result.advice, "gaps": result.gaps,
-            "timings": {k: round(v, 1) for k, v in result.timings.items()}}
+            "timings": {k: round(v, 1) for k, v in result.timings.items()}, "facts": result.facts}
 
 
 def _result_from(data: dict) -> EngineResult:
     return EngineResult(findings=[Finding(**f) for f in data.get("findings", [])],
                         checks=data.get("checks", []), not_checked=data.get("not_checked", []),
-                        advice=data.get("advice", []), gaps=data.get("gaps", []), timings=data.get("timings", {}))
+                        advice=data.get("advice", []), gaps=data.get("gaps", []), timings=data.get("timings", {}), facts=data.get("facts", {}))

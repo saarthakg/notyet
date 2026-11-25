@@ -63,6 +63,8 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
         f"compared with: {_baseline_label(session)}",
         "",
     ]
+    if short := brief(session, result, standing):
+        lines += ["## In short", "", "```", *short, "```", ""]
     needs_human = [f for f in result.findings if (find_ack(f, session.acks) or {}).get("category") == "needs-human"]
     if verdict == "unresolved" or needs_human:
         lines += ["## Needs your attention", ""]
@@ -115,22 +117,93 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
     return "\n".join(lines) + "\n"
 
 
-def summary(verdict: str, standing: list[Finding], result: EngineResult, path: str, earlier: int = 0) -> str:
+BROKEN = {"test-regression", "new-test-failing", "test-run-broken", "test-hangs", "test-failing", "tests-failing-unverified"}
+EXPECTATIONS = {"test-changed-to-pass", "test-removed", "test-disabled", "failing-test-changed", "assertions-removed"}
+ALSO = {"suppression-added": "suppression comment", "lint-new": "lint", "type-error-new": "type error", "undone-work": "undone earlier work",
+        "test-vacuous": "no new test fails without the change", "test-not-collected": "new test never collected",
+        "source-detects-tests": "source checks whether it's tested", "always-equal": "an __eq__ that's always true"}
+MAX_BRIEF = 5
+
+
+def evidence(result: EngineResult) -> str:
+    """The checks in one line: what a reader needs to know how far to trust the verdict."""
+    f = result.facts
+    if not f.get("ran"):
+        return "; ".join(result.checks[:2])
+    parts = [f"{f['passed']} of {f['ran']} tests pass" if f["passed"] != f["ran"] else f"{f['ran']} tests pass"]
+    parts[0] += " (the whole suite)" if f.get("whole") else " (the ones this change reaches)"
+    if f.get("earlier"):
+        parts.append(f"{f['as_written']} of {f['earlier']} earlier tests in the changed test files hold as they were")
+    if f.get("new"):
+        parts.append(f"{f['new_tell']} of {f['new']} new or edited tests fail without the change")
+    if f.get("lines_checked") and not any(x.rule == "untested-change" for x in result.findings):
+        parts.append("every changed line ran")
+    return "; ".join(parts)
+
+
+def brief(session: store.Session, result: EngineResult, standing: list[Finding]) -> list[str]:
+    """What the user should look at, in a few lines: what broke, what tests no longer say, what never ran."""
+    from notyet.gate import HANDED_OVER, handed_over_now
+    open_ids = {f.id for f in standing}
+
+    def shown(f: Finding) -> bool:
+        ack = find_ack(f, session.acks)
+        return f.severity != "note" and (f.id in open_ids or handed_over_now(session, ack))
+
+    live = [f for f in result.findings if shown(f)]
+    out: list[str] = []
+    if broken := [f for f in live if f.rule in BROKEN]:
+        out.append("Broken:")
+        out += [f"  {f.title}" for f in broken[:MAX_BRIEF]] + _more(broken)
+    # a test that checks less is the same news as one whose expectations changed
+    changed = {t for f in live if f.rule in EXPECTATIONS - {"assertions-removed"} for t in f.tests or [f.location]}
+    tests = [f for f in live if f.rule in EXPECTATIONS and (f.severity == "block" or f.rule != "test-changed-to-pass" or f.diff)
+             and not (f.rule == "assertions-removed" and f.location in changed)]
+    if tests:
+        out.append("What the tests say has changed:")
+        for f in tests[:MAX_BRIEF]:
+            ack = find_ack(f, session.acks) or {}
+            out.append(f"  {_headline(f)}")
+            out += [f"    {line}" for line in f.diff[:4]]
+            if ack.get("reason"):
+                out.append(f"    agent: {ack['reason'][:200]}")
+        out += _more(tests)
+    if untested := [f for f in live if f.rule == "untested-change"]:
+        out.append("No test runs:")
+        out += [f"  {f.title.split(' never ran')[0]}: {(f.evidence or [''])[0]}" for f in untested[:MAX_BRIEF]] + _more(untested)
+    rest = [f for f in live if f not in broken and f not in tests and f not in untested
+            and not (f.rule == "assertions-removed" and f.location in changed)]
+    counts: dict[str, int] = {}
+    for f in rest:
+        label = ALSO.get(f.rule, "edited test(s) that can't be rerun as they were (names or signatures moved)"
+                         if f.rule == "test-changed-to-pass" else f.rule)
+        counts[label] = counts.get(label, 0) + 1
+    earlier = sum(1 for f in result.findings if f.severity != "note" and (a := find_ack(f, session.acks))
+                  and a.get("category") in HANDED_OVER and not handed_over_now(session, a))
+    also = [f"{label}" + (f" ×{n}" if n > 1 else "") for label, n in counts.items()]
+    also += [f"{earlier} item(s) shown to you in an earlier turn still stand"] if earlier else []
+    if also:
+        out.append("Also: " + "; ".join(also))
+    return out
+
+
+def _more(items: list[Finding]) -> list[str]:
+    return [f"  and {len(items) - MAX_BRIEF} more"] if len(items) > MAX_BRIEF else []
+
+
+def _headline(f: Finding) -> str:
+    what = {"test-removed": "is gone", "test-disabled": "is switched off", "assertions-removed": "checks less than it did",
+            "failing-test-changed": "was failing; it was changed, and still fails as it was"}.get(f.rule)
+    return f"{f.location} {what}" if what and len(f.tests) <= 1 else f.location if len(f.tests) <= 1 and not what else f.title
+
+
+def summary(verdict: str, session: store.Session, result: EngineResult, standing: list[Finding], path: str) -> str:
     head = f"notyet: {VERDICT_TEXT.get(verdict, verdict)}"
     if result.gaps:     # never let "didn't check" read as "checked"
         head += f"{' (incomplete)' if verdict != 'incomplete' else ''}. {'; '.join(result.gaps)}"
-    if verdict in ("passed", "incomplete"):
-        detail = "; ".join(result.checks[:2])
-    elif verdict == "needs-review":
-        handed = [f for f in result.findings if f.severity == "block"]
-        detail = f"the agent handed you {len(handed)} item(s): " + "; ".join(f.title for f in handed[:2])
-    elif verdict in ("blocked", "reported", "unresolved"):
-        detail = f"{len(standing)} open finding(s): " + "; ".join(f.title for f in standing[:2])
-    else:
-        detail = "; ".join(result.not_checked[:2]) or "no checks ran"
-    if earlier:
-        detail += f"; {earlier} item(s) handed to you earlier in the session still stand"
-    return f"{head}. {detail} (receipt: {path})"
+    detail = evidence(result) if result.checks else "; ".join(result.not_checked[:2]) or "no checks ran"
+    lines = brief(session, result, standing)
+    return "\n".join([f"{head}. {detail}", *(f"  {line}" for line in lines), f"  Receipt: {path}"])
 
 
 def agent_message(standing: list[Finding], last_chance: bool, advice: Sequence[str] = ()) -> str:
@@ -145,7 +218,8 @@ def agent_message(standing: list[Finding], last_chance: bool, advice: Sequence[s
         lines.append(f"... and {len(standing) - MAX_AGENT_FINDINGS} more (see the receipt).")
     lines += [
         "",
-        "Fix these, then finish. If an item is intended and you're sure, acknowledge it with a specific "
+        "Fix these, then finish. If you changed a test on purpose, there's nothing to restore and no need to keep old test "
+        "setup working: name the test and say why in your closing message to the user. If another item is intended and you're sure, acknowledge it with a specific "
         f"reason, which the user will see: `{cmd} ack <id> \"<reason>\"`. Items marked [block] can only be "
         f"fixed or handed to the user: `{cmd} ack <id> --needs-human \"<reason>\"`. Several ids sharing one "
         f"reason can go in one call, comma-separated.",

@@ -81,7 +81,7 @@ def _dispatch(root: str, event: str, payload: dict) -> Optional[dict]:
         session.stops = (session.stops + [{"at": time.time(), "busy": busy,
                                            "tasks": [t.get("id") for t in tasks][:20]}])[-50:]
         store.save_session(root, session)
-        decision = gate.check(root, session, background_busy=busy)
+        decision = gate.check(root, session, background_busy=busy, message=payload.get("last_assistant_message") or "")
         if decision.verdict == "blocked":
             return {"decision": "block", "reason": decision.block_reason}
         if decision.summary:

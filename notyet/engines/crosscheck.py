@@ -30,6 +30,7 @@ Names moving is not behavior changing: when a session-start module can't even be
 imported on the new code (a renamed import), its unedited tests are judged by
 their new run, and only its edited ones are raised, as fix-or-justify.
 """
+import difflib
 import os
 import re
 import time
@@ -37,7 +38,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from notyet import snapshot, testrun
-from notyet.engines.integrity import changed_functions, constants_of, test_bodies
+from notyet.engines.integrity import changed_functions, constants_of, function_source, test_bodies
 from notyet.findings import Context, EngineResult, Finding
 
 BATCH = 12
@@ -252,12 +253,13 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
         elif fn in fails and (edited or not side.infra):
             result.findings.append(Finding(
                 rule="test-changed-to-pass", severity="block" if not why else "resolve", location=here or fn,
+                tests=[here or fn], diff=_diff(ctx, then, now_file, name),
                 title=f"{here} as it was at session start fails on the new code; "
                       + ("the test was edited instead" if edited else f"changes elsewhere in {now_file} make it pass")
                       + (" (couldn't confirm it passed at session start)" if why else ""),
                 evidence=evidence,
-                action="Fix the code so the original test passes. If the behavior change was asked for, "
-                       "hand it to the user: `ack <id> --needs-human \"the change that was requested\"`."))
+                action="If the behavior wasn't meant to change, fix the code so the original test passes. If it was, tell the "
+                       "user in your closing message that you changed this test, and why."))
             tally["changed"] += 1
         elif fn in fails:
             by_support.append(fn)
@@ -276,6 +278,8 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
         rest = f" (and {len(never_fixed) - 1} more like it)" if len(never_fixed) > 1 else ""
         result.findings.append(Finding(
             rule="failing-test-changed", severity="resolve", location=first, key="|".join(fn for fn, _ in never_fixed),
+            tests=[fn for fn, _ in never_fixed], diff=_diff(ctx, first.split("::")[0], side.modules.get(first.split("::")[0],
+                                                            first.split("::")[0]), first.partition("::")[2]),
             title=f"{first} failed at session start and {how} now, but as it was written then it still fails on the new "
                   f"code{rest}",
             evidence=_evidence(old.results, next((n for n in bad if testrun.function_of(n) == first), None), first)
@@ -296,14 +300,16 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
         result.findings.append(Finding(
             rule="test-changed-to-pass", severity="block" if not why and not calls else "resolve",
             location=by_support[0] if len(by_support) == 1 else side.infra[0],
+            tests=[*side.infra, *by_support[:50]], diff=_file_diff(ctx, side.infra),
             key="support|" + "|".join(by_support[:50]),
             title=f"{len(by_support)} test(s) pass only with this session's changes to {shown}; with the session-start "
                   f"test setup they " + ("can't call the new code (names or signatures changed)" if calls else "fail on the new code"),
             evidence=[f"{fn}: {(_evidence(old.results, fails.get(fn), fn) or [''])[0][:140]}" for fn in by_support[:3]],
             action="If the old way of calling it was meant to keep working, restore it; otherwise acknowledge the change."
-            if calls else "Fix the code so they pass with the original setup. If the behavior change was asked for, hand it "
-                   "to the user: `ack <id> --needs-human \"the change that was requested\"`."))
+            if calls else "If the behavior wasn't meant to change, fix the code so they pass with the original setup. If it was, "
+                   "tell the user in your closing message that you changed these files, and why."))
     if tally:
+        result.facts.update(as_written=tally["as written"] + tally["moved"] + tally["import moved"], earlier=sum(tally.values()))
         result.checks.append(
             f"session-start tests on the new code: {sum(tally.values())} test(s): "
             + ", ".join(f"{n} {k}" for k, n in tally.most_common()))
@@ -343,11 +349,37 @@ def _group_edited(result: EngineResult) -> None:
         result.findings = [f for f in result.findings if f not in group]
         result.findings.append(Finding(
             rule="test-changed-to-pass", severity=severity, location=path, key=f"{path}|" + "|".join(sorted(names)),
+            tests=[f.location for f in group], diff=[line for f in group[:3] for line in f.diff[:4]],
             title=f"{len(group)} edited tests in {path} fail on the new code as they were at session start"
                   if severity == "block" else f"{len(group)} edited tests in {path} can't be run on the new code as they were",
             evidence=[f"{n}: {(f.evidence or [''])[0][:120]}" for n, f in list(zip(names, group))[:4]]
             + ([f"and: {', '.join(names[4:16])}"] if len(names) > 4 else []),
             action=group[0].action))
+
+
+def _diff(ctx: Context, then: str, now: str | None, name: str) -> list[str]:
+    """What a test checked and what it checks now, as "- old" and "+ new" lines: the lines that check something, if
+    any of those changed."""
+    before = function_source(snapshot.show(ctx.root, ctx.baseline_tree, then) or "", name)
+    after = function_source(snapshot.show(ctx.root, ctx.current_tree, now) or "" if now else "", name)
+    return _changed_lines(before, after)
+
+
+def _file_diff(ctx: Context, paths: list[str]) -> list[str]:
+    out: list[str] = []
+    for path in paths[:3]:
+        lines = _changed_lines(snapshot.show(ctx.root, ctx.baseline_tree, path) or "", snapshot.show(ctx.root, ctx.current_tree, path) or "")
+        out += [f"{line[:2]}{path}: {line[2:]}" for line in lines[:3]]
+    return out
+
+
+_CHECKS = re.compile(r"assert|raises|warns|expect|==|!=|\bin\b|parametrize|range\(|return", re.IGNORECASE)
+
+
+def _changed_lines(before: str, after: str) -> list[str]:
+    lines = [line[0] + " " + line[1:].strip()[:140] for line in difflib.unified_diff(before.splitlines(), after.splitlines(), n=0, lineterm="")
+             if line[:1] in "+-" and not line.startswith(("+++", "---")) and line[1:].strip()]
+    return ([x for x in lines if _CHECKS.search(x)] or lines)[:8]
 
 
 def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:
@@ -363,8 +395,8 @@ def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evid
         result.findings.append(Finding(
             rule="test-removed", severity="block", location=fn, evidence=evidence,
             title=f"{fn} existed at session start and is gone now{where}; it passed then and fails on the new code",
-            action="Restore it and fix the code, or if the behavior was removed on request, hand it to the user: "
-                   "`ack <id> --needs-human \"why\"`."))
+            action="Restore it and fix the code, or if the behavior was removed on request, tell the user in your closing "
+                   "message that you removed this test, and why."))
 
 
 def _disabled(fn: str, here, holds: bool, evidence: list[str], result: EngineResult) -> None:

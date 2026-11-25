@@ -179,7 +179,7 @@ def test_a_hand_over_is_this_turns_news_only_once(repo):
     store.save_session(root, session)
     _write(repo, "pkg/strings.py", "def shout(s):\n    return s.upper()  # louder\n")
     message = claude.handle("stop", payload)["systemMessage"]
-    assert message.startswith("notyet: PASSED") and "1 item(s) handed to you earlier" in message
+    assert message.startswith("notyet: PASSED") and "1 item(s) shown to you in an earlier turn still stand" in message
 
 
 def test_the_receipt_says_where_the_time_went(repo):

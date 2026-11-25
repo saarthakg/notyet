@@ -65,6 +65,7 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
     same = sorted(n for n, o in outcomes.items() if o == "passed")
     unknown = len(outcomes) - len(tells) - len(same)
     tail = f"; {unknown} couldn't be compared (skipped or not collected there)" if unknown else ""
+    result.facts.update(new=len(outcomes), new_tell=len(tells))
     if tells:
         result.checks.append(
             f"new tests against the session-start code: {len(tells)} of {len(outcomes)} fail there, so they test "
