@@ -48,6 +48,7 @@ class Session:
     stops: list[dict] = field(default_factory=list)      # {"at", "busy"}: each Stop, including skipped ones
     baseline_commit: Optional[str] = None                # the commit the starting point is based on (see moves.py)
     head_seen: Optional[str] = None                      # HEAD when moves were last looked for
+    reflog_length: int = 0                               # entries in HEAD's reflog at session start
     moves: list[dict] = field(default_factory=list)      # commits from elsewhere the starting point moved past
 
 
@@ -79,7 +80,7 @@ def start_session(root: str, session_id: str, source: str) -> Session:
     session = Session(
         session_id=session_id, started=time.time(), baseline_tree=snapshot.snapshot(root),
         baseline_head=snapshot.head_tree(root), baseline_source=source,
-        baseline_commit=commit, head_seen=commit,
+        baseline_commit=commit, head_seen=commit, reflog_length=moves.reflog_length(root),
     )
     save_session(root, session)
     return session

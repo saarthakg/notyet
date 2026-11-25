@@ -125,10 +125,11 @@ def _support_scope(lay: layout.Layout, path: str) -> list[str]:
 def _batches(tests: list[tuple[str, int, str]]) -> list[list[str]]:
     """The most relevant files first, in one batch; the rest in chunks, so a
     time budget cut still leaves complete results for what ran."""
-    first = [t for t, pr, _ in tests if pr <= 1]
+    # in path order, as a full run would have them: some tests only pass after others have run
+    first = sorted(t for t, pr, _ in tests if pr <= 1)
     rest = [t for t, pr, _ in tests if pr > 1]
     batches = [first] if first else []
-    batches += [rest[i:i + BATCH_FILES] for i in range(0, len(rest), BATCH_FILES)]
+    batches += [sorted(rest[i:i + BATCH_FILES]) for i in range(0, len(rest), BATCH_FILES)]
     return batches
 
 
@@ -162,14 +163,12 @@ def run(ctx: Context) -> EngineResult:
     widened: list[str] = []
     times = _Durations(ctx.root)
     with tempfile.TemporaryDirectory(prefix="notyet-lines-") as trace_dir:
-        env, extra, trace_out = None, None, None
-        if changed_src:
-            env, trace_out = coverage.setup(trace_dir, ctx.root, changed_src)
-            extra = ["-p", coverage.PLUGIN]
+        env, trace_out = coverage.setup(trace_dir, ctx.root, changed_src)
         env = source_path_env(ctx.root, env)
+        stuck = ("", 0.0)
 
         def run_batch(batch: list[str], timeout: float) -> testrun.Run:
-            run_ = testrun.run_pytest(command, ctx.root, batch, timeout=timeout, env=env, extra=extra)
+            run_ = testrun.run_pytest(command, ctx.root, batch, timeout=timeout, env=env, extra=["-p", coverage.PLUGIN])
             if not run_.crashed:
                 current.results.update(run_.results)
                 times.record(batch, run_)
@@ -188,6 +187,7 @@ def run(ctx: Context) -> EngineResult:
                 crashed.append((batch, run_.crashed))
             elif run_.timed_out:
                 skipped_files += [f for f in batch if not any(n.startswith(f + "::") for n in run_.results)]
+                stuck = max(stuck, coverage.running(trace_out), key=lambda s: s[1])
 
         # then the rest of the suite, as far as it's known to be quick: the selection follows what it can
         # read, and plugins, entry points and the like can't be read
@@ -202,7 +202,7 @@ def run(ctx: Context) -> EngineResult:
                 done = {n.split("::")[0] for n in run_.results}
                 widened += [f for f in batch if f in done or (not run_.crashed and not run_.timed_out)]
         times.save()
-        hits = coverage.read(trace_out, ctx.root) if trace_out else {}
+        hits = coverage.read(trace_out, ctx.root) if changed_src else {}
 
     if not tests and not widened:
         result.not_checked.append("tests: no tests exercise the changed files (none import them or are named for them)"
@@ -236,6 +236,9 @@ def run(ctx: Context) -> EngineResult:
         result.not_checked.append(f"tests: the {cfg.budget_seconds}s budget ran out before {len(skipped_files)} "
                                   f"selected test file(s) ran: " + ", ".join(skipped_files[:5])
                                   + (" …" if len(skipped_files) > 5 else ""))
+
+    if stuck[0]:
+        result.findings += _hang(ctx, command, *stuck)
 
     failing = current.failures
     flaky: list[str] = []
@@ -384,6 +387,30 @@ def run(ctx: Context) -> EngineResult:
     return result
 
 
+HANG_SECONDS = 15
+
+
+def _hang(ctx: Context, command: str, nodeid: str, seconds: float) -> list[Finding]:
+    """A test the budget ran out in, if it finishes quickly on the session-start code: an endless loop or a
+    deadlock the session introduced, not a slow suite."""
+    seconds -= testrun.INTERRUPT_GRACE       # the part spent asking it to stop, at most
+    if seconds < HANG_SECONDS or ctx.time_left() < 30:
+        return []
+    tmp = ctx.baseline_checkout()
+    if not os.path.exists(os.path.join(tmp, nodeid.split("::")[0])):
+        before = None
+    else:
+        run_ = testrun.run_pytest(command, tmp, [nodeid], timeout=HANG_SECONDS, env=source_path_env(tmp, {}))
+        if run_.timed_out or testrun.outcome_of(nodeid, run_.results) != "passed":
+            return []
+        before = run_.seconds
+    return [Finding(
+        rule="test-hangs", severity="block" if before is not None else "resolve", location=nodeid,
+        title=f"{nodeid} was still running after {seconds:.0f}s"
+              + (f"; at session start it passes in {before:.1f}s" if before is not None else " (it's new in this session)"),
+        action="Find the endless loop or the wait that never ends, and fix it.")]
+
+
 def _grouped(findings: list[Finding]) -> list[Finding]:
     """One broken function can fail hundreds of tests. Past a handful, list a few and group the rest: a wall of
     near-identical items buries whatever else is wrong."""
@@ -440,7 +467,7 @@ class _Durations:
                 break
             picked.append(f)
         size = max(BATCH_FILES, (len(picked) + 3) // 4)
-        return [picked[i:i + size] for i in range(0, len(picked), size)]
+        return [sorted(picked[i:i + size]) for i in range(0, len(picked), size)]
 
     def save(self) -> None:
         self.path.write_text(json.dumps(self.seconds))

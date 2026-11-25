@@ -40,7 +40,8 @@ ENV = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COM
 # Findings that name the bug or the hidden test. Anything else open is incidental.
 RELEVANT = {"test-regression", "new-test-failing", "test-removed", "test-disabled", "test-changed-to-pass",
             "assertions-removed", "test-run-broken", "test-failing", "tests-failing-unverified",
-            "source-detects-tests", "always-equal"}
+            "source-detects-tests", "always-equal",
+            "test-hangs"}
 
 SCENARIOS: dict[str, dict] = {}
 
@@ -644,6 +645,14 @@ def second_turn_regression(r, act):
     act.stop()
     act.prompt("now the other thing")
     bug(r)
+
+
+@scenario("regression")
+def endless_loop(r, act):
+    """the change makes a test loop forever"""
+    shop(r); r.write(".notyet.toml", CONFIG.replace("60", "32")); keep_only(r, "test_pricing.py"); act.start()
+    r.sub("src/shop/pricing.py", "    return sum(price * qty for price, qty in items)",
+          "    out = i = 0\n    while i < len(items):\n        out += items[i][0] * items[i][1]\n    return out")
 
 
 @scenario("regression")

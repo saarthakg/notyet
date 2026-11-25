@@ -68,7 +68,7 @@ def _arrived(root: str, session: store.Session, head: str) -> list[str]:
     new = [(sha, int(at)) for sha, at in (line.split() for line in out.splitlines() if line)]
     if not new:
         return []
-    mine = _written_here(root, int(session.started))
+    mine = _written_here(root, session.reflog_length)
     recent = [sha for sha, at in new if sha not in mine and at > session.started]
     on_remote: set[str] = set()
     if recent:
@@ -77,18 +77,24 @@ def _arrived(root: str, session: store.Session, head: str) -> list[str]:
     return [sha for sha, at in new if sha not in mine and (at <= session.started or sha in on_remote)]
 
 
-def _written_here(root: str, since: int) -> set[str]:
+def _reflog(root: str) -> list[tuple[str, str]]:
+    """(commit, what happened) for each move of HEAD, newest first."""
     try:
-        out = snapshot.git(root, "reflog", "show", "--date=unix", "--format=%H%x00%gd%x00%gs", "HEAD")
+        out = snapshot.git(root, "reflog", "show", "--format=%H%x00%gs", "HEAD")
     except snapshot.GitError:
-        return set()
-    mine = set()
-    for line in out.splitlines():
-        sha, when, what = (line.split("\0") + ["", ""])[:3]
-        at = re.search(r"\{(\d+)\}", when)
-        if at and int(at.group(1)) >= since and _LOCAL.search(what):
-            mine.add(sha)
-    return mine
+        return []
+    return [(sha, what) for sha, _, what in (line.partition("\0") for line in out.splitlines())]
+
+
+def reflog_length(root: str) -> int:
+    return len(_reflog(root))
+
+
+def _written_here(root: str, length_at_start: int) -> set[str]:
+    """Commits made in this working tree since the reflog had that many entries. (By position: its
+    timestamps only have whole seconds.)"""
+    log = _reflog(root)
+    return {sha for sha, what in log[:max(0, len(log) - length_at_start)] if _LOCAL.search(what)}
 
 
 def _frontier(root: str, arrived: list[str], base: str, head: str) -> list[str]:

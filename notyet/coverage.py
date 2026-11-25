@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 
 from notyet.findings import Finding
@@ -21,7 +22,17 @@ PLUGIN = "notyet_lines"          # what pytest loads with -p: it saves when the 
 RECORDER = "notyet_lines_core"    # lineplugin.py, imported at start-up. A module of its own, because pytest
                                   # warns about a plugin that was already imported (an error under -W error)
 PLUGIN_SOURCE = f"""\
+import os
+import time
 import {RECORDER}
+
+
+def pytest_runtest_logstart(nodeid, location):      # which test is running, for when one never finishes
+    try:
+        with open(os.environ["NOTYET_TRACE_OUT"] + ".now", "w") as f:
+            f.write(f"{{time.time()}} {{nodeid}}")
+    except (KeyError, OSError):
+        pass
 
 
 def pytest_unconfigure(config):
@@ -61,10 +72,19 @@ def setup(tmp: str, root: str, files: list[str]) -> tuple[dict, str]:
     return env, out
 
 
+def running(out: str) -> tuple[str, float]:
+    """(the test that was running last, seconds since it started); ("", 0) if none started."""
+    try:
+        started, nodeid = Path(out + ".now").read_text().split(" ", 1)
+        return nodeid, time.time() - float(started)
+    except (OSError, ValueError):
+        return "", 0.0
+
+
 def read(out: str, root: str) -> dict[str, set[int]] | None:
     """What every process recorded, or None if nothing could be (another tracer took over)."""
     hits: dict[str, set[int]] = {}
-    files = list(Path(out).parent.glob(Path(out).name + ".*"))
+    files = [p for p in Path(out).parent.glob(Path(out).name + ".*") if p.suffix[1:].isdigit()]
     for path in files:
         try:
             data = json.loads(path.read_text())

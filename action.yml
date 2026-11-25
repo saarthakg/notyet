@@ -1,0 +1,37 @@
+name: notyet
+description: Run the tests a change reaches, compare them with the base, and say what was weakened, broken or left untested.
+branding:
+  icon: check-circle
+  color: yellow
+
+inputs:
+  base:
+    description: What to compare with (a git ref). Defaults to the pull request's base, or the previous commit on a push.
+    default: ""
+  test-command:
+    description: A pytest invocation, if the repo has no .notyet.toml.
+    default: ""
+  fail-on:
+    description: "block: fail on execution evidence only. resolve: also on items that need a reason. never: report only."
+    default: block
+  version:
+    description: What to install notyet from (anything pip accepts).
+    default: git+https://github.com/saarthakg/notyet
+
+runs:
+  using: composite
+  steps:
+    - name: Check the change
+      shell: bash
+      env:
+        NOTYET_BASE: ${{ inputs.base || github.event.pull_request.base.sha || github.event.before }}
+        NOTYET_TEST_COMMAND: ${{ inputs.test-command }}
+        NOTYET_FAIL_ON: ${{ inputs.fail-on }}
+        NOTYET_VERSION: ${{ inputs.version }}
+      run: |
+        # its own environment: notyet runs the project's tests, it doesn't join them
+        python -m venv "$RUNNER_TEMP/notyet"
+        "$RUNNER_TEMP/notyet/bin/pip" install -q "$NOTYET_VERSION"
+        git cat-file -e "$NOTYET_BASE^{commit}" 2>/dev/null || git fetch -q --depth=200 origin "$NOTYET_BASE"
+        "$RUNNER_TEMP/notyet/bin/notyet" check --base "$NOTYET_BASE" --merge-base --format github \
+          --fail-on "$NOTYET_FAIL_ON" ${NOTYET_TEST_COMMAND:+--test-command "$NOTYET_TEST_COMMAND"}
