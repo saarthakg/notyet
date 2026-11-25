@@ -21,6 +21,7 @@ class TestResult:
     nodeid: str
     outcome: str                  # passed | failed | error | skipped
     message: str = ""
+    seconds: float = 0.0
 
     @property
     def bad(self) -> bool:
@@ -39,7 +40,7 @@ class Run:
         return [r for r in self.results.values() if r.bad]
 
 
-def _nodeid(case: ET.Element) -> str:
+def _nodeid(case: ET.Element, cwd: Optional[str] = None) -> str:
     """Rebuild pytest's node id from a junit (xunit1) testcase: file
     "tests/test_x.py", classname "tests.test_x.TestC", name "test_y[p]" ->
     "tests/test_x.py::TestC::test_y[p]"."""
@@ -49,26 +50,32 @@ def _nodeid(case: ET.Element) -> str:
     module = path[:-3].replace("/", ".") if path.endswith(".py") else path
     if not classname and name == module:
         return path       # the file itself failed to import or collect
-    if classname and path.endswith(".py") and not classname.startswith(module + "."):
-        path = _path_from_classname(path, classname) or path
+    if classname and path.endswith(".py") and classname != module and not classname.startswith(module + "."):
+        path = _path_from_classname(path, classname, cwd) or path
         module = path[:-3].replace("/", ".")
     inner = classname[len(module) + 1:] if classname.startswith(module + ".") else ""
     return "::".join([path, *(inner.split(".") if inner else []), name])
 
 
-def _path_from_classname(path: str, classname: str) -> Optional[str]:
-    """The test file's path when junit's `file` is stale. pytest takes `file` from the code object,
-    and a __pycache__ that moved with the repo (or a renamed directory) still passes Python's
-    freshness check, so it can name the old location ("../../old/tests/test_x.py"). The classname
-    comes from the node id and is current: keep the longest tail of the path it starts with."""
+def _path_from_classname(path: str, classname: str, cwd: Optional[str] = None) -> Optional[str]:
+    """The test file's path when junit's `file` names another one. pytest takes `file` from the code object, so
+      - a test inherited from a base class or mixin names the file the base class is in;
+      - a __pycache__ that moved with the repo still passes Python's freshness check, and names the
+        old location ("../../old/tests/test_x.py").
+    The classname comes from the node id, so it's right: take the longest start of it that is a file here,
+    or else the longest tail of the path it starts with."""
     parts, cparts = path[:-3].split("/"), classname.split(".")
+    if cwd is not None:
+        for k in range(len(cparts), 0, -1):
+            if os.path.isfile(os.path.join(cwd, *cparts[:k]) + ".py"):
+                return "/".join(cparts[:k]) + ".py"
     for k in range(min(len(parts), len(cparts)), 0, -1):
         if parts[-k:] == cparts[:k]:
             return "/".join(cparts[:k]) + ".py"
     return None
 
 
-def parse_junit(path: str) -> dict[str, TestResult]:
+def parse_junit(path: str, cwd: Optional[str] = None) -> dict[str, TestResult]:
     results: dict[str, TestResult] = {}
     try:
         tree = ET.parse(path)
@@ -82,10 +89,14 @@ def parse_junit(path: str) -> dict[str, TestResult]:
                 outcome = {"failure": "failed", "error": "error", "skipped": "skipped"}[tag]
                 message = (el.get("message") or el.text or "").strip()
                 break
-        nid = _nodeid(case)
+        nid = _nodeid(case, cwd)
         if nid in results and results[nid].bad:
             continue   # a teardown error recorded after a failure: keep the first
-        results[nid] = TestResult(nid, outcome, message[:2000])
+        try:
+            seconds = float(case.get("time") or 0)
+        except ValueError:
+            seconds = 0.0
+        results[nid] = TestResult(nid, outcome, message[:2000], seconds)
     return results
 
 
@@ -123,11 +134,13 @@ def run_pytest(command: str, cwd: str, targets: list[str], timeout: float,
             stdout, stderr = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
             _interrupt(proc)
-            return Run(results=_complete_files(parse_junit(junit)), seconds=time.monotonic() - start, timed_out=True)
-        run = Run(results=parse_junit(junit), seconds=time.monotonic() - start)
+            return Run(results=_complete_files(parse_junit(junit, cwd)), seconds=time.monotonic() - start, timed_out=True)
+        run = Run(results=parse_junit(junit, cwd), seconds=time.monotonic() - start)
         # pytest exit codes: 0 ok, 1 test failures, 5 no tests; 2-4 are usage/internal errors.
         # No results with any other code means pytest never ran (e.g. "No module named pytest").
-        if not run.results and proc.returncode not in (0, 5):
+        # A clean exit that left no report at all isn't "no tests" either: something ended the process
+        # (os._exit in a conftest), or the command isn't pytest.
+        if not run.results and (proc.returncode not in (0, 5) or not os.path.exists(junit)):
             tail = (stdout + stderr).strip().splitlines()[-6:]
             run.crashed = f"the test command exited {proc.returncode} without results: " + " | ".join(tail)
         return run
@@ -173,6 +186,11 @@ def run_tests(command: str, cwd: str, node_ids: list[str], timeout: float, env: 
     return run
 
 
+def function_of(nodeid: str) -> str:
+    """The test function a node id belongs to: its parameter set left off."""
+    return nodeid.split("[", 1)[0]
+
+
 def outcome_of(nodeid: str, results: dict[str, TestResult]) -> str:
     """passed | failed | skipped | missing for a test function, across its
     parameter sets. A file that fails to import fails every test in it."""
@@ -181,7 +199,8 @@ def outcome_of(nodeid: str, results: dict[str, TestResult]) -> str:
         return "failed"
     mine = [r for n, r in results.items() if n == nodeid or n.startswith(nodeid + "[")]
     if not mine:
-        return "missing"
+        # a module-level skip is reported under the file alone
+        return "skipped" if file in results and results[file].outcome == "skipped" else "missing"
     if any(r.bad for r in mine):
         return "failed"
     if all(r.outcome == "passed" for r in mine):
