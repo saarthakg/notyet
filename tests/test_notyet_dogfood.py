@@ -201,3 +201,16 @@ def test_a_file_without_an_extension_does_not_select_every_test(repo):
     _git(repo, "commit", "-qam", "no widening")
     _, result = play(repo, lambda: _write(repo, "scripts/pkg", "#!/bin/sh\necho\n"))
     assert not any("selected because" in c for c in result["checks"])
+
+
+def test_runs_do_not_inherit_an_ignored_sigint(tmp_path):
+    """Started with `&`, a shell has the process ignore Ctrl-C; a test of Ctrl-C isn't to blame for that."""
+    import signal
+    _write(tmp_path, "test_int.py", "import os\nimport signal\n\nimport pytest\n\n\ndef test_ctrl_c():\n"
+           "    with pytest.raises(KeyboardInterrupt):\n        os.kill(os.getpid(), signal.SIGINT)\n")
+    before = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+        run = testrun.run_pytest(PYTEST, str(tmp_path), ["test_int.py"], timeout=60)
+    finally:
+        signal.signal(signal.SIGINT, before)
+    assert run.results and not run.failures

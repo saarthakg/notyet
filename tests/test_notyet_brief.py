@@ -104,3 +104,12 @@ def test_a_removed_test_shows_what_it_checked_or_what_replaced_it(repo):
     _write(repo, "tests/test_calc.py", text.replace("def test_sub():\n    assert sub(3, 1) == 2", "def test_sub_reversed():\n    assert sub(3, 1) == -2"))
     summary = gate.check(str(repo), session, message="I replaced test_sub in tests/test_calc.py.").summary
     assert "test_sub is gone" in summary and "~ now test_sub_reversed" in summary and "+ assert sub(3, 1) == -2" in summary
+
+
+def test_disclosure_by_the_value_that_changed():
+    """What an agent really wrote (2026-11-25); it named neither the test nor its file."""
+    message = ("Order lookup now accepts more spellings.\n\n**One existing test expectation changed:** `W-1` was listed as "
+               "unrecognizable, and it now resolves. I replaced it in the rejected list with `W--1`.")
+    diff = ['- "raw", ["", "order", "W-1", "W001 W002"]', '+ "raw", ["", "order", "W--1", "W001 W002"]']
+    assert disclosed(message, ["tests/test_orders.py::test_unrecognizable"], diff)
+    assert not disclosed("I changed how `W001 W002` is read. All tests pass.", ["tests/test_orders.py::test_unrecognizable"], diff)

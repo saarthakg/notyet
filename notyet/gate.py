@@ -129,7 +129,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     result.findings.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))   # blocks first, for agent and receipt
     for f in result.findings:       # already told to the user: theirs to review, no reason to send the agent back
         if f.rule in TEST_CHANGES and f.severity != "note" and not find_ack(f, session.acks) \
-                and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []))):
+                and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []), f.diff)):
             session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title,
                                   "rule": f.rule, "tests": f.tests or [f.location]}
     standing = outstanding(result.findings, session.acks)

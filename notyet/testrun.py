@@ -131,7 +131,7 @@ def run_pytest(command: str, cwd: str, targets: list[str], timeout: float,
         try:
             proc = subprocess.Popen(argv, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                     env={**clean_environ(), **(env or {}), "PYTHONDONTWRITEBYTECODE": "1"},
-                                    start_new_session=True)
+                                    start_new_session=True, preexec_fn=_default_sigint)
         except OSError as e:
             return Run(crashed=f"couldn't start the test command: {e}")
         _running.add(proc)
@@ -159,6 +159,12 @@ _HOST = re.compile(r"CLAUDECODE|CLAUDE_(PROJECT_DIR|ENV_FILE|PLUGIN_\w+|CODE_\w+
 
 def clean_environ() -> dict[str, str]:
     return {k: v for k, v in os.environ.items() if not _HOST.fullmatch(k)}
+
+
+def _default_sigint() -> None:
+    """A host (or a shell's `&`) may start us with SIGINT ignored, and that is inherited: a test of Ctrl-C would
+    fail for it, and so would stopping a run that's out of time."""
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 INTERRUPT_GRACE = 10   # seconds pytest gets, after Ctrl-C, to write the junit file
