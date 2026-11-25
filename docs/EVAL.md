@@ -148,15 +148,35 @@ the reason. **No outcome changed:** here the gate is a receipt, at the price of 
 resolved the maintainers' hidden tests fully or partly. The September sessions with Opus showed the same: on well-specified
 commits, what's wrong is that the work is *incomplete*. The rest of that set was not run.
 
-**Dogfooding** (notyet on its own repo, September): 8 checks over 2 sessions. 29 of 41 stops went unchecked because some background
-task was running, which is why that rule changed. Most findings were lint and type noise; none was a regression.
+**Feature sessions on two real projects** (private, not in this repo): a support agent with 187 tests and an ingestion service with 61.
+Six sessions of three prompts each (features, refactors, changed rules, test clean-ups), Claude Code on its default model, able to run
+tests; four sessions enforcing. Every finding was labeled by hand (`eval/notyet_dogfood.py`; about $15 of API-equivalent quota).
+
+- **No regression occurred, and none was missed.** The suite was green after all 18 turns. Every turn in which a session-start test
+  stopped passing had an item about it.
+- **Useful:** two untested error paths, each of which got a real test; and three requested changes of behavior (a longer tool list, a
+  lockout limit, a relaxed validation) handed to the user with accurate reasons. The agent acknowledged nothing dishonestly.
+- **Wrong or noise, all in the first round:** CLI code called untested because the test gives its child process its own `PYTHONPATH`
+  (two sessions; one agent spent minutes writing tests for it); moved lines called untested; an internal constructor's new argument blocked
+  like a behavior change; `type: ignore` on deliberately wrong test input; edits called undone work; and NEEDS YOUR REVIEW repeated on
+  every later turn. All fixed, and checked on the recorded trees (`eval/notyet_recheck.py`) and on a second round with new prompts:
+  there, 4 of 6 turns had nothing to say or one true item.
+- **Still friction:** moving or renaming what tests import asks for one acknowledgment, and half of the enforcing turns were sent back
+  at least once.
+- **Time per check:** 5-10s on one project, 16-33s on the other, whose suite takes 13s.
+
+**notyet on itself.** In September, 29 of 41 stops went unchecked because some background task was running, which is why that rule changed.
+On the long session that produced this document, its receipt was INCOMPLETE after seven minutes with 58 open items. Of those, one was a
+real bug (the plugin trusted the host's environment, so one new test failed only inside the hook), 14 were tests whose expectations
+this work had deliberately changed, which the author's own summary hadn't mentioned, and 43 were lint, suppressions and other noise. That led to
+grouping, a bounded check, test runs without the host's variables, and `tests/test_notyet_dogfood.py`.
 
 ## 7. What this doesn't show
 
 - **Incomplete or wrong-but-consistent work passes.** If no test expresses it, the gate can't see it. This is the most common
   fault in the real-commit sessions.
-- **Real use.** The agent sessions are small and synthetic. Whether the interruptions are worth it over weeks, in someone's own
-  repo, is the dogfooding that still has to happen.
+- **Real use.** Six sessions on two small projects is a start. Whether the interruptions are worth it over weeks, in someone's daily
+  work, still has to be seen.
 - **Large repos.** The biggest suite here runs in seconds. On Django's source the import graph takes 12s once, and under a second after,
   but no session has been run there.
 - **Deliberate evasion** of the gate itself: `.git/notyet/`, the hooks, plumbing commands that forge history.
