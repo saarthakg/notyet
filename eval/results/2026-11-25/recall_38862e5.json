@@ -1,0 +1,6035 @@
+{
+ "flask": {
+  "suite_seconds": 2.1,
+  "stable_tests": 491,
+  "rows": [
+   {
+    "repo": "flask",
+    "file": "src/flask/helpers.py",
+    "op": "compare",
+    "line": 671,
+    "broken": 307,
+    "broken_sample": [
+     "tests/test_appctx.py::test_app_context_provides_current_app",
+     "tests/test_appctx.py::test_app_ctx_globals_methods",
+     "tests/test_appctx.py::test_app_tearing_down"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py",
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_cli.py",
+     "tests/test_converters.py",
+     "tests/test_helpers.py",
+     "tests/test_json.py",
+     "tests/test_logging.py",
+     "tests/test_regression.py",
+     "tests/test_reqctx.py",
+     "tests/test_request.py",
+     "tests/test_session_interface.py",
+     "tests/test_signals.py",
+     "tests/test_subclassing.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 32.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (184 passed, 307 failed, 3 skipped) in 32s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/testing.py",
+    "op": "compare",
+    "line": 72,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_basic.py::test_routing_redirect_debugging",
+     "tests/test_reqctx.py::test_context_binding",
+     "tests/test_testing.py::test_blueprint_with_subdomain"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_reqctx.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (471 passed, 6 failed, 3 skipped) in 4s; selected because: imports a changed module, imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/logging.py",
+    "op": "drop-call",
+    "line": 77,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_logging.py::test_log_view_exception",
+     "tests/test_logging.py::test_logger",
+     "tests/test_logging.py::test_logger_debug"
+    ],
+    "broken_files": [
+     "tests/test_logging.py"
+    ],
+    "seconds": 5.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (473 passed, 4 failed, 3 skipped) in 5s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/wrappers.py",
+    "op": "drop-call",
+    "line": 198,
+    "broken": 9,
+    "broken_sample": [
+     "tests/test_basic.py::test_enctype_debug_helper",
+     "tests/test_basic.py::test_routing_redirect_debugging",
+     "tests/test_basic.py::test_session_accessed"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_reqctx.py",
+     "tests/test_request.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 6.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (482 passed, 9 failed, 3 skipped) in 6s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "return-none",
+    "line": 135,
+    "broken": 23,
+    "broken_sample": [
+     "tests/test_async.py::test_async_error_handler[/bp/error]",
+     "tests/test_async.py::test_async_error_handler[/error]",
+     "tests/test_async.py::test_async_route[/]"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_helpers.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 2.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 58 test(s) in 3 file(s) (35 passed, 23 failed, 0 skipped) in 2s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/wrappers.py",
+    "op": "negate-if",
+    "line": 80,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_request.py::test_limit_config",
+     "tests/test_request.py::test_max_content_length"
+    ],
+    "broken_files": [
+     "tests/test_request.py"
+    ],
+    "seconds": 4.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (489 passed, 2 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sessions.py",
+    "op": "negate-if",
+    "line": 304,
+    "broken": 26,
+    "broken_sample": [
+     "tests/test_basic.py::test_extended_flashing",
+     "tests/test_basic.py::test_flashes",
+     "tests/test_basic.py::test_missing_session"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_helpers.py",
+     "tests/test_reqctx.py",
+     "tests/test_signals.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 8.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (465 passed, 26 failed, 3 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/testing.py",
+    "op": "negate-if",
+    "line": 167,
+    "broken": 5,
+    "broken_sample": [
+     "tests/test_signals.py::test_flash_signal",
+     "tests/test_testing.py::test_session_transaction_ipv6",
+     "tests/test_testing.py::test_session_transactions"
+    ],
+    "broken_files": [
+     "tests/test_signals.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (472 passed, 5 failed, 3 skipped) in 4s; selected because: imports a changed module, imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/globals.py",
+    "op": "off-by-one",
+    "line": 73,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 3.5,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (491 passed, 0 failed, 3 skipped) in 3s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/testing.py",
+    "op": "off-by-one",
+    "line": 220,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_testing.py::test_client_open_environ"
+    ],
+    "broken_files": [
+     "tests/test_testing.py"
+    ],
+    "seconds": 3.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (476 passed, 1 failed, 3 skipped) in 4s; selected because: imports a changed module, imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sessions.py",
+    "op": "negate-if",
+    "line": 349,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_basic.py::test_session_accessed",
+     "tests/test_basic.py::test_session_vary_cookie"
+    ],
+    "broken_files": [
+     "tests/test_basic.py"
+    ],
+    "seconds": 3.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (489 passed, 2 failed, 3 skipped) in 3s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/ctx.py",
+    "op": "return-none",
+    "line": 204,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_reqctx.py::test_copy_context_thread"
+    ],
+    "broken_files": [
+     "tests/test_reqctx.py"
+    ],
+    "seconds": 3.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/ctx.py",
+    "op": "compare",
+    "line": 475,
+    "broken": 491,
+    "broken_sample": [
+     "tests/test_appctx.py::test_app_context_provides_current_app",
+     "tests/test_appctx.py::test_app_ctx_globals_methods",
+     "tests/test_appctx.py::test_app_tearing_down"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py",
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_cli.py",
+     "tests/test_config.py",
+     "tests/test_converters.py",
+     "tests/test_helpers.py",
+     "tests/test_instance_config.py",
+     "tests/test_json.py",
+     "tests/test_json_tag.py",
+     "tests/test_logging.py",
+     "tests/test_regression.py",
+     "tests/test_reqctx.py",
+     "tests/test_request.py",
+     "tests/test_session_interface.py",
+     "tests/test_signals.py",
+     "tests/test_subclassing.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 36.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (0 passed, 491 failed, 3 skipped) in 37s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sansio/app.py",
+    "op": "compare",
+    "line": 917,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_basic.py::test_trap_bad_request_key_error[True-None-False-True]"
+    ],
+    "broken_files": [
+     "tests/test_basic.py"
+    ],
+    "seconds": 3.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/app.py",
+    "op": "negate-if",
+    "line": 1197,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_appctx.py::test_basic_url_generation"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py"
+    ],
+    "seconds": 3.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/cli.py",
+    "op": "drop-call",
+    "line": 224,
+    "broken": 11,
+    "broken_sample": [
+     "tests/test_cli.py::test_prepare_import[a/test-path2-test]",
+     "tests/test_cli.py::test_prepare_import[test-path0-test]",
+     "tests/test_cli.py::test_prepare_import[test.a.b-path7-test.a.b]"
+    ],
+    "broken_files": [
+     "tests/test_cli.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (466 passed, 11 failed, 3 skipped) in 3s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "negate-if",
+    "line": 118,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_views.py::test_view_decorators"
+    ],
+    "broken_files": [
+     "tests/test_views.py"
+    ],
+    "seconds": 1.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 58 test(s) in 3 file(s) (57 passed, 1 failed, 0 skipped) in 1s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/json/provider.py",
+    "op": "negate-if",
+    "line": 208,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_basic.py::test_jsonify_no_prettyprint[False]",
+     "tests/test_basic.py::test_jsonify_no_prettyprint[True]",
+     "tests/test_basic.py::test_make_response_with_response_instance"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_json.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (487 passed, 4 failed, 3 skipped) in 4s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/app.py",
+    "op": "compare",
+    "line": 1383,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_basic.py::test_url_processors",
+     "tests/test_blueprints.py::test_app_url_processors",
+     "tests/test_blueprints.py::test_blueprint_url_processors"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_blueprints.py"
+    ],
+    "seconds": 3.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (488 passed, 3 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/json/__init__.py",
+    "op": "drop-call",
+    "line": 74,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 3.0,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (491 passed, 0 failed, 3 skipped) in 3s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/wrappers.py",
+    "op": "off-by-one",
+    "line": 176,
+    "broken": 14,
+    "broken_sample": [
+     "tests/test_async.py::test_async_before_after_request",
+     "tests/test_async.py::test_async_error_handler[/bp/error]",
+     "tests/test_blueprints.py::test_blueprint_renaming"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_blueprints.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py"
+    ],
+    "seconds": 3.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (477 passed, 14 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sansio/blueprints.py",
+    "op": "drop-call",
+    "line": 609,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_blueprints.py::test_template_global"
+    ],
+    "broken_files": [
+     "tests/test_blueprints.py"
+    ],
+    "seconds": 3.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (476 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "compare",
+    "line": 187,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_views.py::test_explicit_head",
+     "tests/test_views.py::test_implicit_head"
+    ],
+    "broken_files": [
+     "tests/test_views.py"
+    ],
+    "seconds": 1.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 58 test(s) in 3 file(s) (56 passed, 2 failed, 0 skipped) in 1s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/ctx.py",
+    "op": "flip-bool",
+    "line": 402,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_basic.py::test_session_accessed",
+     "tests/test_basic.py::test_session_vary_cookie"
+    ],
+    "broken_files": [
+     "tests/test_basic.py"
+    ],
+    "seconds": 3.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (489 passed, 2 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/config.py",
+    "op": "return-none",
+    "line": 44,
+    "broken": 36,
+    "broken_sample": [
+     "tests/test_basic.py::test_exception_propagation[TESTING]",
+     "tests/test_basic.py::test_flashes",
+     "tests/test_basic.py::test_response_type_errors"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_config.py",
+     "tests/test_helpers.py",
+     "tests/test_reqctx.py",
+     "tests/test_signals.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 4.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (441 passed, 36 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/ctx.py",
+    "op": "drop-call",
+    "line": 504,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_appctx.py::test_robust_teardown"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py"
+    ],
+    "seconds": 3.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/globals.py",
+    "op": "compare",
+    "line": 68,
+    "broken": 491,
+    "broken_sample": [
+     "tests/test_appctx.py::test_app_context_provides_current_app",
+     "tests/test_appctx.py::test_app_ctx_globals_methods",
+     "tests/test_appctx.py::test_app_tearing_down"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py",
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_cli.py",
+     "tests/test_config.py",
+     "tests/test_converters.py",
+     "tests/test_helpers.py",
+     "tests/test_instance_config.py",
+     "tests/test_json.py",
+     "tests/test_json_tag.py",
+     "tests/test_logging.py",
+     "tests/test_regression.py",
+     "tests/test_reqctx.py",
+     "tests/test_request.py",
+     "tests/test_session_interface.py",
+     "tests/test_signals.py",
+     "tests/test_subclassing.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 3.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-run-broken"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "coverage: couldn't record which changed lines ran"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sansio/blueprints.py",
+    "op": "compare",
+    "line": 430,
+    "broken": 46,
+    "broken_sample": [
+     "tests/test_async.py::test_async_before_after_request",
+     "tests/test_async.py::test_async_error_handler[/bp/error]",
+     "tests/test_async.py::test_async_error_handler[/error]"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py"
+    ],
+    "seconds": 5.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (431 passed, 46 failed, 3 skipped) in 5s; selected because: imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sansio/blueprints.py",
+    "op": "compare",
+    "line": 361,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_blueprints.py::test_nesting_subdomains"
+    ],
+    "broken_files": [
+     "tests/test_blueprints.py"
+    ],
+    "seconds": 3.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (476 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/sansio/app.py",
+    "op": "drop-call",
+    "line": 800,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_templating.py::test_add_template_global"
+    ],
+    "broken_files": [
+     "tests/test_templating.py"
+    ],
+    "seconds": 3.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 3s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/logging.py",
+    "op": "flip-bool",
+    "line": 40,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_logging.py::test_existing_handler",
+     "tests/test_logging.py::test_has_level_handler"
+    ],
+    "broken_files": [
+     "tests/test_logging.py"
+    ],
+    "seconds": 3.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (475 passed, 2 failed, 3 skipped) in 3s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "compare",
+    "line": 190,
+    "broken": 8,
+    "broken_sample": [
+     "tests/test_async.py::test_async_route[/methodview]",
+     "tests/test_views.py::test_explicit_head",
+     "tests/test_views.py::test_implicit_head"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 2.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 58 test(s) in 3 file(s) (50 passed, 8 failed, 0 skipped) in 2s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "negate-if",
+    "line": 172,
+    "broken": 17,
+    "broken_sample": [
+     "tests/test_async.py::test_async_before_after_request",
+     "tests/test_async.py::test_async_error_handler[/bp/error]",
+     "tests/test_async.py::test_async_error_handler[/error]"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_helpers.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 1.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 51 test(s) in 3 file(s) (41 passed, 10 failed, 0 skipped) in 1s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/json/tag.py",
+    "op": "compare",
+    "line": 304,
+    "broken": 23,
+    "broken_sample": [
+     "tests/test_basic.py::test_extended_flashing",
+     "tests/test_basic.py::test_session_accessed",
+     "tests/test_basic.py::test_session_secret_key_fallbacks"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_helpers.py",
+     "tests/test_json_tag.py",
+     "tests/test_reqctx.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 6.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (468 passed, 23 failed, 3 skipped) in 6s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/app.py",
+    "op": "compare",
+    "line": 1414,
+    "broken": 9,
+    "broken_sample": [
+     "tests/test_async.py::test_async_before_after_request",
+     "tests/test_basic.py::test_before_after_request_order",
+     "tests/test_basic.py::test_error_handler_after_processor_error"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_signals.py"
+    ],
+    "seconds": 4.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (482 passed, 9 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/json/__init__.py",
+    "op": "return-none",
+    "line": 103,
+    "broken": 13,
+    "broken_sample": [
+     "tests/test_basic.py::test_extended_flashing",
+     "tests/test_basic.py::test_session_accessed",
+     "tests/test_basic.py::test_session_cookie_setting"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_reqctx.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 5.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (478 passed, 13 failed, 3 skipped) in 5s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/debughelpers.py",
+    "op": "compare",
+    "line": 95,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_basic.py::test_enctype_debug_helper"
+    ],
+    "broken_files": [
+     "tests/test_basic.py"
+    ],
+    "seconds": 4.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 494 test(s) in 22 file(s) (490 passed, 1 failed, 3 skipped) in 4s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/json/tag.py",
+    "op": "compare",
+    "line": 279,
+    "broken": 491,
+    "broken_sample": [
+     "tests/test_appctx.py::test_app_context_provides_current_app",
+     "tests/test_appctx.py::test_app_ctx_globals_methods",
+     "tests/test_appctx.py::test_app_tearing_down"
+    ],
+    "broken_files": [
+     "tests/test_appctx.py",
+     "tests/test_async.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_cli.py",
+     "tests/test_config.py",
+     "tests/test_converters.py",
+     "tests/test_helpers.py",
+     "tests/test_instance_config.py",
+     "tests/test_json.py",
+     "tests/test_json_tag.py",
+     "tests/test_logging.py",
+     "tests/test_regression.py",
+     "tests/test_reqctx.py",
+     "tests/test_request.py",
+     "tests/test_session_interface.py",
+     "tests/test_signals.py",
+     "tests/test_subclassing.py",
+     "tests/test_templating.py",
+     "tests/test_testing.py",
+     "tests/test_user_error_handler.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-run-broken"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "coverage: couldn't record which changed lines ran"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/views.py",
+    "op": "drop-call",
+    "line": 177,
+    "broken": 5,
+    "broken_sample": [
+     "tests/test_async.py::test_async_route[/methodview]",
+     "tests/test_views.py::test_method_based_view",
+     "tests/test_views.py::test_multiple_inheritance"
+    ],
+    "broken_files": [
+     "tests/test_async.py",
+     "tests/test_views.py"
+    ],
+    "seconds": 2.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 58 test(s) in 3 file(s) (53 passed, 5 failed, 0 skipped) in 2s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "flask",
+    "file": "src/flask/config.py",
+    "op": "flip-bool",
+    "line": 324,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_config.py::test_get_namespace"
+    ],
+    "broken_files": [
+     "tests/test_config.py"
+    ],
+    "seconds": 4.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 480 test(s) in 21 file(s) (476 passed, 1 failed, 3 skipped) in 4s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   }
+  ]
+ },
+ "click": {
+  "suite_seconds": 6.2,
+  "stable_tests": 2240,
+  "rows": [
+   {
+    "repo": "click",
+    "file": "src/click/decorators.py",
+    "op": "drop-call",
+    "line": 230,
+    "broken": 984,
+    "broken_sample": [
+     "tests/test_abort_interrupt.py::test_interrupt_while_reporting_abort[prompt-1]",
+     "tests/test_abort_interrupt.py::test_interrupt_while_reporting_abort[prompt-None]",
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs0-pass_argv0]"
+    ],
+    "broken_files": [
+     "tests/test_abort_interrupt.py",
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_chain.py",
+     "tests/test_command_decorators.py",
+     "tests/test_commands.py",
+     "tests/test_context.py",
+     "tests/test_defaults.py",
+     "tests/test_formatting.py",
+     "tests/test_info_dict.py",
+     "tests/test_normalization.py",
+     "tests/test_options.py",
+     "tests/test_stream_lifecycle.py",
+     "tests/test_termui.py",
+     "tests/test_testing.py",
+     "tests/test_utils/test_open_file.py"
+    ],
+    "seconds": 67.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (1194 passed, 1045 failed, 26 skipped) in 67s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_utils.py",
+    "op": "return-none",
+    "line": 25,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_utils/test_sentinel.py::test_parameter_duplication[deepcopy]",
+     "tests/test_utils/test_sentinel.py::test_sentinel_duplication_preserves_identity[deepcopy-Sentinel.FLAG_NEEDS_VALUE]",
+     "tests/test_utils/test_sentinel.py::test_sentinel_duplication_preserves_identity[deepcopy-Sentinel.UNSET]"
+    ],
+    "broken_files": [
+     "tests/test_utils/test_sentinel.py"
+    ],
+    "seconds": 7.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2236 passed, 3 failed, 26 skipped) in 7s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "compare",
+    "line": 1015,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_arguments.py::test_file_atomics",
+     "tests/test_basic.py::test_file_lazy_mode",
+     "tests/test_shell_completion.py::test_files_closed"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_shell_completion.py",
+     "tests/test_termui.py"
+    ],
+    "seconds": 10.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2174 passed, 65 failed, 26 skipped) in 10s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_termui_impl.py",
+    "op": "negate-if",
+    "line": 462,
+    "broken": 57,
+    "broken_sample": [
+     "tests/test_termui.py::test_echo_via_pager_streams_each_write",
+     "tests/test_termui.py::test_get_pager_file_nullpager_keeps_stringio_stream",
+     "tests/test_termui.py::test_get_pager_file_nullpager_wraps_textio_stream[preserve ansi]"
+    ],
+    "broken_files": [
+     "tests/test_termui.py",
+     "tests/test_testing.py",
+     "tests/test_utils/test_echo_via_pager.py"
+    ],
+    "seconds": 10.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2169 passed, 70 failed, 26 skipped) in 10s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "compare",
+    "line": 418,
+    "broken": 60,
+    "broken_sample": [
+     "tests/test_basic.py::test_choice_argument",
+     "tests/test_basic.py::test_choice_argument_custom_type",
+     "tests/test_basic.py::test_choice_argument_enum"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_commands.py",
+     "tests/test_options.py",
+     "tests/test_shell_completion.py"
+    ],
+    "seconds": 14.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2118 passed, 121 failed, 26 skipped) in 14s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/decorators.py",
+    "op": "return-none",
+    "line": 347,
+    "broken": 168,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs0-pass_argv0]",
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs1-pass_argv1]",
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs2-pass_argv2]"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_chain.py",
+     "tests/test_command_decorators.py",
+     "tests/test_commands.py",
+     "tests/test_context.py",
+     "tests/test_custom_classes.py",
+     "tests/test_formatting.py",
+     "tests/test_info_dict.py",
+     "tests/test_options.py",
+     "tests/test_stream_lifecycle.py",
+     "tests/test_testing.py",
+     "tests/test_utils/test_open_file.py"
+    ],
+    "seconds": 16.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2010 passed, 229 failed, 26 skipped) in 16s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "flip-bool",
+    "line": 960,
+    "broken": 7,
+    "broken_sample": [
+     "tests/test_arguments.py::test_file_args",
+     "tests/test_basic.py::test_file_lazy_mode",
+     "tests/test_basic.py::test_file_option"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_termui.py",
+     "tests/test_types/test_File.py"
+    ],
+    "seconds": 10.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2171 passed, 68 failed, 26 skipped) in 10s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "off-by-one",
+    "line": 686,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_types/test_IntRange.py::test_range[type8-5-4]"
+    ],
+    "broken_files": [
+     "tests/test_types/test_IntRange.py"
+    ],
+    "seconds": 9.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2177 passed, 62 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_utils.py",
+    "op": "return-none",
+    "line": 19,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_context.py::test_hiding_of_unset_sentinel_in_callbacks",
+     "tests/test_utils/test_sentinel.py::test_unset_sentinel"
+    ],
+    "broken_files": [
+     "tests/test_context.py",
+     "tests/test_utils/test_sentinel.py"
+    ],
+    "seconds": 8.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2237 passed, 2 failed, 26 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_utils.py",
+    "op": "return-none",
+    "line": 28,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_utils/test_sentinel.py::test_parameter_duplication[pickle]",
+     "tests/test_utils/test_sentinel.py::test_sentinel_duplication_preserves_identity[pickle-Sentinel.FLAG_NEEDS_VALUE]",
+     "tests/test_utils/test_sentinel.py::test_sentinel_duplication_preserves_identity[pickle-Sentinel.UNSET]"
+    ],
+    "broken_files": [
+     "tests/test_utils/test_sentinel.py"
+    ],
+    "seconds": 9.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2236 passed, 3 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/__init__.py",
+    "op": "off-by-one",
+    "line": 120,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 7.0,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [],
+    "checks": [
+     "tests: ran 2163 test(s) in 39 file(s) (2137 passed, 0 failed, 26 skipped) in 7s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_termui_impl.py",
+    "op": "off-by-one",
+    "line": 866,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 9.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2178 passed, 61 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_compat.py",
+    "op": "negate-if",
+    "line": 356,
+    "broken": 66,
+    "broken_sample": [
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[-Error: Invalid value for '[A]...': Value must be an iterable.]",
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[12-Error: Invalid value for '[A]...': Value must be an iterable.]",
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[7.9-Error: Invalid value for '[A]...': Value must be an iterable.]"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_commands.py",
+     "tests/test_options.py",
+     "tests/test_stream_lifecycle.py",
+     "tests/test_testing.py",
+     "tests/test_utils/test_echo.py"
+    ],
+    "seconds": 14.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2266 test(s) in 43 file(s) (2174 passed, 66 failed, 26 skipped) in 14s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/__init__.py",
+    "op": "compare",
+    "line": 90,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_deprecations.py::test_attr_deprecated[click-MultiCommand-_MultiCommand]",
+     "tests/test_deprecations.py::test_attr_deprecated[click-OptionParser-_OptionParser]",
+     "tests/test_deprecations.py::test_attr_deprecated[click-__version__-8.6.0.dev0]"
+    ],
+    "broken_files": [
+     "tests/test_deprecations.py"
+    ],
+    "seconds": 7.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2163 test(s) in 39 file(s) (2131 passed, 6 failed, 26 skipped) in 7s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "negate-if",
+    "line": 996,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_basic.py::test_file_lazy_mode",
+     "tests/test_testing.py::test_file_stdin_attrs"
+    ],
+    "broken_files": [
+     "tests/test_basic.py",
+     "tests/test_testing.py"
+    ],
+    "seconds": 8.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2176 passed, 63 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/shell_completion.py",
+    "op": "compare",
+    "line": 411,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 8.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2178 passed, 61 failed, 26 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/termui.py",
+    "op": "off-by-one",
+    "line": 616,
+    "broken": 28,
+    "broken_sample": [
+     "tests/test_custom_classes.py::test_context_formatter_class",
+     "tests/test_termui.py::test_prompt_and_confirm_ansi_respects_color[confirm-color]",
+     "tests/test_termui.py::test_prompt_and_confirm_ansi_respects_color[prompt-color]"
+    ],
+    "broken_files": [
+     "tests/test_custom_classes.py",
+     "tests/test_termui.py",
+     "tests/test_utils/test_echo.py",
+     "tests/test_utils/test_style.py"
+    ],
+    "seconds": 9.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2150 passed, 89 failed, 26 skipped) in 9s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/testing.py",
+    "op": "compare",
+    "line": 106,
+    "broken": 9,
+    "broken_sample": [
+     "tests/test_testing.py::test_capture_fd_faulthandler",
+     "tests/test_testing.py::test_capture_fd_logging_handler",
+     "tests/test_testing.py::test_capture_fd_nesting"
+    ],
+    "broken_files": [
+     "tests/test_testing.py",
+     "tests/test_types/test_convert_type.py"
+    ],
+    "seconds": 4.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 961 test(s) in 4 file(s) (952 passed, 8 failed, 1 skipped) in 4s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/parser.py",
+    "op": "drop-call",
+    "line": 99,
+    "broken": 35,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs1-pass_argv1]",
+     "tests/test_arguments.py::test_argument_custom_class_can_override_type_cast_value_and_never_sees_unset[argument_kwargs2-pass_argv2]",
+     "tests/test_arguments.py::test_argument_help_lists_undocumented_arguments"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_commands.py",
+     "tests/test_options.py",
+     "tests/test_shell_completion.py"
+    ],
+    "seconds": 12.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2143 passed, 96 failed, 26 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_compat.py",
+    "op": "negate-if",
+    "line": 206,
+    "broken": 25,
+    "broken_sample": [
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[False-Error: Invalid value for '[A]...': Value must be an iterable.]",
+     "tests/test_arguments.py::test_file_args",
+     "tests/test_shell_completion.py::test_context_settings"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_shell_completion.py",
+     "tests/test_termui.py",
+     "tests/test_testing.py",
+     "tests/test_utils/test_echo.py"
+    ],
+    "seconds": 9.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2266 test(s) in 43 file(s) (2215 passed, 25 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "negate-if",
+    "line": 316,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 16.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2178 passed, 61 failed, 26 skipped) in 16s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/exceptions.py",
+    "op": "compare",
+    "line": 284,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_commands.py::test_unknown_command"
+    ],
+    "broken_files": [
+     "tests/test_commands.py"
+    ],
+    "seconds": 15.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2238 passed, 1 failed, 26 skipped) in 15s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/formatting.py",
+    "op": "compare",
+    "line": 136,
+    "broken": 248,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_help",
+     "tests/test_arguments.py::test_argument_help_deprecated_without_help_lists_all",
+     "tests/test_arguments.py::test_argument_help_empty_string_lists_all"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_chain.py",
+     "tests/test_commands.py",
+     "tests/test_context.py",
+     "tests/test_custom_classes.py",
+     "tests/test_defaults.py",
+     "tests/test_formatting.py",
+     "tests/test_normalization.py",
+     "tests/test_options.py"
+    ],
+    "seconds": 26.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (1930 passed, 309 failed, 26 skipped) in 26s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/utils.py",
+    "op": "negate-if",
+    "line": 134,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_arguments.py::test_file_atomics",
+     "tests/test_basic.py::test_file_lazy_mode"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py"
+    ],
+    "seconds": 8.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2176 passed, 63 failed, 26 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/parser.py",
+    "op": "off-by-one",
+    "line": 376,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_chain.py::test_chaining_with_options",
+     "tests/test_options.py::test_option_with_optional_value[args13-expect13]",
+     "tests/test_options.py::test_option_with_optional_value[args4-expect4]"
+    ],
+    "broken_files": [
+     "tests/test_chain.py",
+     "tests/test_options.py"
+    ],
+    "seconds": 9.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2175 passed, 64 failed, 26 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/termui.py",
+    "op": "drop-call",
+    "line": 761,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_utils/test_style.py::test_styling[styles53-\\x1b[9mx y\\x1b[0m]",
+     "tests/test_utils/test_style.py::test_styling[styles61-\\x1b[29mx y\\x1b[0m]"
+    ],
+    "broken_files": [
+     "tests/test_utils/test_style.py"
+    ],
+    "seconds": 10.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2176 passed, 63 failed, 26 skipped) in 11s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/decorators.py",
+    "op": "negate-if",
+    "line": 539,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_basic.py::test_version_option_resolves_import_name_to_distribution"
+    ],
+    "broken_files": [
+     "tests/test_basic.py"
+    ],
+    "seconds": 12.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2177 passed, 62 failed, 26 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/__init__.py",
+    "op": "return-none",
+    "line": 99,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_deprecations.py::test_attr_deprecated[click-MultiCommand-_MultiCommand]"
+    ],
+    "broken_files": [
+     "tests/test_deprecations.py"
+    ],
+    "seconds": 11.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2163 test(s) in 39 file(s) (2136 passed, 1 failed, 26 skipped) in 11s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_winconsole.py",
+    "op": "return-none",
+    "line": 154,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 19.2,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 2266 test(s) in 43 file(s) (2240 passed, 0 failed, 26 skipped) in 19s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_textwrap.py",
+    "op": "compare",
+    "line": 84,
+    "broken": 251,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_help",
+     "tests/test_arguments.py::test_argument_help_deprecated_without_help_lists_all",
+     "tests/test_arguments.py::test_argument_help_empty_string_lists_all"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_chain.py",
+     "tests/test_commands.py",
+     "tests/test_context.py",
+     "tests/test_custom_classes.py",
+     "tests/test_defaults.py",
+     "tests/test_formatting.py",
+     "tests/test_normalization.py",
+     "tests/test_options.py"
+    ],
+    "seconds": 41.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2259 test(s) in 41 file(s) (1921 passed, 312 failed, 26 skipped) in 41s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/exceptions.py",
+    "op": "compare",
+    "line": 196,
+    "broken": 20,
+    "broken_sample": [
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[Sentinel.UNSET-Error: Missing argument 'A...'.]",
+     "tests/test_arguments.py::test_empty_nargs",
+     "tests/test_arguments.py::test_missing_arg"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_formatting.py",
+     "tests/test_options.py"
+    ],
+    "seconds": 11.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2219 passed, 20 failed, 26 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_textwrap.py",
+    "op": "negate-if",
+    "line": 27,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_compat.py::test_truncate_visible[\\x1b[31mabc\\x1b[0m-3-\\x1b[31mabc]",
+     "tests/test_compat.py::test_truncate_visible[\\x1b[31mabcdef\\x1b[0m-3-\\x1b[31mabc]",
+     "tests/test_compat.py::test_truncate_visible[\\x1b[38:2:1:2:3mabcdef-3-\\x1b[38:2:1:2:3mabc]"
+    ],
+    "broken_files": [
+     "tests/test_compat.py",
+     "tests/test_formatting.py"
+    ],
+    "seconds": 11.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2259 test(s) in 41 file(s) (2166 passed, 67 failed, 26 skipped) in 11s; selected because: imports a changed module, imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "flip-bool",
+    "line": 1110,
+    "broken": 14,
+    "broken_sample": [
+     "tests/test_info_dict.py::test_parameter[Path ParamType]",
+     "tests/test_options.py::test_dual_options_custom_type_sentinel_flag_value[args4-foo.conf-EnumSentinel.FALSY_SENTINEL]",
+     "tests/test_options.py::test_dual_options_custom_type_sentinel_flag_value[args4-foo.conf-sentinel0]"
+    ],
+    "broken_files": [
+     "tests/test_info_dict.py",
+     "tests/test_options.py",
+     "tests/test_shell_completion.py",
+     "tests/test_types/test_Path.py"
+    ],
+    "seconds": 13.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2164 passed, 75 failed, 26 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/types.py",
+    "op": "compare",
+    "line": 1364,
+    "broken": 175,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_explicit_envvar_case_sensitivity[exact]",
+     "tests/test_arguments.py::test_argument_metavar_renders_what_a_declaration_may_not",
+     "tests/test_arguments.py::test_argument_name_can_collide_with_an_option"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_basic.py",
+     "tests/test_chain.py",
+     "tests/test_command_decorators.py",
+     "tests/test_commands.py",
+     "tests/test_context.py",
+     "tests/test_defaults.py",
+     "tests/test_info_dict.py",
+     "tests/test_normalization.py",
+     "tests/test_options.py",
+     "tests/test_stream_lifecycle.py",
+     "tests/test_termui.py",
+     "tests/test_testing.py",
+     "tests/test_types/test_convert_type.py",
+     "tests/test_utils/test_open_file.py"
+    ],
+    "seconds": 34.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2003 passed, 236 failed, 26 skipped) in 34s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/parser.py",
+    "op": "drop-call",
+    "line": 93,
+    "broken": 42,
+    "broken_sample": [
+     "tests/test_arguments.py::test_argument_metavar_marks_optional[kwargs6-FOO...]",
+     "tests/test_arguments.py::test_argument_metavar_marks_optional[kwargs7-[FOO]...]",
+     "tests/test_arguments.py::test_bad_defaults_for_nargs[-Error: Invalid value for '[A]...': Value must be an iterable.]"
+    ],
+    "broken_files": [
+     "tests/test_arguments.py",
+     "tests/test_shell_completion.py"
+    ],
+    "seconds": 14.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2136 passed, 103 failed, 26 skipped) in 14s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/termui.py",
+    "op": "compare",
+    "line": 247,
+    "broken": 9,
+    "broken_sample": [
+     "tests/test_options.py::test_callback_validates_prompt",
+     "tests/test_termui.py::test_progressbar_update_with_item_show_func",
+     "tests/test_utils/test_echo.py::test_echo_writing_to_standard_error"
+    ],
+    "broken_files": [
+     "tests/test_options.py",
+     "tests/test_termui.py",
+     "tests/test_utils/test_echo.py",
+     "tests/test_utils/test_prompt.py"
+    ],
+    "seconds": 16.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2169 passed, 70 failed, 26 skipped) in 16s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/__init__.py",
+    "op": "return-none",
+    "line": 110,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_deprecations.py::test_attr_deprecated[click-OptionParser-_OptionParser]"
+    ],
+    "broken_files": [
+     "tests/test_deprecations.py"
+    ],
+    "seconds": 9.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2163 test(s) in 39 file(s) (2136 passed, 1 failed, 26 skipped) in 9s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/termui.py",
+    "op": "drop-call",
+    "line": 1019,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 10.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2178 passed, 61 failed, 26 skipped) in 10s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/termui.py",
+    "op": "flip-bool",
+    "line": 164,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 9.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 2265 test(s) in 42 file(s) (2178 passed, 61 failed, 26 skipped) in 9s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "click",
+    "file": "src/click/_compat.py",
+    "op": "negate-if",
+    "line": 111,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 7.6,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 2266 test(s) in 43 file(s) (2240 passed, 0 failed, 26 skipped) in 7s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   }
+  ]
+ },
+ "attrs": {
+  "suite_seconds": 8.4,
+  "stable_tests": 1401,
+  "rows": [
+   {
+    "repo": "attrs",
+    "file": "src/attr/_version_info.py",
+    "op": "return-none",
+    "line": 86,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_version_info.py::TestVersionInfo::test_order"
+    ],
+    "broken_files": [
+     "tests/test_version_info.py"
+    ],
+    "seconds": 11.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1318 passed, 2 failed, 8 skipped) in 11s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_funcs.py",
+    "op": "negate-if",
+    "line": 281,
+    "broken": 10,
+    "broken_sample": [
+     "tests/test_funcs.py::TestAsTuple::test_dicts",
+     "tests/test_funcs.py::TestAsTuple::test_dicts_retain_type",
+     "tests/test_funcs.py::TestAsTuple::test_filter"
+    ],
+    "broken_files": [
+     "tests/test_funcs.py"
+    ],
+    "seconds": 15.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1309 passed, 11 failed, 8 skipped) in 15s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/mypy.py",
+    "op": "drop-call",
+    "line": 428,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.5,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_compat.py",
+    "op": "compare",
+    "line": 120,
+    "broken": 23,
+    "broken_sample": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_next_gen.py::TestNextGen::test_converts_and_validates_by_default"
+    ],
+    "broken_files": [
+     "tests/test_compat.py",
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 17.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1375 passed, 24 failed, 7 skipped) in 17s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/__init__.py",
+    "op": "compare",
+    "line": 93,
+    "broken": 7,
+    "broken_sample": [
+     "tests/test_next_gen.py::TestNextGen::test_validates",
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_does_not_exist[attr]",
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_does_not_exist[attrs]"
+    ],
+    "broken_files": [
+     "tests/test_next_gen.py",
+     "tests/test_packaging.py"
+    ],
+    "seconds": 12.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1312 passed, 8 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/converters.py",
+    "op": "negate-if",
+    "line": 156,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_unhashable"
+    ],
+    "broken_files": [
+     "tests/test_converters.py"
+    ],
+    "seconds": 8.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 441 test(s) in 6 file(s) (437 passed, 3 failed, 1 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_version_info.py",
+    "op": "off-by-one",
+    "line": 48,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_version_info.py::TestVersionInfo::test_from_string_no_releaselevel"
+    ],
+    "broken_files": [
+     "tests/test_version_info.py"
+    ],
+    "seconds": 11.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1318 passed, 2 failed, 8 skipped) in 11s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/mypy.py",
+    "op": "negate-if",
+    "line": 427,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.5,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "return-none",
+    "line": 630,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_validators.py::TestSubclassOf::test_repr"
+    ],
+    "broken_files": [
+     "tests/test_validators.py"
+    ],
+    "seconds": 8.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 403 test(s) in 5 file(s) (401 passed, 1 failed, 1 skipped) in 8s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_funcs.py",
+    "op": "negate-if",
+    "line": 178,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_funcs.py::TestAsDict::test_nested_dicts",
+     "tests/test_funcs.py::TestAsDict::test_nested_lists",
+     "tests/test_funcs.py::TestAsDict::test_non_atomic_types"
+    ],
+    "broken_files": [
+     "tests/test_funcs.py",
+     "tests/test_hooks.py"
+    ],
+    "seconds": 12.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1315 passed, 5 failed, 8 skipped) in 12s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_funcs.py",
+    "op": "negate-if",
+    "line": 371,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_funcs.py::TestHas::test_generics"
+    ],
+    "broken_files": [
+     "tests/test_funcs.py"
+    ],
+    "seconds": 10.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1318 passed, 2 failed, 8 skipped) in 10s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "return-none",
+    "line": 70,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_validators.py::TestDisableValidators::test_disabled[False-True]",
+     "tests/test_validators.py::TestDisableValidators::test_disabled[True-False]"
+    ],
+    "broken_files": [
+     "tests/test_validators.py"
+    ],
+    "seconds": 6.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 403 test(s) in 5 file(s) (400 passed, 2 failed, 1 skipped) in 7s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_compat.py",
+    "op": "negate-if",
+    "line": 120,
+    "broken": 23,
+    "broken_sample": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_next_gen.py::TestNextGen::test_converts_and_validates_by_default"
+    ],
+    "broken_files": [
+     "tests/test_compat.py",
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 11.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1375 passed, 24 failed, 7 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_cmp.py",
+    "op": "off-by-one",
+    "line": 77,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 11.6,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1397 passed, 1 failed, 8 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/__init__.py",
+    "op": "compare",
+    "line": 108,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_version[attr]",
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_version[attrs]",
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_version_info[attr]"
+    ],
+    "broken_files": [
+     "tests/test_packaging.py"
+    ],
+    "seconds": 12.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1315 passed, 5 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/mypy.py",
+    "op": "return-none",
+    "line": 342,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.5,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attrs/__init__.py",
+    "op": "return-none",
+    "line": 76,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_import.py::TestDir::test_attrs_dir_includes_lazy_submodules"
+    ],
+    "broken_files": [
+     "tests/test_import.py"
+    ],
+    "seconds": 8.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 434 test(s) in 8 file(s) (429 passed, 2 failed, 3 skipped) in 8s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/setters.py",
+    "op": "return-none",
+    "line": 72,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_next_gen.py::TestNextGen::test_converts_and_validates_by_default",
+     "tests/test_setattr.py::TestSetAttr::test_pipe",
+     "tests/test_setattr.py::TestSetAttr::test_setattr_converter_piped"
+    ],
+    "broken_files": [
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py"
+    ],
+    "seconds": 14.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1394 passed, 4 failed, 8 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/pyrefly.py",
+    "op": "negate-if",
+    "line": 398,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.4,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/pyrefly.py",
+    "op": "drop-call",
+    "line": 399,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.4,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_cmp.py",
+    "op": "negate-if",
+    "line": 80,
+    "broken": 7,
+    "broken_sample": [
+     "tests/test_cmp.py::TestDundersFullOrdering::test_le",
+     "tests/test_cmp.py::TestDundersPartialOrdering::test_le",
+     "tests/test_cmp.py::TestEqOrder::test_le_different_type[PartialOrderCAnyType]"
+    ],
+    "broken_files": [
+     "tests/test_cmp.py"
+    ],
+    "seconds": 12.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1390 passed, 8 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_compat.py",
+    "op": "compare",
+    "line": 76,
+    "broken": 8,
+    "broken_sample": [
+     "tests/test_annotations.py::TestAnnotations::test_optional",
+     "tests/test_annotations.py::TestAnnotations::test_optional_non_introspectable",
+     "tests/test_annotations.py::TestAnnotations::test_optional_nullary"
+    ],
+    "broken_files": [
+     "tests/test_annotations.py",
+     "tests/test_converters.py"
+    ],
+    "seconds": 12.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1389 passed, 9 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_config.py",
+    "op": "return-none",
+    "line": 31,
+    "broken": 10,
+    "broken_sample": [
+     "tests/test_config.py::TestConfig::test_get_run_validators",
+     "tests/test_dunders.py::TestAddInit::test_validator",
+     "tests/test_dunders.py::TestAddInit::test_validator_slots"
+    ],
+    "broken_files": [
+     "tests/test_config.py",
+     "tests/test_dunders.py",
+     "tests/test_funcs.py",
+     "tests/test_functional.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 12.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1410 test(s) in 24 file(s) (1396 passed, 6 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/filters.py",
+    "op": "compare",
+    "line": 68,
+    "broken": 12,
+    "broken_sample": [
+     "tests/test_filters.py::TestExclude::test_allow[excl0-42]",
+     "tests/test_filters.py::TestExclude::test_allow[excl1-hello]",
+     "tests/test_filters.py::TestExclude::test_allow[excl2-42]"
+    ],
+    "broken_files": [
+     "tests/test_filters.py"
+    ],
+    "seconds": 7.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 467 test(s) in 9 file(s) (451 passed, 13 failed, 3 skipped) in 7s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "drop-call",
+    "line": 668,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_validators.py::TestNot_::test_composable_with_in_pass",
+     "tests/test_validators.py::TestNot_::test_composable_with_instance_of_pass",
+     "tests/test_validators.py::TestNot_::test_composable_with_matches_re_pass"
+    ],
+    "broken_files": [
+     "tests/test_validators.py"
+    ],
+    "seconds": 11.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 403 test(s) in 5 file(s) (396 passed, 6 failed, 1 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/baseline.py",
+    "op": "negate-if",
+    "line": 226,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.4,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_next_gen.py",
+    "op": "flip-bool",
+    "line": 440,
+    "broken": 27,
+    "broken_sample": [
+     "tests/test_make.py::TestAttributes::test_pre_init_kw_only_work_with_defaults[False]",
+     "tests/test_make.py::TestAttributes::test_pre_init_kw_only_work_with_defaults[True]",
+     "tests/test_make.py::TestAttributes::test_pre_init_kwargs[False]"
+    ],
+    "broken_files": [
+     "tests/test_make.py",
+     "tests/test_next_gen.py",
+     "tests/test_pattern_matching.py",
+     "tests/test_setattr.py"
+    ],
+    "seconds": 37.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1292 passed, 28 failed, 8 skipped) in 37s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "typing_tests/baseline.py",
+    "op": "return-none",
+    "line": 168,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 0.3,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "untested-change"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "tests: no tests exercise the changed files (none import them or are named for them)"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/exceptions.py",
+    "op": "drop-call",
+    "line": 90,
+    "broken": 14,
+    "broken_sample": [
+     "tests/test_validators.py::TestDeepIterable::test_noncallable_validators[42-42]",
+     "tests/test_validators.py::TestDeepIterable::test_noncallable_validators[42-None]",
+     "tests/test_validators.py::TestDeepIterable::test_noncallable_validators[42-iterable_validator1]"
+    ],
+    "broken_files": [
+     "tests/test_validators.py"
+    ],
+    "seconds": 11.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1383 passed, 15 failed, 8 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/converters.py",
+    "op": "compare",
+    "line": 156,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_unhashable"
+    ],
+    "broken_files": [
+     "tests/test_converters.py"
+    ],
+    "seconds": 6.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 441 test(s) in 6 file(s) (437 passed, 3 failed, 1 skipped) in 6s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_next_gen.py",
+    "op": "flip-bool",
+    "line": 381,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_make.py::TestKeywordOnlyAttributes::test_kw_only_inheritance_force_kw_only",
+     "tests/test_next_gen.py::TestNextGen::test_mro_ng",
+     "tests/test_next_gen.py::TestProps::test_define_props_custom"
+    ],
+    "broken_files": [
+     "tests/test_make.py",
+     "tests/test_next_gen.py"
+    ],
+    "seconds": 13.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1315 passed, 5 failed, 8 skipped) in 13s; selected because: imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/_config.py",
+    "op": "negate-if",
+    "line": 16,
+    "broken": 29,
+    "broken_sample": [
+     "tests/test_config.py::TestConfig::test_set_run_validators",
+     "tests/test_config.py::TestConfig::test_wrong_type",
+     "tests/test_dunders.py::TestAddInit::test_validator"
+    ],
+    "broken_files": [
+     "tests/test_config.py",
+     "tests/test_dunders.py",
+     "tests/test_funcs.py",
+     "tests/test_functional.py",
+     "tests/test_make.py",
+     "tests/test_setattr.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 21.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1410 test(s) in 24 file(s) (1377 passed, 25 failed, 8 skipped) in 21s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/setters.py",
+    "op": "return-none",
+    "line": 27,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_next_gen.py::TestNextGen::test_converts_and_validates_by_default",
+     "tests/test_setattr.py::TestSetAttr::test_no_validator_no_converter",
+     "tests/test_setattr.py::TestSetAttr::test_pipe"
+    ],
+    "broken_files": [
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py"
+    ],
+    "seconds": 36.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1391 passed, 7 failed, 8 skipped) in 36s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/__init__.py",
+    "op": "return-none",
+    "line": 109,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_version_info[attr]",
+     "tests/test_packaging.py::TestLegacyMetadataHack::test_version_info[attrs]"
+    ],
+    "broken_files": [
+     "tests/test_packaging.py"
+    ],
+    "seconds": 23.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1328 test(s) in 22 file(s) (1317 passed, 3 failed, 8 skipped) in 23s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/filters.py",
+    "op": "compare",
+    "line": 67,
+    "broken": 11,
+    "broken_sample": [
+     "tests/test_filters.py::TestExclude::test_allow[excl0-42]",
+     "tests/test_filters.py::TestExclude::test_allow[excl1-hello]",
+     "tests/test_filters.py::TestExclude::test_allow[excl2-42]"
+    ],
+    "broken_files": [
+     "tests/test_filters.py"
+    ],
+    "seconds": 11.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 467 test(s) in 9 file(s) (452 passed, 12 failed, 3 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "return-none",
+    "line": 330,
+    "broken": 845,
+    "broken_sample": [
+     "tests/test_dunders.py::TestAddHash::test_cache_hash_serialization_hash_cleared[HashCacheSerializationTestCached-True]",
+     "tests/test_dunders.py::TestAddHash::test_cache_hash_serialization_hash_cleared[HashCacheSerializationTestCachedSlots-True]",
+     "tests/test_dunders.py::TestAddHash::test_cache_hash_serialization_hash_cleared[HashCacheSerializationTestUncached-False]"
+    ],
+    "broken_files": [
+     "tests/test_dunders.py",
+     "tests/test_funcs.py",
+     "tests/test_functional.py",
+     "tests/test_import.py",
+     "tests/test_make.py",
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py",
+     "tests/test_slots.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 6.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 40 test(s) in 5 file(s) (34 passed, 6 failed, 0 skipped) in 6s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "negate-if",
+    "line": 101,
+    "broken": 65,
+    "broken_sample": [
+     "tests/test_dunders.py::TestAddInit::test_validator_others",
+     "tests/test_functional.py::TestFunctional::test_asdict[C1Slots]",
+     "tests/test_functional.py::TestFunctional::test_asdict[C1]"
+    ],
+    "broken_files": [
+     "tests/test_dunders.py",
+     "tests/test_functional.py",
+     "tests/test_next_gen.py",
+     "tests/test_setattr.py",
+     "tests/test_slots.py",
+     "tests/test_validators.py"
+    ],
+    "seconds": 11.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 403 test(s) in 5 file(s) (362 passed, 40 failed, 1 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/exceptions.py",
+    "op": "drop-call",
+    "line": 19,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_functional.py::TestFunctional::test_frozen_instance[FrozenToo]",
+     "tests/test_functional.py::TestFunctional::test_frozen_instance[Frozen]"
+    ],
+    "broken_files": [
+     "tests/test_functional.py"
+    ],
+    "seconds": 20.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1395 passed, 3 failed, 8 skipped) in 20s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/validators.py",
+    "op": "return-none",
+    "line": 458,
+    "broken": 13,
+    "broken_sample": [
+     "tests/test_validators.py::TestDeepMapping::test_key_validator_can_be_none",
+     "tests/test_validators.py::TestDeepMapping::test_noncallable_validators[42-42-42]",
+     "tests/test_validators.py::TestDeepMapping::test_noncallable_validators[42-42-None]"
+    ],
+    "broken_files": [
+     "tests/test_validators.py"
+    ],
+    "seconds": 9.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 403 test(s) in 5 file(s) (389 passed, 13 failed, 1 skipped) in 9s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "attrs",
+    "file": "src/attr/setters.py",
+    "op": "return-none",
+    "line": 74,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_setattr.py::TestSetAttr::test_pipe"
+    ],
+    "broken_files": [
+     "tests/test_setattr.py"
+    ],
+    "seconds": 17.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1406 test(s) in 23 file(s) (1396 passed, 2 failed, 8 skipped) in 17s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   }
+  ]
+ },
+ "httpx": {
+  "suite_seconds": 7.2,
+  "stable_tests": 1416,
+  "rows": [
+   {
+    "repo": "httpx",
+    "file": "httpx/_exceptions.py",
+    "op": "drop-call",
+    "line": 288,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 21.6,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 21s; selected because: imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_urlparse.py",
+    "op": "negate-if",
+    "line": 267,
+    "broken": 71,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_100_continue[asyncio]",
+     "tests/client/test_async_client.py::test_100_continue[trio]",
+     "tests/client/test_async_client.py::test_build_request[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_client.py",
+     "tests/client/test_properties.py",
+     "tests/client/test_queryparams.py",
+     "tests/client/test_redirects.py",
+     "tests/models/test_requests.py",
+     "tests/models/test_url.py",
+     "tests/test_asgi.py",
+     "tests/test_config.py",
+     "tests/test_exceptions.py",
+     "tests/test_main.py",
+     "tests/test_timeouts.py",
+     "tests/test_utils.py",
+     "tests/test_wsgi.py"
+    ],
+    "seconds": 26.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1345 passed, 72 failed, 1 skipped) in 26s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_status_codes.py",
+    "op": "return-none",
+    "line": 85,
+    "broken": 1,
+    "broken_sample": [
+     "tests/models/test_responses.py::test_raise_for_status"
+    ],
+    "broken_files": [
+     "tests/models/test_responses.py"
+    ],
+    "seconds": 26.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1415 passed, 2 failed, 1 skipped) in 26s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/mock.py",
+    "op": "return-none",
+    "line": 43,
+    "broken": 88,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_async_mock_transport[asyncio]",
+     "tests/client/test_async_client.py::test_async_mock_transport[trio]",
+     "tests/client/test_async_client.py::test_cancellation_during_stream[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_auth.py",
+     "tests/client/test_event_hooks.py",
+     "tests/client/test_redirects.py"
+    ],
+    "seconds": 33.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1328 passed, 89 failed, 1 skipped) in 33s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_auth.py",
+    "op": "off-by-one",
+    "line": 307,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 20.7,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 20s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/__init__.py",
+    "op": "off-by-one",
+    "line": 26,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 13.0,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-flaky"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 13s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_main.py",
+    "op": "compare",
+    "line": 216,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_main.py::test_auth",
+     "tests/test_main.py::test_verbose",
+     "tests/test_timeouts.py::test_write_timeout[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_main.py",
+     "tests/test_timeouts.py"
+    ],
+    "seconds": 20.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1414 passed, 3 failed, 1 skipped) in 20s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_decoders.py",
+    "op": "return-none",
+    "line": 318,
+    "broken": 70,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_async_mock_transport[asyncio]",
+     "tests/client/test_async_client.py::test_async_mock_transport[trio]",
+     "tests/client/test_async_client.py::test_delete[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_auth.py",
+     "tests/client/test_client.py",
+     "tests/client/test_redirects.py",
+     "tests/models/test_responses.py",
+     "tests/test_api.py",
+     "tests/test_asgi.py",
+     "tests/test_content.py",
+     "tests/test_decoders.py",
+     "tests/test_main.py",
+     "tests/test_wsgi.py"
+    ],
+    "seconds": 25.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1346 passed, 71 failed, 1 skipped) in 25s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/mock.py",
+    "op": "negate-if",
+    "line": 40,
+    "broken": 89,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_async_mock_transport[asyncio]",
+     "tests/client/test_async_client.py::test_async_mock_transport[trio]",
+     "tests/client/test_async_client.py::test_cancellation_during_stream[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_auth.py",
+     "tests/client/test_event_hooks.py",
+     "tests/client/test_redirects.py"
+    ],
+    "seconds": 31.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1327 passed, 90 failed, 1 skipped) in 30s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/asgi.py",
+    "op": "flip-bool",
+    "line": 161,
+    "broken": 12,
+    "broken_sample": [
+     "tests/test_asgi.py::test_asgi[asyncio]",
+     "tests/test_asgi.py::test_asgi[trio]",
+     "tests/test_asgi.py::test_asgi_headers[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_asgi.py"
+    ],
+    "seconds": 23.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1404 passed, 13 failed, 1 skipped) in 23s; selected because: mentions test, named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_config.py",
+    "op": "drop-call",
+    "line": 65,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 22.0,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 22s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_config.py",
+    "op": "off-by-one",
+    "line": 109,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_config.py::test_timeout_from_one_value_and_default"
+    ],
+    "broken_files": [
+     "tests/test_config.py"
+    ],
+    "seconds": 20.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1415 passed, 2 failed, 1 skipped) in 20s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/asgi.py",
+    "op": "flip-bool",
+    "line": 145,
+    "broken": 263,
+    "broken_sample": [
+     "tests/test_asgi.py::test_asgi[asyncio]",
+     "tests/test_asgi.py::test_asgi[trio]",
+     "tests/test_asgi.py::test_asgi_disconnect_after_response_complete[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_asgi.py",
+     "tests/test_auth.py",
+     "tests/test_config.py",
+     "tests/test_content.py",
+     "tests/test_decoders.py",
+     "tests/test_exceptions.py",
+     "tests/test_exported_members.py",
+     "tests/test_main.py",
+     "tests/test_multipart.py",
+     "tests/test_status_codes.py",
+     "tests/test_timeouts.py",
+     "tests/test_utils.py",
+     "tests/test_wsgi.py"
+    ],
+    "seconds": 90.8,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [],
+    "checks": [
+     "tests: ran 0 test(s) in 0 file(s) (0 passed, 0 failed, 0 skipped) in 90s; selected because: mentions test, named after a changed module"
+    ],
+    "gaps": [
+     "tests NOT run: the 90s budget ran out before any of the 31 selected test file(s) finished"
+    ],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name",
+     "coverage: not all selected tests ran, so changed lines that didn't run aren't reported",
+     "tests: the 90s budget ran out before 31 selected test file(s) ran: tests/test_asgi.py, tests/client/test_async_client.py, tests/client/test_auth.py, tests/client/test_client.py, tests/client/test_cookies.py \u2026"
+    ],
+    "outcome": "missed"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/__init__.py",
+    "op": "drop-call",
+    "line": 26,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 15.1,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 15s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_decoders.py",
+    "op": "negate-if",
+    "line": 358,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_decoders.py::test_line_decoder_cr",
+     "tests/test_decoders.py::test_line_decoder_crnl",
+     "tests/test_decoders.py::test_line_decoder_nl"
+    ],
+    "broken_files": [
+     "tests/test_decoders.py"
+    ],
+    "seconds": 23.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1413 passed, 4 failed, 1 skipped) in 23s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_utils.py",
+    "op": "flip-bool",
+    "line": 21,
+    "broken": 6,
+    "broken_sample": [
+     "tests/models/test_queryparams.py::test_queryparam_types",
+     "tests/test_content.py::test_urlencoded_boolean[asyncio]",
+     "tests/test_content.py::test_urlencoded_boolean[trio]"
+    ],
+    "broken_files": [
+     "tests/models/test_queryparams.py",
+     "tests/test_content.py",
+     "tests/test_multipart.py"
+    ],
+    "seconds": 44.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1410 passed, 7 failed, 1 skipped) in 44s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_multipart.py",
+    "op": "negate-if",
+    "line": 51,
+    "broken": 25,
+    "broken_sample": [
+     "tests/test_content.py::test_multipart_data_and_files_content[asyncio]",
+     "tests/test_content.py::test_multipart_data_and_files_content[trio]",
+     "tests/test_content.py::test_multipart_files_content[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_content.py",
+     "tests/test_multipart.py"
+    ],
+    "seconds": 39.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1391 passed, 26 failed, 1 skipped) in 39s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_models.py",
+    "op": "compare",
+    "line": 1158,
+    "broken": 7,
+    "broken_sample": [
+     "tests/client/test_cookies.py::test_cookie_persistence",
+     "tests/client/test_cookies.py::test_get_cookie",
+     "tests/models/test_cookies.py::test_cookies"
+    ],
+    "broken_files": [
+     "tests/client/test_cookies.py",
+     "tests/models/test_cookies.py",
+     "tests/test_auth.py"
+    ],
+    "seconds": 27.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1409 passed, 8 failed, 1 skipped) in 27s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/base.py",
+    "op": "return-none",
+    "line": 67,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_asgi.py::test_asgi_transport[asyncio]",
+     "tests/test_asgi.py::test_asgi_transport[trio]",
+     "tests/test_asgi.py::test_asgi_transport_no_body[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_asgi.py"
+    ],
+    "seconds": 31.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1412 passed, 5 failed, 1 skipped) in 31s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/default.py",
+    "op": "negate-if",
+    "line": 275,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 21.3,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 21s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_utils.py",
+    "op": "off-by-one",
+    "line": 185,
+    "broken": 10,
+    "broken_sample": [
+     "tests/client/test_proxies.py::test_proxies_environ[AsyncClient-http://courses.mit.edu-env8-None]",
+     "tests/client/test_proxies.py::test_proxies_environ[AsyncClient-http://google.com-env3-None]",
+     "tests/client/test_proxies.py::test_proxies_environ[AsyncClient-https://mit.edu.info-env10-None]"
+    ],
+    "broken_files": [
+     "tests/client/test_proxies.py"
+    ],
+    "seconds": 28.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1406 passed, 11 failed, 1 skipped) in 28s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_content.py",
+    "op": "return-none",
+    "line": 207,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_content.py::test_aiterator_content[asyncio]",
+     "tests/test_content.py::test_aiterator_content[trio]",
+     "tests/test_content.py::test_bytes_content[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_content.py"
+    ],
+    "seconds": 29.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1410 passed, 7 failed, 1 skipped) in 29s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_config.py",
+    "op": "return-none",
+    "line": 69,
+    "broken": 12,
+    "broken_sample": [
+     "tests/test_config.py::test_SSLContext_with_get_request",
+     "tests/test_config.py::test_load_ssl_config",
+     "tests/test_config.py::test_load_ssl_config_cert_and_encrypted_key[password0]"
+    ],
+    "broken_files": [
+     "tests/test_config.py"
+    ],
+    "seconds": 23.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1404 passed, 13 failed, 1 skipped) in 23s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_content.py",
+    "op": "off-by-one",
+    "line": 206,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 20.7,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 20s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_exceptions.py",
+    "op": "return-none",
+    "line": 100,
+    "broken": 2,
+    "broken_sample": [
+     "tests/client/test_client.py::test_raise_for_status",
+     "tests/test_exceptions.py::test_request_attribute"
+    ],
+    "broken_files": [
+     "tests/client/test_client.py",
+     "tests/test_exceptions.py"
+    ],
+    "seconds": 21.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1414 passed, 3 failed, 1 skipped) in 21s; selected because: imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/default.py",
+    "op": "negate-if",
+    "line": 187,
+    "broken": 1,
+    "broken_sample": [
+     "tests/client/test_proxies.py::test_socks_proxy"
+    ],
+    "broken_files": [
+     "tests/client/test_proxies.py"
+    ],
+    "seconds": 22.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1415 passed, 2 failed, 1 skipped) in 23s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/default.py",
+    "op": "compare",
+    "line": 312,
+    "broken": 18,
+    "broken_sample": [
+     "tests/client/test_proxies.py::test_async_proxy_close[asyncio]",
+     "tests/client/test_proxies.py::test_async_proxy_close[trio]",
+     "tests/client/test_proxies.py::test_proxies_environ[AsyncClient-http://127.0.0.1-env4-http://localhost:123]"
+    ],
+    "broken_files": [
+     "tests/client/test_proxies.py"
+    ],
+    "seconds": 23.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1398 passed, 19 failed, 1 skipped) in 24s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/base.py",
+    "op": "drop-call",
+    "line": 24,
+    "broken": 2,
+    "broken_sample": [
+     "tests/client/test_client.py::test_context_managed_transport",
+     "tests/client/test_client.py::test_context_managed_transport_and_mount"
+    ],
+    "broken_files": [
+     "tests/client/test_client.py"
+    ],
+    "seconds": 25.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1414 passed, 3 failed, 1 skipped) in 25s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_urls.py",
+    "op": "return-none",
+    "line": 550,
+    "broken": 2,
+    "broken_sample": [
+     "tests/models/test_queryparams.py::test_queryparam_set",
+     "tests/models/test_url.py::test_url_set_param_manipulation"
+    ],
+    "broken_files": [
+     "tests/models/test_queryparams.py",
+     "tests/models/test_url.py"
+    ],
+    "seconds": 24.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1414 passed, 3 failed, 1 skipped) in 24s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/default.py",
+    "op": "flip-bool",
+    "line": 142,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 21.3,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-flaky"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 21s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_status_codes.py",
+    "op": "return-none",
+    "line": 33,
+    "broken": 1416,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_100_continue[asyncio]",
+     "tests/client/test_async_client.py::test_100_continue[trio]",
+     "tests/client/test_async_client.py::test_access_content_stream_response[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_auth.py",
+     "tests/client/test_client.py",
+     "tests/client/test_cookies.py",
+     "tests/client/test_event_hooks.py",
+     "tests/client/test_headers.py",
+     "tests/client/test_properties.py",
+     "tests/client/test_proxies.py",
+     "tests/client/test_queryparams.py",
+     "tests/client/test_redirects.py",
+     "tests/models/test_cookies.py",
+     "tests/models/test_headers.py",
+     "tests/models/test_queryparams.py",
+     "tests/models/test_requests.py",
+     "tests/models/test_responses.py",
+     "tests/models/test_url.py",
+     "tests/models/test_whatwg.py",
+     "tests/test_api.py",
+     "tests/test_asgi.py",
+     "tests/test_auth.py",
+     "tests/test_config.py",
+     "tests/test_content.py",
+     "tests/test_decoders.py",
+     "tests/test_exceptions.py",
+     "tests/test_exported_members.py",
+     "tests/test_main.py",
+     "tests/test_multipart.py",
+     "tests/test_status_codes.py",
+     "tests/test_timeouts.py",
+     "tests/test_utils.py",
+     "tests/test_wsgi.py"
+    ],
+    "seconds": 6.9,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-run-broken"
+    ],
+    "checks": [],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name",
+     "coverage: couldn't record which changed lines ran"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_models.py",
+    "op": "negate-if",
+    "line": 455,
+    "broken": 145,
+    "broken_sample": [
+     "tests/client/test_async_client.py::test_100_continue[asyncio]",
+     "tests/client/test_async_client.py::test_100_continue[trio]",
+     "tests/client/test_async_client.py::test_access_content_stream_response[asyncio]"
+    ],
+    "broken_files": [
+     "tests/client/test_async_client.py",
+     "tests/client/test_client.py",
+     "tests/client/test_event_hooks.py",
+     "tests/client/test_headers.py",
+     "tests/client/test_proxies.py",
+     "tests/client/test_redirects.py",
+     "tests/models/test_requests.py",
+     "tests/test_api.py",
+     "tests/test_asgi.py",
+     "tests/test_config.py",
+     "tests/test_content.py",
+     "tests/test_exceptions.py",
+     "tests/test_main.py",
+     "tests/test_multipart.py",
+     "tests/test_timeouts.py",
+     "tests/test_utils.py"
+    ],
+    "seconds": 31.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1271 passed, 146 failed, 1 skipped) in 31s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_status_codes.py",
+    "op": "off-by-one",
+    "line": 78,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 23.4,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 23s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_utils.py",
+    "op": "off-by-one",
+    "line": 212,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_utils.py::test_pattern_priority"
+    ],
+    "broken_files": [
+     "tests/test_utils.py"
+    ],
+    "seconds": 23.4,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 23s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "missed"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_config.py",
+    "op": "negate-if",
+    "line": 213,
+    "broken": 66,
+    "broken_sample": [
+     "tests/client/test_proxies.py::test_async_proxy_close[asyncio]",
+     "tests/client/test_proxies.py::test_async_proxy_close[trio]",
+     "tests/client/test_proxies.py::test_for_deprecated_proxy_params[proxies0-False]"
+    ],
+    "broken_files": [
+     "tests/client/test_proxies.py",
+     "tests/test_config.py"
+    ],
+    "seconds": 40.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1350 passed, 67 failed, 1 skipped) in 40s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_exceptions.py",
+    "op": "drop-call",
+    "line": 335,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 30.7,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 30s; selected because: imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_utils.py",
+    "op": "off-by-one",
+    "line": 111,
+    "broken": 15,
+    "broken_sample": [
+     "tests/test_content.py::test_bytesio_content[asyncio]",
+     "tests/test_content.py::test_bytesio_content[trio]",
+     "tests/test_content.py::test_multipart_data_and_files_content[asyncio]"
+    ],
+    "broken_files": [
+     "tests/test_content.py",
+     "tests/test_multipart.py"
+    ],
+    "seconds": 28.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1401 passed, 16 failed, 1 skipped) in 28s; selected because: imports a changed module, mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_multipart.py",
+    "op": "negate-if",
+    "line": 91,
+    "broken": 6,
+    "broken_sample": [
+     "tests/test_content.py::test_multipart_data_and_files_content[asyncio]",
+     "tests/test_content.py::test_multipart_data_and_files_content[trio]",
+     "tests/test_multipart.py::test_multipart[abc-abc0]"
+    ],
+    "broken_files": [
+     "tests/test_content.py",
+     "tests/test_multipart.py"
+    ],
+    "seconds": 18.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1410 passed, 7 failed, 1 skipped) in 18s; selected because: mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_client.py",
+    "op": "flip-bool",
+    "line": 746,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 17.7,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1416 passed, 1 failed, 1 skipped) in 18s; selected because: imports a changed module (2 steps), mentions test"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "clean"
+   },
+   {
+    "repo": "httpx",
+    "file": "httpx/_transports/wsgi.py",
+    "op": "return-none",
+    "line": 26,
+    "broken": 9,
+    "broken_sample": [
+     "tests/test_wsgi.py::test_logging",
+     "tests/test_wsgi.py::test_wsgi",
+     "tests/test_wsgi.py::test_wsgi_generator"
+    ],
+    "broken_files": [
+     "tests/test_wsgi.py"
+    ],
+    "seconds": 19.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 1418 test(s) in 31 file(s) (1407 passed, 10 failed, 1 skipped) in 19s; selected because: mentions test, named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [
+     "non-Python changes (1 file(s)): tests chosen by mentioning the file name"
+    ],
+    "outcome": "caught"
+   }
+  ]
+ },
+ "rich": {
+  "suite_seconds": 6.3,
+  "stable_tests": 947,
+  "rows": [
+   {
+    "repo": "rich",
+    "file": "rich/containers.py",
+    "op": "compare",
+    "line": 145,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_containers.py::test_lines_justify"
+    ],
+    "broken_files": [
+     "tests/test_containers.py"
+    ],
+    "seconds": 14.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (830 passed, 10 failed, 25 skipped) in 14s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/tree.py",
+    "op": "negate-if",
+    "line": 149,
+    "broken": 7,
+    "broken_sample": [
+     "tests/test_layout.py::test_tree",
+     "tests/test_tree.py::test_render_ascii",
+     "tests/test_tree.py::test_render_double_branch"
+    ],
+    "broken_files": [
+     "tests/test_layout.py",
+     "tests/test_tree.py"
+    ],
+    "seconds": 4.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 15 test(s) in 2 file(s) (6 passed, 7 failed, 2 skipped) in 4s; selected because: imports a changed module, imports a changed module (2 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/pager.py",
+    "op": "drop-call",
+    "line": 25,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_console.py::test_pager"
+    ],
+    "broken_files": [
+     "tests/test_console.py"
+    ],
+    "seconds": 15.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (831 passed, 9 failed, 25 skipped) in 15s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_loop.py",
+    "op": "flip-bool",
+    "line": 13,
+    "broken": 4,
+    "broken_sample": [
+     "tests/test_markdown.py::test_markdown_render",
+     "tests/test_markdown_no_hyperlinks.py::test_markdown_render",
+     "tests/test_syntax.py::test_blank_lines"
+    ],
+    "broken_files": [
+     "tests/test_markdown.py",
+     "tests/test_markdown_no_hyperlinks.py",
+     "tests/test_syntax.py",
+     "tests/test_tools.py"
+    ],
+    "seconds": 13.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 869 test(s) in 53 file(s) (832 passed, 12 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/spinner.py",
+    "op": "negate-if",
+    "line": 86,
+    "broken": 5,
+    "broken_sample": [
+     "tests/test_progress.py::test_spinner_column",
+     "tests/test_spinner.py::test_rich_measure",
+     "tests/test_spinner.py::test_spinner_render"
+    ],
+    "broken_files": [
+     "tests/test_progress.py",
+     "tests/test_spinner.py",
+     "tests/test_status.py"
+    ],
+    "seconds": 13.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (822 passed, 13 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/constrain.py",
+    "op": "negate-if",
+    "line": 25,
+    "broken": 3,
+    "broken_sample": [
+     "tests/test_align.py::test_align_width",
+     "tests/test_logging.py::test_exception",
+     "tests/test_logging.py::test_exception_with_extra_lines"
+    ],
+    "broken_files": [
+     "tests/test_align.py",
+     "tests/test_logging.py"
+    ],
+    "seconds": 13.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (824 passed, 11 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/spinner.py",
+    "op": "drop-call",
+    "line": 92,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_spinner.py::test_spinner_update"
+    ],
+    "broken_files": [
+     "tests/test_spinner.py"
+    ],
+    "seconds": 11.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (826 passed, 9 failed, 25 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/spinner.py",
+    "op": "negate-if",
+    "line": 88,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_spinner.py::test_rich_measure",
+     "tests/test_spinner.py::test_spinner_update"
+    ],
+    "broken_files": [
+     "tests/test_spinner.py"
+    ],
+    "seconds": 13.5,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (824 passed, 11 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/abc.py",
+    "op": "return-none",
+    "line": 18,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_pretty.py::test_ipy_display_hook__console_renderables_on_newline",
+     "tests/test_protocol.py::test_abc"
+    ],
+    "broken_files": [
+     "tests/test_pretty.py",
+     "tests/test_protocol.py"
+    ],
+    "seconds": 13.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (824 passed, 11 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/align.py",
+    "op": "compare",
+    "line": 162,
+    "broken": 20,
+    "broken_sample": [
+     "tests/test_align.py::test_align_bottom",
+     "tests/test_align.py::test_align_center",
+     "tests/test_align.py::test_align_center_middle"
+    ],
+    "broken_files": [
+     "tests/test_align.py",
+     "tests/test_columns_align.py",
+     "tests/test_console.py",
+     "tests/test_layout.py",
+     "tests/test_log.py",
+     "tests/test_table.py"
+    ],
+    "seconds": 12.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (812 passed, 28 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/__init__.py",
+    "op": "flip-bool",
+    "line": 132,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 12.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (826 passed, 9 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "false-block"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_loop.py",
+    "op": "flip-bool",
+    "line": 28,
+    "broken": 270,
+    "broken_sample": [
+     "tests/test_align.py::test_align_bottom",
+     "tests/test_align.py::test_align_center",
+     "tests/test_align.py::test_align_fit"
+    ],
+    "broken_files": [
+     "tests/test_align.py",
+     "tests/test_ansi.py",
+     "tests/test_box.py",
+     "tests/test_columns.py",
+     "tests/test_columns_align.py",
+     "tests/test_console.py",
+     "tests/test_file_proxy.py",
+     "tests/test_inspect.py",
+     "tests/test_layout.py",
+     "tests/test_live.py",
+     "tests/test_live_render.py",
+     "tests/test_log.py",
+     "tests/test_markdown.py",
+     "tests/test_markdown_no_hyperlinks.py",
+     "tests/test_markup.py",
+     "tests/test_padding.py",
+     "tests/test_panel.py",
+     "tests/test_pretty.py",
+     "tests/test_progress.py",
+     "tests/test_prompt.py",
+     "tests/test_protocol.py",
+     "tests/test_repr.py",
+     "tests/test_rich_print.py",
+     "tests/test_rule.py",
+     "tests/test_rule_in_table.py",
+     "tests/test_screen.py",
+     "tests/test_segment.py",
+     "tests/test_spinner.py",
+     "tests/test_status.py",
+     "tests/test_styled.py",
+     "tests/test_syntax.py",
+     "tests/test_table.py",
+     "tests/test_text.py",
+     "tests/test_tools.py",
+     "tests/test_traceback.py",
+     "tests/test_tree.py"
+    ],
+    "seconds": 17.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 869 test(s) in 53 file(s) (566 passed, 278 failed, 25 skipped) in 17s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_fileno.py",
+    "op": "compare",
+    "line": 16,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_getfileno.py::test_get_fileno"
+    ],
+    "broken_files": [
+     "tests/test_getfileno.py"
+    ],
+    "seconds": 12.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 868 test(s) in 53 file(s) (834 passed, 9 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_emoji_replace.py",
+    "op": "return-none",
+    "line": 29,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_emoji.py::test_variant"
+    ],
+    "broken_files": [
+     "tests/test_emoji.py"
+    ],
+    "seconds": 14.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (831 passed, 9 failed, 25 skipped) in 14s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/status.py",
+    "op": "flip-bool",
+    "line": 79,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 12.6,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (832 passed, 8 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/repr.py",
+    "op": "drop-call",
+    "line": 51,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_repr.py::test_rich_angular"
+    ],
+    "broken_files": [
+     "tests/test_repr.py"
+    ],
+    "seconds": 15.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (830 passed, 10 failed, 25 skipped) in 15s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/scope.py",
+    "op": "flip-bool",
+    "line": 42,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 10.4,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (832 passed, 8 failed, 25 skipped) in 10s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/pager.py",
+    "op": "return-none",
+    "line": 21,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 11.0,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (832 passed, 8 failed, 25 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_extension.py",
+    "op": "drop-call",
+    "line": 9,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 10.2,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 808 test(s) in 47 file(s) (792 passed, 8 failed, 8 skipped) in 10s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/table.py",
+    "op": "drop-call",
+    "line": 441,
+    "broken": 51,
+    "broken_sample": [
+     "tests/test_columns.py::test_render",
+     "tests/test_columns_align.py::test_align",
+     "tests/test_console.py::test_log"
+    ],
+    "broken_files": [
+     "tests/test_columns.py",
+     "tests/test_columns_align.py",
+     "tests/test_console.py",
+     "tests/test_inspect.py",
+     "tests/test_layout.py",
+     "tests/test_log.py",
+     "tests/test_logging.py",
+     "tests/test_markdown.py",
+     "tests/test_progress.py",
+     "tests/test_rule_in_table.py",
+     "tests/test_spinner.py",
+     "tests/test_table.py",
+     "tests/test_traceback.py"
+    ],
+    "seconds": 12.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (781 passed, 59 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/file_proxy.py",
+    "op": "negate-if",
+    "line": 52,
+    "broken": 17,
+    "broken_sample": [
+     "tests/test_file_proxy.py::test_flush",
+     "tests/test_file_proxy.py::test_new_lines",
+     "tests/test_live.py::test_growing_display"
+    ],
+    "broken_files": [
+     "tests/test_file_proxy.py",
+     "tests/test_live.py",
+     "tests/test_progress.py"
+    ],
+    "seconds": 11.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (810 passed, 25 failed, 25 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/scope.py",
+    "op": "drop-call",
+    "line": 89,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 11.6,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (832 passed, 8 failed, 25 skipped) in 11s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/repr.py",
+    "op": "return-none",
+    "line": 63,
+    "broken": 2,
+    "broken_sample": [
+     "tests/test_repr.py::test_rich_angular",
+     "tests/test_repr.py::test_rich_repr_auto_angular"
+    ],
+    "broken_files": [
+     "tests/test_repr.py"
+    ],
+    "seconds": 18.1,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (829 passed, 11 failed, 25 skipped) in 18s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/progress.py",
+    "op": "compare",
+    "line": 1454,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_progress.py::test_progress_max_refresh"
+    ],
+    "broken_files": [
+     "tests/test_progress.py"
+    ],
+    "seconds": 4.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 39 test(s) in 1 file(s) (38 passed, 1 failed, 0 skipped) in 4s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/measure.py",
+    "op": "return-none",
+    "line": 114,
+    "broken": 17,
+    "broken_sample": [
+     "tests/test_columns.py::test_render",
+     "tests/test_inspect.py::test_can_handle_special_characters_in_docstrings[\\r-\\\\r]",
+     "tests/test_inspect.py::test_can_handle_special_characters_in_docstrings[\\x07-\\\\a]"
+    ],
+    "broken_files": [
+     "tests/test_columns.py",
+     "tests/test_inspect.py",
+     "tests/test_markdown.py",
+     "tests/test_table.py"
+    ],
+    "seconds": 31.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (814 passed, 26 failed, 25 skipped) in 31s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/protocol.py",
+    "op": "return-none",
+    "line": 33,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_protocol.py::test_rich_cast_fake"
+    ],
+    "broken_files": [
+     "tests/test_protocol.py"
+    ],
+    "seconds": 10.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (831 passed, 9 failed, 25 skipped) in 10s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps), named after a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/containers.py",
+    "op": "compare",
+    "line": 132,
+    "broken": 156,
+    "broken_sample": [
+     "tests/test_align.py::test_align_width",
+     "tests/test_align.py::test_vertical_center",
+     "tests/test_ansi.py::test_decode"
+    ],
+    "broken_files": [
+     "tests/test_align.py",
+     "tests/test_ansi.py",
+     "tests/test_console.py",
+     "tests/test_containers.py",
+     "tests/test_file_proxy.py",
+     "tests/test_inspect.py",
+     "tests/test_layout.py",
+     "tests/test_live.py",
+     "tests/test_live_render.py",
+     "tests/test_markdown.py",
+     "tests/test_markdown_no_hyperlinks.py",
+     "tests/test_markup.py",
+     "tests/test_padding.py",
+     "tests/test_panel.py",
+     "tests/test_pretty.py",
+     "tests/test_progress.py",
+     "tests/test_prompt.py",
+     "tests/test_protocol.py",
+     "tests/test_repr.py",
+     "tests/test_rich_print.py",
+     "tests/test_screen.py",
+     "tests/test_segment.py",
+     "tests/test_spinner.py",
+     "tests/test_status.py",
+     "tests/test_styled.py",
+     "tests/test_syntax.py",
+     "tests/test_table.py",
+     "tests/test_text.py",
+     "tests/test_tree.py"
+    ],
+    "seconds": 15.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (674 passed, 166 failed, 25 skipped) in 15s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_emoji_replace.py",
+    "op": "return-none",
+    "line": 29,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_emoji.py::test_variant"
+    ],
+    "broken_files": [
+     "tests/test_emoji.py"
+    ],
+    "seconds": 11.8,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (831 passed, 9 failed, 25 skipped) in 11s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/ansi.py",
+    "op": "compare",
+    "line": 185,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_ansi.py::test_decode"
+    ],
+    "broken_files": [
+     "tests/test_ansi.py"
+    ],
+    "seconds": 16.2,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (830 passed, 10 failed, 25 skipped) in 16s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/logging.py",
+    "op": "drop-call",
+    "line": 295,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 1.5,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [],
+    "checks": [
+     "tests: ran 4 test(s) in 1 file(s) (4 passed, 0 failed, 0 skipped) in 1s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_timer.py",
+    "op": "drop-call",
+    "line": 19,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 24.4,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 857 test(s) in 50 file(s) (823 passed, 9 failed, 25 skipped) in 24s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/highlighter.py",
+    "op": "negate-if",
+    "line": 34,
+    "broken": 47,
+    "broken_sample": [
+     "tests/test_highlighter.py::test_wrong_type",
+     "tests/test_inspect.py::test_broken_call_attr",
+     "tests/test_inspect.py::test_inspect_builtin_function_only_python311"
+    ],
+    "broken_files": [
+     "tests/test_highlighter.py",
+     "tests/test_inspect.py",
+     "tests/test_layout.py",
+     "tests/test_log.py",
+     "tests/test_logging.py",
+     "tests/test_pretty.py",
+     "tests/test_repr.py",
+     "tests/test_traceback.py"
+    ],
+    "seconds": 52.0,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (785 passed, 55 failed, 25 skipped) in 51s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_windows.py",
+    "op": "return-none",
+    "line": 61,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 15.0,
+    "verdict": "blocked",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before",
+     "untested-change"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (832 passed, 8 failed, 25 skipped) in 15s; selected because: imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/syntax.py",
+    "op": "flip-bool",
+    "line": 728,
+    "broken": 0,
+    "broken_sample": [],
+    "broken_files": [],
+    "seconds": 13.4,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [
+     "test-failing-before"
+    ],
+    "checks": [
+     "tests: ran 860 test(s) in 51 file(s) (827 passed, 8 failed, 25 skipped) in 13s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "clean"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_ratio.py",
+    "op": "off-by-one",
+    "line": 97,
+    "broken": 896,
+    "broken_sample": [
+     "tests/test_box.py::test_box_substitute_for_different_box_ascii_encoding",
+     "tests/test_box.py::test_box_substitute_for_different_box_legacy_windows",
+     "tests/test_box.py::test_box_substitute_for_same_box"
+    ],
+    "broken_files": [
+     "tests/test_box.py",
+     "tests/test_cells.py",
+     "tests/test_color.py",
+     "tests/test_color_triplet.py",
+     "tests/test_columns.py",
+     "tests/test_columns_align.py",
+     "tests/test_console.py",
+     "tests/test_constrain.py",
+     "tests/test_containers.py",
+     "tests/test_control.py",
+     "tests/test_emoji.py",
+     "tests/test_file_proxy.py",
+     "tests/test_filesize.py",
+     "tests/test_getfileno.py",
+     "tests/test_highlighter.py",
+     "tests/test_inspect.py",
+     "tests/test_json.py",
+     "tests/test_jupyter.py",
+     "tests/test_layout.py",
+     "tests/test_live.py",
+     "tests/test_live_render.py",
+     "tests/test_log.py",
+     "tests/test_logging.py",
+     "tests/test_markdown.py",
+     "tests/test_markdown_no_hyperlinks.py",
+     "tests/test_markup.py",
+     "tests/test_measure.py",
+     "tests/test_null_file.py",
+     "tests/test_padding.py",
+     "tests/test_palette.py",
+     "tests/test_panel.py",
+     "tests/test_pick.py",
+     "tests/test_pretty.py",
+     "tests/test_progress.py",
+     "tests/test_prompt.py",
+     "tests/test_protocol.py",
+     "tests/test_ratio.py",
+     "tests/test_repr.py",
+     "tests/test_rich_print.py",
+     "tests/test_rule.py",
+     "tests/test_rule_in_table.py",
+     "tests/test_screen.py",
+     "tests/test_segment.py",
+     "tests/test_spinner.py",
+     "tests/test_stack.py",
+     "tests/test_status.py",
+     "tests/test_style.py",
+     "tests/test_styled.py",
+     "tests/test_syntax.py",
+     "tests/test_table.py",
+     "tests/test_text.py",
+     "tests/test_theme.py",
+     "tests/test_tools.py",
+     "tests/test_traceback.py",
+     "tests/test_tree.py",
+     "tests/test_unicode_data.py"
+    ],
+    "seconds": 90.8,
+    "verdict": "passed",
+    "flagged": false,
+    "blocked": false,
+    "rules": [],
+    "checks": [
+     "tests: ran 18 test(s) in 4 file(s) (18 passed, 0 failed, 0 skipped) in 90s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [
+     "tests incomplete: the 90s budget ran out; 49 of the 53 selected test file(s) didn't run"
+    ],
+    "not_checked": [
+     "coverage: not all selected tests ran, so changed lines that didn't run aren't reported",
+     "tests: the 90s budget ran out before 49 selected test file(s) ran: tests/test_rule_in_table.py, tests/test_table.py, tests/test_box.py, tests/test_card.py, tests/test_color.py \u2026"
+    ],
+    "outcome": "missed"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_loop.py",
+    "op": "flip-bool",
+    "line": 41,
+    "broken": 10,
+    "broken_sample": [
+     "tests/test_markdown.py::test_inline_styles_in_table",
+     "tests/test_markdown.py::test_inline_styles_with_justification",
+     "tests/test_markdown.py::test_markdown_table"
+    ],
+    "broken_files": [
+     "tests/test_markdown.py",
+     "tests/test_table.py",
+     "tests/test_tools.py"
+    ],
+    "seconds": 12.4,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 869 test(s) in 53 file(s) (825 passed, 19 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/ansi.py",
+    "op": "off-by-one",
+    "line": 38,
+    "broken": 31,
+    "broken_sample": [
+     "tests/test_ansi.py::test_decode",
+     "tests/test_ansi.py::test_decode_example",
+     "tests/test_ansi.py::test_decode_issue_2688[Hallo-Hallo]"
+    ],
+    "broken_files": [
+     "tests/test_ansi.py",
+     "tests/test_file_proxy.py",
+     "tests/test_inspect.py",
+     "tests/test_layout.py",
+     "tests/test_log.py",
+     "tests/test_pretty.py",
+     "tests/test_progress.py",
+     "tests/test_repr.py",
+     "tests/test_text.py",
+     "tests/test_traceback.py"
+    ],
+    "seconds": 12.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-flaky",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (800 passed, 40 failed, 25 skipped) in 12s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/layout.py",
+    "op": "off-by-one",
+    "line": 232,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_layout.py::test_tree"
+    ],
+    "broken_files": [
+     "tests/test_layout.py"
+    ],
+    "seconds": 1.6,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 6 test(s) in 1 file(s) (5 passed, 1 failed, 0 skipped) in 1s; selected because: imports a changed module"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/rule.py",
+    "op": "negate-if",
+    "line": 65,
+    "broken": 16,
+    "broken_sample": [
+     "tests/test_columns.py::test_render",
+     "tests/test_columns_align.py::test_align",
+     "tests/test_rule.py::test_characters"
+    ],
+    "broken_files": [
+     "tests/test_columns.py",
+     "tests/test_columns_align.py",
+     "tests/test_rule.py",
+     "tests/test_spinner.py"
+    ],
+    "seconds": 14.3,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 865 test(s) in 52 file(s) (816 passed, 24 failed, 25 skipped) in 14s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   },
+   {
+    "repo": "rich",
+    "file": "rich/_fileno.py",
+    "op": "negate-if",
+    "line": 16,
+    "broken": 1,
+    "broken_sample": [
+     "tests/test_getfileno.py::test_get_fileno"
+    ],
+    "broken_files": [
+     "tests/test_getfileno.py"
+    ],
+    "seconds": 11.7,
+    "verdict": "blocked",
+    "flagged": true,
+    "blocked": true,
+    "rules": [
+     "test-failing-before",
+     "test-regression"
+    ],
+    "checks": [
+     "tests: ran 868 test(s) in 53 file(s) (834 passed, 9 failed, 25 skipped) in 11s; selected because: imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), imports a changed module (4 steps)"
+    ],
+    "gaps": [],
+    "not_checked": [],
+    "outcome": "caught"
+   }
+  ]
+ }
+}
