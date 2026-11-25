@@ -31,6 +31,7 @@ class GateRun:
     finding_ids: list[str] = field(default_factory=list)   # standing (unresolved) findings
     receipt: Optional[str] = None      # path of the receipt file
     result: dict = field(default_factory=dict)             # the engines' full result, to re-decide without re-running
+    seconds: float = 0.0
 
 
 @dataclass

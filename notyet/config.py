@@ -13,6 +13,7 @@ from typing import Optional
 from notyet import snapshot
 
 CONFIG_FILE = ".notyet.toml"
+RULE_SETTINGS = ("block", "resolve", "note", "off")
 
 TEMPLATE = """\
 # notyet: a completion gate for AI coding agents. https://github.com/saarthakg/notyet
@@ -35,6 +36,11 @@ widen_seconds = 20
 # "report": never block; leave a receipt and a short summary.
 # "enforce": block the agent's stop on execution evidence (see docs/PLAN.md).
 mode = "report"
+
+# [rules]
+# How a rule's findings are treated: "block", "resolve" (fix or justify), "note", or "off".
+# test-changed-to-pass = "resolve"
+# untested-change = "note"
 """
 
 
@@ -47,6 +53,7 @@ class Config:
     ruff: Optional[str] = None                # command that runs ruff, e.g. ".venv/bin/ruff"
     pyright: Optional[str] = None             # command that runs pyright
     static_budget_seconds: int = 60
+    rules: dict[str, str] = field(default_factory=dict)   # rule -> block | resolve | note | off
     source: str = "defaults"                  # where the config was read from
     problems: list[str] = field(default_factory=list)
 
@@ -82,6 +89,11 @@ def parse(text: Optional[str], source: str) -> Config:
     cfg.ruff = (static.get("ruff") or "").strip() or None
     cfg.pyright = (static.get("pyright") or "").strip() or None
     cfg.static_budget_seconds = int(static.get("budget_seconds", cfg.static_budget_seconds))
+    for rule, severity in data.get("rules", {}).items():
+        if severity in RULE_SETTINGS:
+            cfg.rules[rule] = severity
+        else:
+            cfg.problems.append(f"rules.{rule} {severity!r} isn't one of {', '.join(RULE_SETTINGS)}; ignored")
     mode = gate.get("mode", cfg.mode)
     if mode not in ("report", "enforce"):
         cfg.problems.append(f"gate.mode {mode!r} isn't report or enforce; using report")

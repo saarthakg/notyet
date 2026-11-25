@@ -2,12 +2,14 @@
 
   notyet init                 write .notyet.toml (detects the test command; asks first)
   notyet install claude       add notyet's hooks to Claude Code's settings (shows the diff; asks first)
+  notyet install codex        the same for Codex CLI (.codex/hooks.json)
   notyet status               the current session and its last check
   notyet receipt              print the latest receipt
-  notyet check [--base REF]   run the gate now, outside a hook
+  notyet check [--base REF]   run the gate now, outside a hook (by hand, or in CI)
+  notyet stats                what findings led to: fixed, justified, handed over
   notyet export [--out F]     every finding from every session as CSV, for hand-labeling
   notyet ack ID[,ID] "reason" acknowledge findings (what agents run when blocked)
-  notyet hook claude EVENT    hook entry point (used by the installed hooks)
+  notyet hook AGENT EVENT     hook entry point (used by the installed hooks)
 """
 import argparse
 import sys
@@ -56,20 +58,23 @@ def cmd_init(args) -> int:
 
 
 def cmd_install(args) -> int:
-    from notyet.hooks import claude
+    from notyet.hooks import claude, codex
     root = _root(args.path)
+    host = {"claude": claude, "codex": codex}[args.agent]
     cfg = config_mod.load(root)
     if not cfg.test_command:
         print("Note: no test command configured yet; the gate will report 'not checked' until you run `notyet init`.")
 
     def confirm(diff: str) -> bool:
         print(diff)
-        return _confirm("Apply this change to Claude Code's settings?", args.yes)
+        return _confirm(f"Apply this change to {host.NAME}'s settings?", args.yes)
 
-    path, changed = claude.install(root, args.scope, stop_timeout=cfg.hook_timeout, confirm=confirm)
+    path, changed = host.install(root, args.scope, stop_timeout=cfg.hook_timeout, confirm=confirm)
     print(f"Installed notyet's hooks in {path}." if changed else f"No change made to {path}.")
     if changed:
-        print(f"Mode: {cfg.mode}. The gate takes effect in Claude Code sessions started from now on.")
+        print(f"Mode: {cfg.mode}. The gate takes effect in {host.NAME} sessions started from now on.")
+        if host.AFTER_INSTALL:
+            print(host.AFTER_INSTALL)
     return 0
 
 
@@ -135,23 +140,31 @@ def cmd_receipt(args) -> int:
 
 
 def cmd_check(args) -> int:
+    from notyet import ci
     root = _root(args.path)
-    session = store.start_session(root, f"manual-{int(time.time())}", "head")
     try:
-        base = snapshot.git(root, "rev-parse", f"{args.base}^{{tree}}").strip()
+        session = ci.session_for(root, args.base, args.merge_base)
     except snapshot.GitError as e:
         print(str(e), file=sys.stderr)
         return 2
-    session.baseline_tree, session.baseline_head = base, base
-    store.save_session(root, session)
-    decision = gate.check(root, session)
-    if decision.verdict == "no-change":
+    cfg = ci.settings(root, session, args.test_command)
+    decision = gate.check(root, session, cfg=cfg)
+    failed = ci.failing(decision, session, "resolve" if args.strict else args.fail_on)
+    if args.format == "json":
+        print(ci.as_json(decision, session, failed))
+    elif args.format == "github":
+        print(ci.github(decision, session, failed))
+    elif decision.verdict == "no-change":
         print(f"No changes compared with {args.base}.")
-        return 0
-    if decision.receipt_path:
+    elif decision.receipt_path:
         print(Path(decision.receipt_path).read_text())
-    return 1 if decision.verdict in ("blocked", "unresolved") or (
-        decision.verdict == "reported" and args.strict) else 0
+    return 1 if failed else 0
+
+
+def cmd_stats(args) -> int:
+    from notyet import stats
+    print(stats.render(store.all_sessions(_root(args.path))))
+    return 0
 
 
 def cmd_ack(args) -> int:
@@ -187,10 +200,10 @@ def cmd_ack(args) -> int:
 
 
 def cmd_hook(args) -> int:
-    if args.agent != "claude":
-        print(f"Unknown agent {args.agent!r}; supported: claude", file=sys.stderr)
+    if args.agent not in ("claude", "codex"):
+        print(f"Unknown agent {args.agent!r}; supported: claude, codex", file=sys.stderr)
         return 0  # never fail a host's hook
-    from notyet.hooks import claude
+    from notyet.hooks import claude     # one contract, two hosts: see hooks/codex.py
     return claude.main(args.event)
 
 
@@ -206,14 +219,15 @@ def main(argv=None) -> int:
     p.set_defaults(func=cmd_init)
 
     p = sub.add_parser("install", help="Install notyet's hooks for an agent")
-    p.add_argument("agent", choices=["claude"])
+    p.add_argument("agent", choices=["claude", "codex"])
     p.add_argument("--scope", choices=["local", "project", "user"], default="local",
-                   help="local: just you, this repo (default); project: shared via .claude/settings.json; user: every repo")
+                   help="local: just you, this repo (default; Claude Code only); project: this repo; user: every repo")
     p.add_argument("--path", default=".")
     p.add_argument("--yes", action="store_true")
     p.set_defaults(func=cmd_install)
 
     for name, func, help_ in (("status", cmd_status, "The current session and its last check"),
+                              ("stats", cmd_stats, "What findings led to, over all sessions"),
                               ("receipt", cmd_receipt, "Print the latest receipt")):
         p = sub.add_parser(name, help=help_)
         p.add_argument("--path", default=".")
@@ -225,8 +239,13 @@ def main(argv=None) -> int:
     p.set_defaults(func=cmd_export)
 
     p = sub.add_parser("check", help="Run the gate now, against a git ref")
-    p.add_argument("--base", default="HEAD")
-    p.add_argument("--strict", action="store_true", help="Exit 1 on findings even in report mode")
+    p.add_argument("--base", default="HEAD", help="what to compare the working tree with (default: HEAD)")
+    p.add_argument("--merge-base", action="store_true", help="compare with where HEAD branched off BASE (for pull requests)")
+    p.add_argument("--fail-on", choices=["block", "resolve", "never"], default="block",
+                   help="which findings exit 1: block (default), resolve (block and fix-or-justify), or never")
+    p.add_argument("--strict", action="store_true", help="the same as --fail-on resolve")
+    p.add_argument("--format", choices=["text", "json", "github"], default="text")
+    p.add_argument("--test-command", help="a pytest invocation, when the repo has no .notyet.toml")
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_check)
 

@@ -69,7 +69,7 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
                   for f in needs_human]
         lines.append("")
 
-    lines += [f"## Change since {'session start' if session.baseline_source != 'head' else 'HEAD'}: "
+    lines += [f"## Change since {'HEAD' if session.baseline_source == 'head' else 'the base' if session.baseline_source == 'ref' else 'session start'}: "
               f"{len(ctx.deltas)} file(s)", ""]
     lines += [f"- {d.status} {d.path}" + (f" (from {d.old_path})" if d.old_path else "") for d in ctx.deltas[:50]]
     if len(ctx.deltas) > 50:
@@ -97,9 +97,10 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
         lines += [f"Note: {m['commits']} commit(s) that arrived during the session (up to {m['head'][:8]}) "
                   + ("are part of the starting point, not of the change." if m["ok"] else
                      f"couldn't be separated from the change ({m['why']}), so they count as part of it."), ""]
-    if session.baseline_source != "session-start":
+    if session.baseline_source not in ("session-start", "ref"):
         lines += [f"Note: {_baseline_note(session)}", ""]
-    lines.append("Edits you made yourself during this session count as part of the change.")
+    if session.baseline_source != "ref":
+        lines.append("Edits you made yourself during this session count as part of the change.")
     if result.advice:
         lines += ["", "## Advice (not enforced)", ""] + [f"- {a}" for a in result.advice]
     return "\n".join(lines) + "\n"
@@ -160,7 +161,8 @@ def _ack_state(session: store.Session, f: Finding) -> str:
 
 def _baseline_label(session: store.Session) -> str:
     return {"session-start": "the tree at session start", "first-prompt": "the tree at the first prompt",
-            "head": "HEAD (the session's start wasn't recorded)"}.get(session.baseline_source, session.baseline_source)
+            "head": "HEAD (the session's start wasn't recorded)",
+            "ref": "the base it was given"}.get(session.baseline_source, session.baseline_source)
 
 
 def _baseline_note(session: store.Session) -> str:

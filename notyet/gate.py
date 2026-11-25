@@ -10,7 +10,7 @@ Loop safety (docs/PLAN.md §3.6):
 - never blocks while background work is running.
 """
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Callable, Optional
 
 from notyet import config as config_mod
@@ -66,7 +66,7 @@ def run_engines(ctx: Context, engines: Optional[list[Engine]] = None) -> EngineR
 
 
 def check(root: str, session: store.Session, engines: Optional[list[Engine]] = None,
-          background_busy: bool = False) -> Decision:
+          background_busy: bool = False, cfg: Optional[config_mod.Config] = None) -> Decision:
     if background_busy:
         return Decision(verdict="no-change")  # the session isn't done; check when it is
     current = snapshot.snapshot(root)
@@ -74,7 +74,8 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     undid = bool(session.turns) and session.turns[-1]["tree"] != current
     if current == session.baseline_tree and not undid:
         return Decision(verdict="no-change")
-    cfg = config_mod.load(root, session.baseline_tree)
+    cfg = cfg or config_mod.load(root, session.baseline_tree)
+    started = time.monotonic()
     ctx = Context(root=root, session=session, config=cfg, baseline_tree=session.baseline_tree,
                   deadline=time.monotonic() + cfg.check_seconds,
                   current_tree=current, deltas=snapshot.diff_trees(root, session.baseline_tree, current))
@@ -89,6 +90,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
             result = run_engines(ctx, engines)
         finally:
             ctx.close()
+        result.findings = _as_configured(result.findings, cfg.rules)
         result.not_checked = cfg.problems + result.not_checked
         live = config_mod.load(root)
         if _gate_settings(live) != _gate_settings(cfg):
@@ -115,7 +117,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     path = receipt_mod.write(root, session, ctx, result, standing, verdict)
     session.runs.append(store.GateRun(
         tree=current, at=time.time(), verdict=verdict, finding_ids=[f.id for f in standing],
-        receipt=path, result=_result_to(result)))
+        receipt=path, result=_result_to(result), seconds=round(time.monotonic() - started, 1)))
     session.consecutive_blocks = session.consecutive_blocks + 1 if verdict == "blocked" else 0
     store.save_session(root, session)
 
@@ -127,8 +129,20 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     return decision
 
 
+def _as_configured(findings: list[Finding], rules: dict[str, str]) -> list[Finding]:
+    out = []
+    for f in findings:
+        setting = rules.get(f.rule, f.severity)
+        if setting == "off":
+            continue
+        # a finding already at note level is information (a flaky test, say); a setting can lower a rule, not raise those
+        out.append(f if f.severity == "note" else replace(f, severity=setting))
+    return out
+
+
 def _gate_settings(cfg: config_mod.Config) -> tuple:
-    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.widen_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds)
+    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.widen_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds,
+            tuple(sorted(cfg.rules.items())))
 
 
 def _same_set_streak(session: store.Session, ids: list[str]) -> int:
