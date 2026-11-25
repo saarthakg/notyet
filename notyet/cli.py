@@ -204,6 +204,8 @@ def cmd_ack(args) -> int:
     category = "needs-human" if args.needs_human else args.category
     for i in ids:
         session.acks[i] = {"category": category, "reason": reason, "at": time.time(), "title": findings[i].title}
+        if findings[i].tests:
+            session.acks[i].update(rule=findings[i].rule, tests=findings[i].tests)
         if findings[i].covers:
             session.acks[i].update(group=group(findings[i]), covers=findings[i].covers)
     store.save_session(root, session)

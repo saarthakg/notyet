@@ -224,7 +224,7 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
         elif now == "missing" and moved.get(fn) and fn not in fails:
             tally["moved"] += 1
         elif now == "missing":
-            _removed(fn, now_file, here in now_fns, fn in holds, side, evidence, result)
+            _removed(ctx, fn, now_file, fn in holds, side, evidence, result)
             tally["gone"] += 1
         elif now == "skipped":
             if fn in holds and not edited and not side.infra:
@@ -349,7 +349,7 @@ def _group_edited(result: EngineResult) -> None:
         result.findings = [f for f in result.findings if f not in group]
         result.findings.append(Finding(
             rule="test-changed-to-pass", severity=severity, location=path, key=f"{path}|" + "|".join(sorted(names)),
-            tests=[f.location for f in group], diff=[line for f in group[:3] for line in f.diff[:4]],
+            tests=[f.location for f in group], diff=[line for f, n in list(zip(group, names))[:3] for line in (f"~ {n}", *balanced(f.diff, 1))],
             title=f"{len(group)} edited tests in {path} fail on the new code as they were at session start"
                   if severity == "block" else f"{len(group)} edited tests in {path} can't be run on the new code as they were",
             evidence=[f"{n}: {(f.evidence or [''])[0][:120]}" for n, f in list(zip(names, group))[:4]]
@@ -363,6 +363,26 @@ def _diff(ctx: Context, then: str, now: str | None, name: str) -> list[str]:
     before = function_source(snapshot.show(ctx.root, ctx.baseline_tree, then) or "", name)
     after = function_source(snapshot.show(ctx.root, ctx.current_tree, now) or "" if now else "", name)
     return _changed_lines(before, after)
+
+
+def _successor_diff(ctx: Context, fn: str, now: str | None) -> list[str]:
+    """What a test that's gone used to check; and, if a new test in its file resembles it, how that one differs."""
+    then, _, name = fn.partition("::")
+    before = snapshot.show(ctx.root, ctx.baseline_tree, then) or ""
+    old = function_source(before, name)
+    after = (snapshot.show(ctx.root, ctx.current_tree, now) or "") if now else ""
+    new = {n: function_source(after, n) for n, kind in changed_functions(before, after).items() if kind == "new"}
+    score = {n: difflib.SequenceMatcher(None, old, text).ratio() for n, text in new.items()}
+    best = max(score, key=lambda n: score[n], default="")
+    if best and score[best] > 0.6:
+        return [f"~ now {best}", *_changed_lines("\n".join(old.splitlines()[1:]), "\n".join(new[best].splitlines()[1:]))]
+    return [f"- {line.strip()[:140]}" for line in old.splitlines() if re.search(r"assert|raises", line)][:4]
+
+
+def balanced(diff: list[str], each: int) -> list[str]:
+    """The first few removed lines and the first few added ones, so a cut never shows only one side."""
+    return [x for x in diff if x.startswith("~")][:3] + [x for x in diff if x.startswith("-")][:each] \
+        + [x for x in diff if x.startswith("+")][:each]
 
 
 def _file_diff(ctx: Context, paths: list[str]) -> list[str]:
@@ -382,18 +402,19 @@ def _changed_lines(before: str, after: str) -> list[str]:
     return ([x for x in lines if _CHECKS.search(x)] or lines)[:8]
 
 
-def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:
+def _removed(ctx: Context, fn: str, now_file, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:
     where = " (its file was deleted)" if now_file is None else \
             f" (file renamed to {now_file})" if now_file != fn.split("::")[0] else \
             f" ({', '.join(side.infra[:3])} changed)" if side.infra and fn.split("::")[0] not in side.modules else ""
+    diff = _successor_diff(ctx, fn, now_file)
     if holds:
         result.findings.append(Finding(
-            rule="test-removed", severity="resolve", location=fn, evidence=evidence,
+            rule="test-removed", severity="resolve", location=fn, evidence=evidence, tests=[fn], diff=diff,
             title=f"{fn} existed at session start and is gone now{where}; it would still pass",
             action="Restore it, or acknowledge what covers the same behavior now."))
     else:
         result.findings.append(Finding(
-            rule="test-removed", severity="block", location=fn, evidence=evidence,
+            rule="test-removed", severity="block", location=fn, evidence=evidence, tests=[fn], diff=diff,
             title=f"{fn} existed at session start and is gone now{where}; it passed then and fails on the new code",
             action="Restore it and fix the code, or if the behavior was removed on request, tell the user in your closing "
                    "message that you removed this test, and why."))
@@ -401,7 +422,7 @@ def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evid
 
 def _disabled(fn: str, here, holds: bool, evidence: list[str], result: EngineResult) -> None:
     result.findings.append(Finding(
-        rule="test-disabled", severity="resolve" if holds else "block", location=here or fn, evidence=evidence,
+        rule="test-disabled", severity="resolve" if holds else "block", location=here or fn, evidence=evidence, tests=[here or fn],
         title=f"{here or fn} ran at session start and is skipped now; "
               + ("it would still pass" if holds else "as it was then, it fails on the new code"),
         action="Remove the skip/xfail." if holds else

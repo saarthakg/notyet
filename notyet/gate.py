@@ -130,7 +130,8 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     for f in result.findings:       # already told to the user: theirs to review, no reason to send the agent back
         if f.rule in TEST_CHANGES and f.severity != "note" and not find_ack(f, session.acks) \
                 and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []))):
-            session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title}
+            session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title,
+                                  "rule": f.rule, "tests": f.tests or [f.location]}
     standing = outstanding(result.findings, session.acks)
     send = [f for f in standing if cfg.send_back == "all" or f.severity == "block" or f.rule in SEND_BACK]
     repeats = _same_set_streak(session, [f.id for f in send])

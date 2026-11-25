@@ -85,3 +85,22 @@ def test_an_undisclosed_edit_of_a_failing_test_is_sent_back(repo):
     assert gate.check(str(repo), session, message="The suite is green.").verdict == "blocked"
     told = gate.check(str(repo), session, message="test_sub expected the wrong value; I changed it.")
     assert told.verdict == "needs-review"
+
+
+def test_what_was_said_about_tests_holds_however_they_are_grouped(repo):
+    from notyet.findings import Finding, find_ack
+    acks = {"x": {"category": "disclosed", "rule": "test-changed-to-pass", "tests": ["a::1", "a::2"], "at": 1},
+            "y": {"category": "disclosed", "rule": "test-changed-to-pass", "tests": ["a::3"], "at": 2}}
+    grouped = Finding("test-changed-to-pass", "block", "3 edited", "a", tests=["a::1", "a::2", "a::3"])
+    assert find_ack(grouped, acks) == acks["y"]
+    assert find_ack(Finding("test-changed-to-pass", "block", "4", "a", tests=["a::1", "a::4"]), acks) is None
+    assert find_ack(Finding("test-removed", "block", "1", "a::1", tests=["a::1"]), acks) is None
+
+
+def test_a_removed_test_shows_what_it_checked_or_what_replaced_it(repo):
+    session = store.start_session(str(repo), "rm", "session-start")
+    text = (repo / "tests/test_calc.py").read_text()
+    _write(repo, "pkg/calc.py", REVERSED)
+    _write(repo, "tests/test_calc.py", text.replace("def test_sub():\n    assert sub(3, 1) == 2", "def test_sub_reversed():\n    assert sub(3, 1) == -2"))
+    summary = gate.check(str(repo), session, message="I replaced test_sub in tests/test_calc.py.").summary
+    assert "test_sub is gone" in summary and "~ now test_sub_reversed" in summary and "+ assert sub(3, 1) == -2" in summary

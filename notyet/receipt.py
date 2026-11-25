@@ -6,6 +6,7 @@ characters, and long messages get skimmed): the top findings, what to do,
 and how to acknowledge.
 """
 import os
+import re
 import shlex
 import sys
 import time
@@ -133,7 +134,7 @@ def evidence(result: EngineResult) -> str:
     parts = [f"{f['passed']} of {f['ran']} tests pass" if f["passed"] != f["ran"] else f"{f['ran']} tests pass"]
     parts[0] += " (the whole suite)" if f.get("whole") else " (the ones this change reaches)"
     if f.get("earlier"):
-        parts.append(f"{f['as_written']} of {f['earlier']} earlier tests in the changed test files hold as they were")
+        parts.append(f"{f['as_written']} of {f['earlier']} earlier tests in edited files pass as they were")
     if f.get("new"):
         parts.append(f"{f['new_tell']} of {f['new']} new or edited tests fail without the change")
     if f.get("lines_checked") and not any(x.rule == "untested-change" for x in result.findings):
@@ -143,6 +144,7 @@ def evidence(result: EngineResult) -> str:
 
 def brief(session: store.Session, result: EngineResult, standing: list[Finding]) -> list[str]:
     """What the user should look at, in a few lines: what broke, what tests no longer say, what never ran."""
+    from notyet.engines.crosscheck import balanced
     from notyet.gate import HANDED_OVER, handed_over_now
     open_ids = {f.id for f in standing}
 
@@ -157,16 +159,20 @@ def brief(session: store.Session, result: EngineResult, standing: list[Finding])
         out += [f"  {f.title}" for f in broken[:MAX_BRIEF]] + _more(broken)
     # a test that checks less is the same news as one whose expectations changed
     changed = {t for f in live if f.rule in EXPECTATIONS - {"assertions-removed"} for t in f.tests or [f.location]}
-    tests = [f for f in live if f.rule in EXPECTATIONS and (f.severity == "block" or f.rule != "test-changed-to-pass" or f.diff)
+    tests = [f for f in live if f.rule in EXPECTATIONS and (f.severity == "block" or f.rule != "test-changed-to-pass")
              and not (f.rule == "assertions-removed" and f.location in changed)]
     if tests:
         out.append("What the tests say has changed:")
+        said = ""
         for f in tests[:MAX_BRIEF]:
             ack = find_ack(f, session.acks) or {}
             out.append(f"  {_headline(f)}")
-            out += [f"    {line}" for line in f.diff[:4]]
-            if ack.get("reason"):
-                out.append(f"    agent: {ack['reason'][:200]}")
+            out += [f"    {line}" for line in (f.diff if any(x.startswith("~ test") or x.startswith("~ Test") for x in f.diff)
+                                               else balanced(f.diff, 2))[:9]]
+            reason = re.sub(r"[*`_]{2,}|^\W+", "", ack.get("reason", "")).strip()
+            if reason and reason != said:
+                out.append(f"    agent: {reason[:200]}")
+                said = reason
         out += _more(tests)
     if untested := [f for f in live if f.rule == "untested-change"]:
         out.append("No test runs:")

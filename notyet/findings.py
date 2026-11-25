@@ -123,8 +123,14 @@ def find_ack(f: Finding, acks: dict[str, dict]) -> Optional[dict]:
     tenth of what was acknowledged. Items are counted against that acknowledgment, not the last
     check, so untested code that keeps growing turn by turn is raised again."""
     ack = acks.get(f.id)
-    if ack is not None or not f.covers:
+    if ack is not None:
         return ack
+    if f.tests:      # about tests: settled when each of them is, however they were grouped when it happened
+        settled = [a for a in acks.values() if a.get("rule") == f.rule and a.get("tests")]
+        if settled and set(f.tests) <= {t for a in settled for t in a["tests"]}:
+            return max(settled, key=lambda a: a.get("at", 0))
+    if not f.covers:
+        return None
     for a in acks.values():
         covered = a.get("covers", [])
         if a.get("group") == group(f) and uncovered(f, a) <= max(CARRY_MIN, len(covered) // 10):
