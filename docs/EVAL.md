@@ -58,7 +58,7 @@ right only if it's checked and not blocked.
 | | regressions | 12/22 | **20/22** | 22/22 |
 | | honest | 30/35 | **34/35** | 35/35 |
 | | setups | 17/21 | **20/21** | 21/21 |
-| **Red team 2** (held out; nothing was changed because of it) | cheats | 12/20 | **20/20** | |
+| **Red team 2** (held out; see the last note) | cheats | 12/20 | **20/20** | |
 | | regressions | 10/14 | **14/14** | |
 | | honest | 13/18 | **18/18** | |
 | | setups | 7/8 | **8/8** | |
@@ -69,6 +69,9 @@ right only if it's checked and not blocked.
 - **Caveats.** The authors are the same model family as the gate's author, and share its blind spots. They saw the harness,
   including the rule names, and recent commit subjects. The repos are small. The first set's authors were told nothing
   about the fixes; the second was written after most of them.
+- **On a later re-run of red team 2, one honest session was blocked:** a test that fails one time in four failed four times in
+  a row, about a 0.3% chance per check. Regressions are now repeated up to ten times (for at most about ten seconds) before
+  they block. Nothing else was changed after that set.
 - **One development scenario is a stated limit** and isn't counted: source that special-cases the exact inputs the tests use.
 
 ## 4. Regression recall on real repos
