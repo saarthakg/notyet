@@ -32,7 +32,7 @@ def default_engines() -> list[Engine]:
 
 @dataclass
 class Decision:
-    verdict: str        # passed | needs-review | blocked | reported | unresolved | not-checked | no-change
+    verdict: str        # passed | incomplete | needs-review | blocked | reported | unresolved | not-checked | no-change
     block_reason: Optional[str] = None    # text for the agent when blocking
     summary: str = ""                     # short text for the user
     receipt_path: Optional[str] = None
@@ -106,7 +106,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     elif not standing and any((find_ack(f, session.acks) or {}).get("category") == "needs-human" for f in result.findings):
         verdict = "needs-review"      # the agent may stop, but this is not a pass
     elif not standing:
-        verdict = "passed"
+        verdict = "incomplete" if result.gaps else "passed"     # nothing wrong in what ran isn't a pass
     elif not cfg.enforce:
         verdict = "reported"
     elif repeats >= MAX_SAME_SET_BLOCKS or session.consecutive_blocks >= MAX_BLOCKS:

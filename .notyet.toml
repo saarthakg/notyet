@@ -3,7 +3,7 @@
 [test]
 # How to run this repo's tests. notyet adds its own flags (test selection,
 # junit output), so this must be a pytest invocation for now.
-command = ".venv/bin/python -m pytest"
+command = ".venv/bin/python -m pytest -n 6"
 # Seconds the gate may spend running tests at each check.
 budget_seconds = 150
 

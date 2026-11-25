@@ -10,29 +10,34 @@ import statistics
 from collections import Counter, defaultdict
 
 from notyet import store
-from notyet.findings import Finding, find_ack
+from notyet.findings import Finding, find_ack, group
 
 OUTCOMES = ("fixed", "justified", "handed over", "open")
 
 
+def _key(f: Finding) -> str:
+    """One per problem: an untested file whose untested lines shrink is the same finding still open."""
+    return group(f) if f.covers else f.id
+
+
 def outcomes(session: store.Session) -> dict[str, tuple[str, str]]:
-    """{finding id: (rule, outcome)} for the findings that were ever open."""
+    """{finding: (rule, outcome)} for the findings that were ever open."""
     seen: dict[str, Finding] = {}
     for run in session.runs:
         for data in run.result.get("findings", []):
             f = Finding(**data)
             if f.severity != "note":
-                seen[f.id] = f
+                seen[_key(f)] = f
     last = set(session.runs[-1].finding_ids) if session.runs else set()
-    present = {Finding(**d).id for d in session.runs[-1].result.get("findings", [])} if session.runs else set()
+    present = {_key(Finding(**d)) for d in session.runs[-1].result.get("findings", [])} if session.runs else set()
     out = {}
-    for fid, f in seen.items():
+    for key, f in seen.items():
         ack = find_ack(f, session.acks)
         if ack:
             kind = "handed over" if ack.get("category") == "needs-human" else "justified"
         else:
-            kind = "open" if fid in last or fid in present else "fixed"
-        out[fid] = (f.rule, kind)
+            kind = "open" if f.id in last or key in present else "fixed"
+        out[key] = (f.rule, kind)
     return out
 
 

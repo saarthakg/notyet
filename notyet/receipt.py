@@ -18,6 +18,7 @@ MAX_AGENT_CHARS = 3500
 
 VERDICT_TEXT = {
     "passed": "PASSED",
+    "incomplete": "INCOMPLETE: nothing wrong in what ran",
     "needs-review": "NEEDS YOUR REVIEW",
     "blocked": "NOT DONE YET",
     "unresolved": "UNRESOLVED",
@@ -51,7 +52,7 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
     lines = [
         "# notyet receipt",
         "",
-        f"**Verdict: {VERDICT_TEXT.get(verdict, verdict)}**" + (" **(incomplete)**" if result.gaps else ""),
+        f"**Verdict: {VERDICT_TEXT.get(verdict, verdict)}**" + (" **(incomplete)**" if result.gaps and verdict != "incomplete" else ""),
         "",
         *[f"- **Not checked:** {g}" for g in result.gaps],
         *([""] if result.gaps else []),
@@ -109,8 +110,8 @@ def render(session: store.Session, ctx: Context, result: EngineResult,
 def summary(verdict: str, standing: list[Finding], result: EngineResult, path: str) -> str:
     head = f"notyet: {VERDICT_TEXT.get(verdict, verdict)}"
     if result.gaps:     # never let "didn't check" read as "checked"
-        head += f" (incomplete). {'; '.join(result.gaps)}"
-    if verdict == "passed":
+        head += f"{' (incomplete)' if verdict != 'incomplete' else ''}. {'; '.join(result.gaps)}"
+    if verdict in ("passed", "incomplete"):
         detail = "; ".join(result.checks[:2])
     elif verdict == "needs-review":
         handed = [f for f in result.findings if f.severity == "block"]

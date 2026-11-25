@@ -105,9 +105,9 @@ def test_a_check_whose_tests_did_not_run_says_so_first(repo, monkeypatch):
     hook(repo, "session-start", source="startup")
     _write(repo, "app.py", "def f():\n    return 3\n")
     out = hook(repo, "stop")
-    assert out["systemMessage"].startswith(f"notyet: PASSED (incomplete). {gap}")
+    assert out["systemMessage"].startswith(f"notyet: INCOMPLETE: nothing wrong in what ran. {gap}")
     receipt = (store.receipts_dir(str(repo)) / "latest.md").read_text()
-    assert "**(incomplete)**" in receipt and f"**Not checked:** {gap}" in receipt
+    assert "Verdict: INCOMPLETE" in receipt and f"**Not checked:** {gap}" in receipt
 
 
 def test_conversation_only_turns_are_not_checked(repo, monkeypatch):
