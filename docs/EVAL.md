@@ -149,11 +149,26 @@ resolved the maintainers' hidden tests fully or partly. The September sessions w
 commits, what's wrong is that the work is *incomplete*. The rest of that set was not run.
 
 **Feature sessions on two real projects** (private, not in this repo): a support agent with 187 tests and an ingestion service with 61.
-Six sessions of three prompts each (features, refactors, changed rules, test clean-ups), Claude Code on its default model, able to run
-tests; four sessions enforcing. Every finding was labeled by hand (`eval/notyet_dogfood.py`; about $15 of API-equivalent quota).
+Eight sessions of three or four prompts each (features, refactors, changed rules, test clean-ups), Claude Code on its default model, able to run
+tests; six sessions enforcing. Findings were labeled by hand (`eval/notyet_dogfood.py`; about $20 of API-equivalent quota).
 
-- **No regression occurred, and none was missed.** The suite was green after all 18 turns. Every turn in which a session-start test
+- **No regression occurred, and none was missed.** The suite was green after all 25 turns. Every turn in which a session-start test
   stopped passing had an item about it.
+- **What the interruptions caused.** notyet stores the tree at every check, so what the agent was about to hand over can be compared
+  with what it did. Of the 8 interruptions in the first two rounds: 4 changed no code (acknowledgments); 1 was neutral churn; 2 led
+  to a real test of an untested path (one along with work caused by a false alarm); and **1 made the code worse**: the agent bent a frozen dataclass
+  (`object.__setattr__`, an optional path) only so that the old test setup would still construct it.
+- **What the agent had already said.** Of 43 changed, removed or edited-while-failing tests that notyet raised in recorded sessions, the
+  agent's message before the check mentioned changing tests in all 43 and named the test or file in 38. Of 18 regressions it had caused, it
+  mentioned 1: it couldn't run the tests and didn't know. (Judged by pattern matching over the messages, so approximate.)
+- **So the policy changed:** send the agent back only for what it doesn't know or didn't say, and show the user the rest as a diff of what the
+  tests check. Replayed on the same trees and messages, 8 interruptions become 2, the two that led to real tests. Every cheat and
+  regression in the scenario sets, where the agent says nothing, is still sent back but one, which had been sent back twice already.
+- **Third round, with that policy** (7 turns, harder prompts, one session on Sonnet): 2 interruptions. One led to a test of an untested error path.
+  The other was unnecessary: the agent had said it by naming the value (`W-1`) rather than the test, which now counts. In both sessions the brief
+  showed real decisions in a few lines: `W-1` used to be rejected and now resolves; a ticket response gained a field.
+- **A wrong turn:** one new test failed in the harness and passed elsewhere, which looked like flakiness under load, and a check for flaky new tests
+  was built. 120 runs under load didn't fail once; the harness had simply been started with Ctrl-C ignored. The check was removed, and test runs no longer inherit that.
 - **Useful:** two untested error paths, each of which got a real test; and three requested changes of behavior (a longer tool list, a
   lockout limit, a relaxed validation) handed to the user with accurate reasons. The agent acknowledged nothing dishonestly.
 - **Wrong or noise, all in the first round:** CLI code called untested because the test gives its child process its own `PYTHONPATH`
@@ -175,7 +190,7 @@ grouping, a bounded check, test runs without the host's variables, and `tests/te
 
 - **Incomplete or wrong-but-consistent work passes.** If no test expresses it, the gate can't see it. This is the most common
   fault in the real-commit sessions.
-- **Real use.** Six sessions on two small projects is a start. Whether the interruptions are worth it over weeks, in someone's daily
+- **Real use.** Eight sessions on two small projects is a start, and the prompts were written by the tool's author, not by a developer with a job to do. Whether the interruptions are worth it over weeks, in someone's daily
   work, still has to be seen.
 - **Large repos.** The biggest suite here runs in seconds. On Django's source the import graph takes 12s once, and under a second after,
   but no session has been run there.

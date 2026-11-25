@@ -10,17 +10,27 @@ made to look like it works. You get a receipt: what was checked, what was found,
 It is deterministic. No model judges anything; every block is backed by a test that passed before
 and fails now. It has no dependencies, and keeps its state in `.git/notyet/`.
 
+What you see at the end of a turn, from a real session ("change the lockout from 3 failed lookups to 5"):
+
 ```
-notyet: not done yet. 2 item(s) to resolve before stopping.
+notyet: NEEDS YOUR REVIEW. 222 tests pass (the whole suite); 114 of 119 earlier tests in edited files pass as
+they were; 34 of 35 new or edited tests fail without the change; every changed line ran
+  What the tests say has changed:
+    tests/test_orders.py::test_three_failures_then_blocked is gone
+      ~ now test_five_failures_then_blocked
+      - assert errors == ["order_not_found", "order_not_found", "too_many_attempts"]
+      + assert errors == ["order_not_found"] * 4 + ["too_many_attempts"]
+```
+
+And what an agent sees when it thinks it's done and isn't:
+
+```
+notyet: not done yet. 1 item(s) to resolve before stopping.
 
 1. [block] tests/test_cart.py::test_checkout_total passed at session start and fails now  id=9c1f02aa
    assert 25.0 == 27.5
    -> Fix the code so it passes again. Don't change the test to match new behavior unless
       that behavior change was asked for.
-2. [block] 3 test(s) pass only with this session's changes to tests/conftest.py; with the
-   session-start test setup they fail on the new code  id=4be7d310
-   -> Fix the code so they pass with the original setup. If the behavior change was asked for,
-      hand it to the user: `ack <id> --needs-human "the change that was requested"`.
 ```
 
 ## Why
@@ -88,10 +98,21 @@ that turns failures into passes: if the original would fail on the new code, tha
 | New ruff or pyright errors (also in the callers); new `# noqa`, `# type: ignore`, ... | fix or justify |
 | Failures that were there before; flaky tests | note |
 
-- **block:** cleared by a fix, or by handing it to you with a reason. Then the receipt says
-  NEEDS YOUR REVIEW, never PASSED.
-- **fix or justify:** the agent may acknowledge it with a reason, which you see.
+- **block:** cleared by a fix, or by putting it in front of you. Then the verdict is NEEDS YOUR REVIEW, never PASSED.
+- **fix or justify:** shown to you; the agent may answer it with a reason.
 - Levels can be changed per rule (`[rules]` in `.notyet.toml`).
+
+### When it interrupts the agent
+
+Only for what the agent **doesn't know or didn't say**. In recorded sessions agents nearly always told the user about the
+tests they had changed, and almost never about the regressions they had caused, because they didn't know. So in enforce mode:
+
+- **sent back:** broken or hanging tests, new code no test runs, new type errors, and test changes the agent's closing
+  message doesn't mention. Mentioning them is enough; no command needed.
+- **not sent back, shown to you:** test changes it did mention (as a diff of what they check), moves and renames, lint,
+  suppressions, undone work.
+
+`send_back = "all"` under `[gate]` sends it back for everything: for agents nobody is watching.
 
 ### What it won't blame on the agent
 
@@ -170,6 +191,7 @@ pyright = ".venv/bin/pyright"
 
 [gate]
 mode = "report"                          # or "enforce"
+send_back = "unknown"                    # or "all"
 
 [rules]                                  # block | resolve | note | off
 untested-change = "note"

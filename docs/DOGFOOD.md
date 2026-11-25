@@ -27,6 +27,17 @@ Work as usual. Things worth noting when they happen:
 - the agent acknowledged something with a reason you wouldn't accept;
 - a check felt slow.
 
+## Is it useful? Four questions per turn
+
+Worth a line each in a notebook, for a week:
+1. Did you read what notyet said? (If not, why: too long, too frequent, nothing in it?)
+2. Did it tell you something you didn't know, and would have missed?
+3. Did it change what you did next?
+4. If it sent the agent back: was the result better than what you'd have been handed?
+
+`notyet stats` gives the counts; only you can give the answers. It earns its place if (2) or (4) is yes a few times a week and
+(1) stays yes.
+
 ## Labeling
 
 ```sh

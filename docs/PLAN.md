@@ -22,7 +22,10 @@ in the design since this was written:
   unchecked.
 - **Failing to check is never a pass:** INCOMPLETE is its own verdict.
 
-Next, in order: (1) the dogfooding of §4 week 4, now that most stops are checked, in repos other than this one;
+- **Interrupt for the unknown, show the rest.** Agents disclose the tests they change and don't know what they broke, so an enforcing gate
+  sends them back only for what they don't know or didn't say; everything else goes to the user as a short review brief.
+
+Next, in order: (1) a developer using it for real work for a week, with the questions in docs/DOGFOOD.md;
 (2) TypeScript (vitest/jest), where the same four-way comparison applies; (3) `declare()` (§3.8), which is the only
 idea here for the failure the evaluation shows the gate can't see: work that is incomplete rather than broken.
 
