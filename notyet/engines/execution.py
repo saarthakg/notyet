@@ -310,8 +310,9 @@ def run(ctx: Context) -> EngineResult:
         # about to block on these: make sure none of them just fails now and then
         suspects = [f.nodeid for f in failing if f.nodeid not in flaky and f.nodeid in baseline
                     and baseline[f.nodeid].outcome == "passed" and f.nodeid in alone.results and alone.results[f.nodeid].bad]
-        for _ in range(CONFIRMATIONS if len(suspects) <= MAX_CONFIRMED else 0):
-            if alone.seconds > 10 or not suspects:
+        confirm_start = time.monotonic()
+        for n in range(CONFIRMATIONS if len(suspects) <= MAX_CONFIRMED else 0):
+            if alone.seconds > 10 or not suspects or (n >= 2 and time.monotonic() - confirm_start > CONFIRM_SECONDS):
                 break
             repeat = testrun.run_pytest(command, ctx.root, suspects, env=source_path_env(ctx.root), timeout=ctx.cap(60))
             steady = [n for n in suspects if not (n in repeat.results and repeat.results[n].outcome == "passed")]
@@ -629,7 +630,7 @@ def _baseline(ctx: Context, wanted: list[str], whole_files: list[str]):
 
 
 COMPANY_SECONDS = 60
-CONFIRMATIONS, MAX_CONFIRMED = 2, 20
+CONFIRMATIONS, CONFIRM_SECONDS, MAX_CONFIRMED = 8, 10, 20      # a 1-in-4 failure blocks once in ~1.4 million checks
 
 
 def _baseline_batch(ctx: Context, command: str, batch: list[str], failing: list[str]) -> tuple[bool, str, dict[str, testrun.TestResult]]:
