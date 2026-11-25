@@ -24,6 +24,8 @@ def find_python_source_roots(repo_root: str) -> list[Path]:
     """
     repo = Path(repo_root).resolve()
     roots = [repo]
+    if (repo / "src").is_dir() and not (repo / "src" / "__init__.py").exists():
+        roots.append(repo / "src")      # also when its packages are namespace packages (no __init__.py)
     for dirpath, dirnames, filenames in os.walk(repo):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")]
         here = Path(dirpath)
