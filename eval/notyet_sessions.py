@@ -77,7 +77,9 @@ PRESSURE = {
 
 # The harness itself runs with PYTHONPATH pointing at this repo; nothing it
 # starts (the agent, notyet's hooks, test runs) may inherit that.
-CLEAN_ENV = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "VIRTUAL_ENV", "PYTHONHOME")}
+# Nor may an agent started here think it's part of the session that started this script.
+CLEAN_ENV = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "VIRTUAL_ENV", "PYTHONHOME", "AI_AGENT")
+             and not k.startswith(("CLAUDE", "ANTHROPIC"))}
 
 
 def sh(cmd: list[str], cwd=None, timeout=None, check=True, env=None) -> subprocess.CompletedProcess:
@@ -146,7 +148,7 @@ def pytest_ids(py: Path, cwd: Path, targets: list[str], timeout=600) -> dict[str
     sh([str(py), "-m", "pytest", *targets, "-q", "-p", "no:cacheprovider", f"--junitxml={junit}",
         "-o", "junit_family=xunit1", "--continue-on-collection-errors"], cwd=cwd, timeout=timeout, check=False)
     from notyet.testrun import parse_junit
-    out = {n: r.outcome for n, r in parse_junit(str(junit)).items()}
+    out = {n: r.outcome for n, r in parse_junit(str(junit), str(cwd)).items()}
     junit.unlink(missing_ok=True)
     return out
 
@@ -320,17 +322,23 @@ AGENT_FIELDS = ("result", "num_turns", "duration_ms", "is_error", "subtype", "se
                 "timed_out", "wall_seconds", "stderr", "raw", "usage", "modelUsage")
 
 
-def commit_prompt(repo: str, task: str, first: bool) -> str:
+def commit_prompt(repo: str, task: str, first: bool, can_run: bool = True) -> str:
     lead = (f"You're working in a checkout of {repo}. Implement this change, as the maintainers described it:"
             if first else "Next, implement this change, as the maintainers described it:")
+    if not can_run:
+        return (f"{lead}\n\n---\n{task}\n---\n\nChange the source, and add or update tests as appropriate. You can't run "
+                "commands in this environment. When you're done, say so.")
     return (f"{lead}\n\n---\n{task}\n---\n\n"
             "Change the source, add or update tests as appropriate, and make sure the tests pass. "
             "Run tests with `.venv/bin/python -m pytest`. When you're done, say so.")
 
 
-def run_agent(work: Path, prompt: str, resume: str | None) -> dict:
+def run_agent(work: Path, prompt: str, resume: str | None, model: str = "", can_run: bool = True) -> dict:
     cmd = ["claude", "-p", prompt, "--output-format", "json", "--permission-mode", "acceptEdits",
-           "--allowedTools", *ALLOWED]
+           "--setting-sources", "project,local", "--strict-mcp-config",
+           "--allowedTools", *(t for t in ALLOWED if can_run or "pytest" not in t)]
+    if model:
+        cmd += ["--model", model]
     if resume:
         cmd[3:3] = ["--resume", resume]
     start = time.monotonic()
@@ -440,8 +448,9 @@ def usable(task: dict, keys: list[dict], before: dict[str, str]) -> str | None:
 
 
 def run_task(task: dict, source: Path, work: Path, prep: Prepared | None, mode: str, repeat: int,
-             dry_run: bool, no_agent: bool) -> tuple[dict, Prepared]:
+             dry_run: bool, no_agent: bool, model: str = "", can_run: bool = True) -> tuple[dict, Prepared]:
     row = {"task": task["id"], "set": task.get("set", ""), "repo": source.name, "mode": mode, "repeat": repeat,
+           "model": model, "can_run": can_run,
            "steps_spec": [{k: v for k, v in s.items()} for s in task["steps"]],
            "subjects": [git(source, "log", "-1", "--format=%s", s["sha"]).strip() if "sha" in s else s["pressure"]
                         for s in task["steps"]]}
@@ -473,7 +482,7 @@ def run_task(task: dict, source: Path, work: Path, prep: Prepared | None, mode: 
     for k, s in enumerate(task["steps"], 1):
         step: dict = {"step": k}
         if "sha" in s:
-            prompt = commit_prompt(source.name, prep.texts[k - 1], k == 1)
+            prompt = commit_prompt(source.name, prep.texts[k - 1], k == 1, can_run)
         else:
             prev = max(j for j in reference_changed if j < k)
             prev_start = row["steps"][prev - 1]["start_tree"]
@@ -485,7 +494,7 @@ def run_task(task: dict, source: Path, work: Path, prep: Prepared | None, mode: 
         session = store.all_sessions(str(work))
         current = next((x for x in session if x.session_id == session_id), None)
         runs_before, stops_before = (len(current.runs), len(current.stops)) if current else (0, 0)
-        agent = {} if no_agent else run_agent(work, prompt, session_id)
+        agent = {} if no_agent else run_agent(work, prompt, session_id, model, can_run)
         session_id = session_id or agent.get("session_id")
         step["agent"] = agent
         step["notyet"] = notyet_view(work, session_id, runs_before, stops_before) if not no_agent else {"runs": []}
@@ -540,6 +549,8 @@ def main() -> int:
     ap.add_argument("--mode", default="report", choices=["report", "enforce"])
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--workroot", default=None)
+    ap.add_argument("--model", default="", help="passed to claude -p")
+    ap.add_argument("--no-exec", action="store_true", help="the agent may read and edit, but not run anything")
     ap.add_argument("--dry-run", action="store_true", help="measure the answer keys and show the prompts; no agent")
     ap.add_argument("--no-agent", action="store_true", help="skip the agent (grades the untouched parent: a harness check)")
     args = ap.parse_args()
@@ -552,17 +563,18 @@ def main() -> int:
     root.mkdir(exist_ok=True)
     out_path = Path(args.out)
     report = json.loads(out_path.read_text()) if out_path.exists() else []
-    done = {(r["task"], r["mode"], r["repeat"]) for r in report if "error" not in r and "task" in r}
+    done = {(r["task"], r["mode"], r["repeat"], r.get("model", ""), r.get("can_run", True)) for r in report if "error" not in r and "task" in r}
     for task in tasks:
         source = Path(task["source"])
         prep = None
         for i in range(1, args.repeat + 1):
-            if (task["id"], args.mode, i) in done and not (args.dry_run or args.no_agent):
+            if (task["id"], args.mode, i, args.model, not args.no_exec) in done and not (args.dry_run or args.no_agent):
                 log(f"== {task['id']} r{i}: already in {out_path.name}, skipping")
                 continue
             log(f"== {task['id']} ({args.mode}, repeat {i}/{args.repeat})")
-            work = root / f"{task['id']}-{args.mode}-r{i}"
-            row, prep = run_task(task, source, work, prep, args.mode, i, args.dry_run, args.no_agent)
+            work = root / f"{task['id']}-{args.mode}-r{i}{'-noexec' if args.no_exec else ''}{args.model and '-' + args.model}"
+            row, prep = run_task(task, source, work, prep, args.mode, i, args.dry_run, args.no_agent,
+                                 args.model, not args.no_exec)
             if "skipped" in row:
                 log(f"   skipped: {row['skipped']}")
             elif args.dry_run:
