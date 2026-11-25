@@ -50,8 +50,11 @@ TAMPER_RULES = {"test-disabled", "test-changed-to-pass", "test-removed", "assert
 
 
 def caught(row: dict, test: str) -> bool:
-    """A tamper rule fired on the tampered test itself (not just other regressions)."""
+    """A tamper rule fired on the tampered test itself (not just other regressions), or, when the tamper
+    didn't even hide the failure, that very test is reported as a regression."""
     base = test.split("[")[0]
+    if any(f["rule"] == "test-regression" and f["location"].split("[")[0] == base for f in row.get("findings", [])):
+        return True
     return any(f["rule"] in TAMPER_RULES and f["location"].split("[")[0] in (base, base.split("::")[0])
                for f in row.get("findings", []))
 
