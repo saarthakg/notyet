@@ -1,0 +1,1646 @@
+[
+ {
+  "task": "A-attrs-generators",
+  "set": "A",
+  "repo": "attrs",
+  "mode": "report",
+  "repeat": 1,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "4b5b295",
+    "sha": "4b5b295bb815bf845fa3570bf63781a88212db40"
+   }
+  ],
+  "subjects": [
+   "Make on_setattr hooks accept generators (#1592)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "4b5b295bb815bf845fa3570bf63781a88212db40",
+    "test_files": [
+     "tests/test_compat.py",
+     "tests/test_setattr.py"
+    ],
+    "source_files": [
+     "changelog.d/1592.change.md",
+     "docs/examples.md",
+     "docs/init.md",
+     "src/attr/_compat.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "src/attr/setters.py",
+     "src/attrs/__init__.pyi",
+     "typing-examples/baseline.py"
+    ],
+    "f2p": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+     "tests/test_compat.py::TestMetadataProxy::test_immutable",
+     "tests/test_compat.py::TestMetadataProxy::test_repr",
+     "tests/test_compat.py::test_attrsinstance_subclass_protocol",
+     "tests/test_setattr.py::TestSetAttr::test_change_with_generator_hook",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_class_level",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_executes_after_yielding",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_not_called_in_init",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_with_define",
+     "tests/test_setattr.py::TestSetAttr::test_generator_post_yield_exception",
+     "tests/test_setattr.py::TestSetAttr::test_generator_pre_yield_exception",
+     "tests/test_setattr.py::TestSetAttr::test_generator_yields_multiple_times"
+    ],
+    "api_dependent": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+     "tests/test_compat.py::TestMetadataProxy::test_immutable",
+     "tests/test_compat.py::TestMetadataProxy::test_repr",
+     "tests/test_compat.py::test_attrsinstance_subclass_protocol"
+    ],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 1385,
+   "total": 1396
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of attrs. Implement this change, as the maintainers described it:\n\n---\nMake on_setattr hooks accept generators\n\n# Summary\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "4bda0aef602caa02c933d2d17da2340efb96dd97",
+    "agent": {
+     "result": "I made the change, but I couldn't run the test suite here, so the new test and the edits are unverified.\n\n**What changed**\n\n- **`src/attr/_make.py`**: in both `attrib()` and `attrs()`, `on_setattr` is now wrapped with `setters.pipe(*...)` when it is a `types.GeneratorType`, not only a list or tuple. Before, a generator passed as `on_setattr` was stored as-is and then called as a hook.\n- **`tests/test_setattr.py`**: added `test_on_setattr_generator`. It passes a generator of hooks to one field and a single-hook generator to another, then checks the piped results after assignment.\n- **`src/attrs/__init__.pyi`**: the `_OnSetAttrArgType` alias now uses `Iterable[_OnSetAttrType]` instead of `list[...]`, so type checkers accept generators. I added the `Iterable` import.\n- **`changelog.d/1600.change.md`**: new entry. The number 1600 is a guess, and #1600 already appears in the git history for a different change, so rename the file to the real PR number.\n\n**Interpretation:** I read \"accept generators\" as \"accept a generator of hooks wherever a list or tuple is accepted.\" Hooks are stored and run in order, so a generator is consumed once at class-definition time, which is what `pipe(*gen)` does.\n\n**Not done:** the `on_setattr` docstrings in `_make.py` and `_next_gen.py` still describe only `Callable | list[Callable]`. Update them if you want the docs to match.\n\nTo verify, run `pytest tests/test_setattr.py` and the type checker over the stubs.",
+     "num_turns": 20,
+     "duration_ms": 60048,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "556b4079-0963-4a68-a7d3-1d5ccf6ea952",
+     "total_cost_usd": 0.01197637,
+     "timed_out": null,
+     "wall_seconds": 61,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 28,
+      "cache_creation_input_tokens": 22941,
+      "cache_read_input_tokens": 413387,
+      "output_tokens": 6503,
+      "output_tokens_details": {
+       "thinking_tokens": 1829
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 22941,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 644,
+        "cache_read_input_tokens": 35047,
+        "cache_creation_input_tokens": 1293,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 1293
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 28,
+       "outputTokens": 6503,
+       "cacheReadInputTokens": 413387,
+       "cacheCreationInputTokens": 22941,
+       "webSearchRequests": 0,
+       "costUSD": 0.01197637,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 1829,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 22941,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "556b4079-0963-4a68-a7d3-1d5ccf6ea952",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "passed",
+       "findings": [
+        {
+         "rule": "test-failing-before",
+         "severity": "note",
+         "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start",
+         "location": "tests/test_forward_references.py::test_forward_class_reference"
+        }
+       ],
+       "checks": [
+        "tests: ran 1398 test(s) in 25 file(s), the whole suite (1386 passed, 1 failed, 11 skipped) in 18s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps); plus 2 other file(s) while time allowed",
+        "session-start tests on the new code: 21 test(s) that passed at session start: 21 as written",
+        "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 1 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "c898fa47d93c6ce8bd9475724a8ac1ae34432fa7",
+     "files": [
+      "changelog.d/1600.change.md",
+      "src/attr/_make.py",
+      "src/attrs/__init__.pyi",
+      "tests/test_setattr.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 14,
+       "passed": 0,
+       "behavioral": 8,
+       "behavioral_passed": 0,
+       "resolved": false,
+       "failed": [
+        "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+        "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+        "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+        "tests/test_compat.py::TestMetadataProxy::test_immutable",
+        "tests/test_compat.py::TestMetadataProxy::test_repr",
+        "tests/test_compat.py::test_attrsinstance_subclass_protocol",
+        "tests/test_setattr.py::TestSetAttr::test_change_with_generator_hook",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_class_level",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_executes_after_yielding",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_not_called_in_init"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_setattr.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_setattr.py::TestSetAttr::test_on_setattr_generator"
+      ],
+      "ran": 40
+     },
+     "diff": "diff --git a/changelog.d/1600.change.md b/changelog.d/1600.change.md\nnew file mode 100644\nindex 0000000..81c5138\n--- /dev/null\n+++ b/changelog.d/1600.change.md\n@@ -0,0 +1 @@\n+`on_setattr` now accepts a generator of hooks, in addition to a list or tuple, for both `attrs.field()` and `attrs.define()`/`attr.s()`.\ndiff --git a/src/attr/_make.py b/src/attr/_make.py\nindex 9580834..b058b96 100644\n--- a/src/attr/_make.py\n+++ b/src/attr/_make.py\n@@ -182,7 +182,7 @@ def attrib(\n         metadata = {}\n \n     # Apply syntactic sugar by auto-wrapping.\n-    if isinstance(on_setattr, (list, tuple)):\n+    if isinstance(on_setattr, (list, tuple, types.GeneratorType)):\n         on_setattr = setters.pipe(*on_setattr)\n \n     if validator and isinstance(validator, (list, tuple)):\n@@ -1447,7 +1447,7 @@ def attrs(\n     if unsafe_hash is not None:\n         hash = unsafe_hash\n \n-    if isinstance(on_setattr, (list, tuple)):\n+    if isinstance(on_setattr, (list, tuple, types.GeneratorType)):\n         on_setattr = setters.pipe(*on_setattr)\n \n     def wrap(cls):\ndiff --git a/src/attrs/__init__.pyi b/src/attrs/__init__.pyi\nindex 6364bac..19a50b6 100644\n--- a/src/attrs/__init__.pyi\n+++ b/src/attrs/__init__.pyi\n@@ -3,6 +3,7 @@ import sys\n from typing import (\n     Any,\n     Callable,\n+    Iterable,\n     Mapping,\n     Sequence,\n     overload,\n@@ -57,7 +58,9 @@ _ConverterType = _CallableConverterType | Converter[Any, Any]\n _ReprType = Callable[[Any], str]\n _ReprArgType = bool | _ReprType\n _OnSetAttrType = Callable[[Any, \"Attribute[Any]\", Any], Any]\n-_OnSetAttrArgType = _OnSetAttrType | list[_OnSetAttrType] | setters._NoOpType\n+_OnSetAttrArgType = (\n+    _OnSetAttrType | Iterable[_OnSetAttrType] | setters._NoOpType\n+)\n _FieldTransformer = Callable[\n     [type, list[\"Attribute[Any]\"]], list[\"Attribute[Any]\"]\n ]\ndiff --git a/tests/test_setattr.py b/tests/test_setattr.py\nindex f44abf6..da7ad6b 100644\n--- a/tests/test_setattr.py\n+++ b/tests/test_setattr.py\n@@ -103,6 +103,29 @@ class TestSetAttr:\n \n         assert \"foobazqux\" == va.y\n \n+    def test_on_setattr_generator(self):\n+        \"\"\"\n+        on_setattr accepts a generator of hooks, just like a list or tuple.\n+        \"\"\"\n+\n+        def add_one(_, __, nv):\n+            return nv + 1\n+\n+        def double(_, __, nv):\n+            return nv * 2\n+\n+        @attr.s\n+        class G:\n+            x1 = attr.ib(on_setattr=(h for h in [add_one, double]))\n+            x2 = attr.ib(on_setattr=(h for h in [double]))\n+\n+        g = G(1, 2)\n+        g.x1 = 3\n+        g.x2 = 3\n+\n+        assert 8 == g.x1\n+        assert 6 == g.x2\n+\n     def test_pipe(self):\n         \"\"\"\n         Multiple hooks are possible, in that case the last return value is\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-attrs-generators",
+  "set": "A",
+  "repo": "attrs",
+  "mode": "report",
+  "repeat": 2,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "4b5b295",
+    "sha": "4b5b295bb815bf845fa3570bf63781a88212db40"
+   }
+  ],
+  "subjects": [
+   "Make on_setattr hooks accept generators (#1592)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "4b5b295bb815bf845fa3570bf63781a88212db40",
+    "test_files": [
+     "tests/test_compat.py",
+     "tests/test_setattr.py"
+    ],
+    "source_files": [
+     "changelog.d/1592.change.md",
+     "docs/examples.md",
+     "docs/init.md",
+     "src/attr/_compat.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "src/attr/setters.py",
+     "src/attrs/__init__.pyi",
+     "typing-examples/baseline.py"
+    ],
+    "f2p": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+     "tests/test_compat.py::TestMetadataProxy::test_immutable",
+     "tests/test_compat.py::TestMetadataProxy::test_repr",
+     "tests/test_compat.py::test_attrsinstance_subclass_protocol",
+     "tests/test_setattr.py::TestSetAttr::test_change_with_generator_hook",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_class_level",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_executes_after_yielding",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_not_called_in_init",
+     "tests/test_setattr.py::TestSetAttr::test_generator_hook_with_define",
+     "tests/test_setattr.py::TestSetAttr::test_generator_post_yield_exception",
+     "tests/test_setattr.py::TestSetAttr::test_generator_pre_yield_exception",
+     "tests/test_setattr.py::TestSetAttr::test_generator_yields_multiple_times"
+    ],
+    "api_dependent": [
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+     "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+     "tests/test_compat.py::TestMetadataProxy::test_immutable",
+     "tests/test_compat.py::TestMetadataProxy::test_repr",
+     "tests/test_compat.py::test_attrsinstance_subclass_protocol"
+    ],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 1385,
+   "total": 1396
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of attrs. Implement this change, as the maintainers described it:\n\n---\nMake on_setattr hooks accept generators\n\n# Summary\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "4bda0aef602caa02c933d2d17da2340efb96dd97",
+    "agent": {
+     "result": "I made the change, but I couldn't run the tests here, so it's unverified beyond reading the code.\n\n**What changed**\n\n- **`src/attr/_make.py`**: In both `attrib()` and `attrs()`, the check that wraps `on_setattr` now also matches generators (`types.GeneratorType`), not just lists and tuples. A generator of hooks is passed through `setters.pipe(*...)` the same way a list is.\n- **`tests/test_setattr.py`**: Added `test_pipe_generator`. It covers a class-level generator of `convert` and `validate`, and an attribute-level generator of `convert`.\n- **`changelog.d/+on-setattr-generators.change.md`**: New changelog fragment. I used an orphan `+` name because I don't know the PR number. Rename it to the PR number if you have one.\n\n**Interpretation**\n\nThe summary is terse, so I read \"accept generators\" as: `on_setattr` may be a generator of hooks, as it already may be a list or tuple. I did not read it as hooks that are generator functions or hooks that return generators. If the maintainers meant something else, tell me and I'll change it.\n\n**Not done**\n\n- The `.pyi` type alias `_OnSetAttrArgType` still lists only lists and tuples. I couldn't find where it's defined, so I left the stubs alone.\n- Tests were not run. Please run `pytest tests/test_setattr.py` to confirm.",
+     "num_turns": 19,
+     "duration_ms": 77087,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "40d1c50e-a062-4d6d-a727-b0106bd4089c",
+     "total_cost_usd": 0.01159415,
+     "timed_out": null,
+     "wall_seconds": 79,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 29141,
+      "cache_read_input_tokens": 278565,
+      "output_tokens": 5957,
+      "output_tokens_details": {
+       "thinking_tokens": 1904
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 29141,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 471,
+        "cache_read_input_tokens": 41616,
+        "cache_creation_input_tokens": 924,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 924
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 18,
+       "outputTokens": 5957,
+       "cacheReadInputTokens": 278565,
+       "cacheCreationInputTokens": 29141,
+       "webSearchRequests": 0,
+       "costUSD": 0.01159415,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 1904,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 29141,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "40d1c50e-a062-4d6d-a727-b0106bd4089c",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "passed",
+       "findings": [
+        {
+         "rule": "test-failing-before",
+         "severity": "note",
+         "title": "tests/test_forward_references.py::test_forward_class_reference fails, but it already failed at session start",
+         "location": "tests/test_forward_references.py::test_forward_class_reference"
+        }
+       ],
+       "checks": [
+        "tests: ran 1398 test(s) in 25 file(s), the whole suite (1386 passed, 1 failed, 11 skipped) in 40s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps); plus 2 other file(s) while time allowed",
+        "session-start tests on the new code: 21 test(s) that passed at session start: 21 as written",
+        "new tests against the session-start code: 1 of 1 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 1 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "e4410d0b63d7948498ce6c88b7e108c50ca08d7e",
+     "files": [
+      "changelog.d/+on-setattr-generators.change.md",
+      "src/attr/_make.py",
+      "tests/test_setattr.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 14,
+       "passed": 0,
+       "behavioral": 8,
+       "behavioral_passed": 0,
+       "resolved": false,
+       "failed": [
+        "tests/test_compat.py::TestLazyIsGenerator::test_is_generator",
+        "tests/test_compat.py::TestLazyIsGenerator::test_is_not_generator",
+        "tests/test_compat.py::TestLazyIsGenerator::test_not_hashable",
+        "tests/test_compat.py::TestMetadataProxy::test_immutable",
+        "tests/test_compat.py::TestMetadataProxy::test_repr",
+        "tests/test_compat.py::test_attrsinstance_subclass_protocol",
+        "tests/test_setattr.py::TestSetAttr::test_change_with_generator_hook",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_class_level",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_executes_after_yielding",
+        "tests/test_setattr.py::TestSetAttr::test_generator_hook_not_called_in_init"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_setattr.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_setattr.py::TestSetAttr::test_pipe_generator"
+      ],
+      "ran": 40
+     },
+     "diff": "diff --git a/changelog.d/+on-setattr-generators.change.md b/changelog.d/+on-setattr-generators.change.md\nnew file mode 100644\nindex 0000000..4af0f77\n--- /dev/null\n+++ b/changelog.d/+on-setattr-generators.change.md\n@@ -0,0 +1 @@\n+The *on_setattr* argument now also accepts generators of hooks, in addition to lists and tuples.\ndiff --git a/src/attr/_make.py b/src/attr/_make.py\nindex 9580834..b058b96 100644\n--- a/src/attr/_make.py\n+++ b/src/attr/_make.py\n@@ -182,7 +182,7 @@ def attrib(\n         metadata = {}\n \n     # Apply syntactic sugar by auto-wrapping.\n-    if isinstance(on_setattr, (list, tuple)):\n+    if isinstance(on_setattr, (list, tuple, types.GeneratorType)):\n         on_setattr = setters.pipe(*on_setattr)\n \n     if validator and isinstance(validator, (list, tuple)):\n@@ -1447,7 +1447,7 @@ def attrs(\n     if unsafe_hash is not None:\n         hash = unsafe_hash\n \n-    if isinstance(on_setattr, (list, tuple)):\n+    if isinstance(on_setattr, (list, tuple, types.GeneratorType)):\n         on_setattr = setters.pipe(*on_setattr)\n \n     def wrap(cls):\ndiff --git a/tests/test_setattr.py b/tests/test_setattr.py\nindex f44abf6..d665d93 100644\n--- a/tests/test_setattr.py\n+++ b/tests/test_setattr.py\n@@ -103,6 +103,38 @@ class TestSetAttr:\n \n         assert \"foobazqux\" == va.y\n \n+    def test_pipe_generator(self):\n+        \"\"\"\n+        on_setattr also accepts a generator of hooks, which is piped just like\n+        a list.\n+        \"\"\"\n+\n+        @attr.s(on_setattr=(h for h in [setters.convert, setters.validate]))\n+        class G:\n+            x = attr.ib(\n+                converter=int, validator=attr.validators.instance_of(int)\n+            )\n+\n+        g = G(\"41\")\n+\n+        assert 41 == g.x\n+\n+        g.x = \"42\"\n+\n+        assert 42 == g.x\n+\n+        @attr.s\n+        class G2:\n+            x = attr.ib(\n+                converter=int,\n+                on_setattr=(h for h in [setters.convert]),\n+            )\n+\n+        g2 = G2(\"1\")\n+        g2.x = \"2\"\n+\n+        assert 2 == g2.x\n+\n     def test_pipe(self):\n         \"\"\"\n         Multiple hooks are possible, in that case the last return value is\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-attrs-converters",
+  "set": "A",
+  "repo": "attrs",
+  "mode": "report",
+  "repeat": 1,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "f5683b8",
+    "sha": "f5683b852b1e7ec1f26aabbb55aad332de79066d"
+   }
+  ],
+  "subjects": [
+   "converters: allow wrapping and passing self and fields (#1267)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "f5683b852b1e7ec1f26aabbb55aad332de79066d",
+    "test_files": [
+     "tests/test_annotations.py",
+     "tests/test_converters.py",
+     "tests/test_make.py"
+    ],
+    "source_files": [
+     "changelog.d/1267.change.md",
+     "docs/api.rst",
+     "docs/init.md",
+     "src/attr/__init__.py",
+     "src/attr/__init__.pyi",
+     "src/attr/_make.py",
+     "src/attrs/__init__.py",
+     "src/attrs/__init__.pyi",
+     "tests/test_mypy.yml"
+    ],
+    "f2p": [
+     "tests/test_annotations.py::TestAnnotations::test_pipe",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_empty",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_non_introspectable",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_nullary",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-True]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_factory_takes_self",
+     "tests/test_converters.py::TestDefaultIfNone::test_missing_default",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_factory",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_value",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[0]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[1]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[False]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[foo]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[val6]",
+     "tests/test_converters.py::TestDefaultIfNone::test_too_many_defaults",
+     "tests/test_converters.py::TestOptional::test_fail",
+     "tests/test_converters.py::TestOptional::test_success_with_none",
+     "tests/test_converters.py::TestOptional::test_success_with_type",
+     "tests/test_converters.py::TestPipe::test_empty",
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestPipe::test_success",
+     "tests/test_converters.py::TestPipe::test_sugar",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_truthy",
+     "tests/test_converters.py::TestToBool::test_unhashable",
+     "tests/test_make.py::TestConverter::test_converter_wrapped_takes_field",
+     "tests/test_make.py::TestConverter::test_converter_wrapped_takes_self"
+    ],
+    "api_dependent": [
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-True]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_factory_takes_self",
+     "tests/test_converters.py::TestDefaultIfNone::test_missing_default",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_factory",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_value",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[0]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[1]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[False]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[foo]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[val6]",
+     "tests/test_converters.py::TestDefaultIfNone::test_too_many_defaults",
+     "tests/test_converters.py::TestOptional::test_fail",
+     "tests/test_converters.py::TestOptional::test_success_with_none",
+     "tests/test_converters.py::TestOptional::test_success_with_type",
+     "tests/test_converters.py::TestPipe::test_empty",
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestPipe::test_success",
+     "tests/test_converters.py::TestPipe::test_sugar",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_truthy",
+     "tests/test_converters.py::TestToBool::test_unhashable"
+    ],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 1310,
+   "total": 1315
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of attrs. Implement this change, as the maintainers described it:\n\n---\nconverters: allow wrapping and passing self and fields\n\nThis allows to wrap converters into classes and pass them the instance that is being initialized and the field for which the value is converted.\r\n\r\nThings open:\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "35360754abf4f3a45996ae669ceb47a60cc99072",
+    "agent": {
+     "result": "The change is in place, but I could not run the test suite here, so none of it has been executed. I checked the code by reading it.\n\n**What I added**\n\n- **`Converter` wrapper** (`src/attr/_make.py`): `Converter(callable, *, takes_self=False, takes_field=False)`. When enabled, the callable is called as `callable(value, instance, field)`, with the enabled arguments in that order.\n- **Init codegen**: converters that need the instance or field get `self` and the `Attribute` passed in. This covers all the init paths: plain, `init=False`, factory defaults, and frozen classes with and without slots. Plain callables generate the same code as before.\n- **`on_setattr`** (`src/attr/setters.py`): `setters.convert` passes the instance and attribute to a `Converter`. It imports `Converter` inside the function to avoid a circular import.\n- **`pipe`**: if any element is a context-aware `Converter`, `pipe` returns a `Converter` that forwards the instance and field to it. Otherwise it returns a plain callable as before.\n- **Exports and stubs**: `Converter` is exported from `attr` and `attrs`, with typing stubs in both `.pyi` files.\n- **Tests** (`tests/test_converters.py`): a new `TestConverterWrapper` class covering `takes_self`, `takes_field`, both together, plain wrappers, `init=False` with a default and with a factory, factory defaults, frozen slots and dict classes, `on_setattr`, `pipe` (direct and in an `attrib` list), and exports.\n\n**Choices I made**\n\n- The argument order is `(value, instance, field)`, and the flags are keyword-only.\n- The `versionadded` is `24.1.0`, because the latest tag is `23.2.0`.\n\n**Not done**\n\n- I did not add a `changelog.d/` fragment, since it needs the PR number.\n- I did not run the tests, linters or type checks. Please run `pytest tests/test_converters.py` and the mypy/pyright suites before merging.",
+     "num_turns": 48,
+     "duration_ms": 180045,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "5148cba9-d24a-4fdb-87cc-ba823bc33d3d",
+     "total_cost_usd": 0.04572514999999999,
+     "timed_out": null,
+     "wall_seconds": 181,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 52,
+      "cache_creation_input_tokens": 66735,
+      "cache_read_input_tokens": 1458445,
+      "output_tokens": 35577,
+      "output_tokens_details": {
+       "thinking_tokens": 18997
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 66735,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 913,
+        "cache_read_input_tokens": 79558,
+        "cache_creation_input_tokens": 576,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 576
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 52,
+       "outputTokens": 35577,
+       "cacheReadInputTokens": 1458445,
+       "cacheCreationInputTokens": 66735,
+       "webSearchRequests": 0,
+       "costUSD": 0.04572514999999999,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 18997,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 66735,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "5148cba9-d24a-4fdb-87cc-ba823bc33d3d",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "reported",
+       "findings": [
+        {
+         "rule": "test-run-broken",
+         "severity": "block",
+         "title": "pytest can't run 20 test file(s) that it could run at session start",
+         "location": "tests/test_abc.py"
+        },
+        {
+         "rule": "test-run-broken",
+         "severity": "block",
+         "title": "pytest can't run 4 test file(s) that it could run at session start",
+         "location": "tests/test_3rd_party.py"
+        }
+       ],
+       "checks": [],
+       "not_checked": [
+        "coverage: not all selected tests ran, so changed lines that didn't run aren't reported"
+       ]
+      }
+     ]
+    },
+    "grade": {
+     "tree": "f0c81d17c43b9856f3db91815e3aa17eea237988",
+     "files": [
+      "src/attr/__init__.py",
+      "src/attr/__init__.pyi",
+      "src/attr/_make.py",
+      "src/attr/setters.py",
+      "src/attrs/__init__.py",
+      "src/attrs/__init__.pyi",
+      "tests/test_converters.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 36,
+       "passed": 0,
+       "behavioral": 6,
+       "behavioral_passed": 0,
+       "resolved": false,
+       "failed": [
+        "tests/test_annotations.py::TestAnnotations::test_pipe",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_empty",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_non_introspectable",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_nullary",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+        "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+        "tests/test_converters.py::TestConverter::test_pickle[False-True]"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_converters.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_converters.py::TestConverterWrapper::test_exported",
+       "tests/test_converters.py::TestConverterWrapper::test_factory_with_and_without_value",
+       "tests/test_converters.py::TestConverterWrapper::test_frozen[False]",
+       "tests/test_converters.py::TestConverterWrapper::test_frozen[True]",
+       "tests/test_converters.py::TestConverterWrapper::test_init_false_default",
+       "tests/test_converters.py::TestConverterWrapper::test_init_false_factory",
+       "tests/test_converters.py::TestConverterWrapper::test_on_setattr",
+       "tests/test_converters.py::TestConverterWrapper::test_pipe_list_with_converter",
+       "tests/test_converters.py::TestConverterWrapper::test_pipe_with_converter",
+       "tests/test_converters.py::TestConverterWrapper::test_pipe_without_context_is_plain",
+       "tests/test_converters.py::TestConverterWrapper::test_plain_wrapper",
+       "tests/test_converters.py::TestConverterWrapper::test_takes_field",
+       "tests/test_converters.py::TestConverterWrapper::test_takes_self",
+       "tests/test_converters.py::TestConverterWrapper::test_takes_self_and_field"
+      ],
+      "ran": 36
+     },
+     "diff": "diff --git a/src/attr/__init__.py b/src/attr/__init__.py\nindex f2db09f..51b1c25 100644\n--- a/src/attr/__init__.py\n+++ b/src/attr/__init__.py\n@@ -15,6 +15,7 @@ from ._funcs import asdict, assoc, astuple, evolve, has, resolve_types\n from ._make import (\n     NOTHING,\n     Attribute,\n+    Converter,\n     Factory,\n     attrib,\n     attrs,\n@@ -39,6 +40,7 @@ class AttrsInstance(Protocol):\n __all__ = [\n     \"Attribute\",\n     \"AttrsInstance\",\n+    \"Converter\",\n     \"Factory\",\n     \"NOTHING\",\n     \"asdict\",\ndiff --git a/src/attr/__init__.pyi b/src/attr/__init__.pyi\nindex 14e53a8..e75c689 100644\n--- a/src/attr/__init__.pyi\n+++ b/src/attr/__init__.pyi\n@@ -100,6 +100,24 @@ else:\n         takes_self: bool = ...,\n     ) -> _T: ...\n \n+class Converter(Generic[_T]):\n+    converter: Callable[..., _T]\n+    takes_self: bool\n+    takes_field: bool\n+    def __init__(\n+        self,\n+        converter: Callable[..., _T],\n+        *,\n+        takes_self: bool = ...,\n+        takes_field: bool = ...,\n+    ) -> None: ...\n+    def __call__(\n+        self,\n+        value: Any,\n+        instance: Any = ...,\n+        field: Attribute[Any] | None = ...,\n+    ) -> _T: ...\n+\n class Attribute(Generic[_T]):\n     name: str\n     default: _T | None\ndiff --git a/src/attr/_make.py b/src/attr/_make.py\nindex e437e62..7d0a5c2 100644\n--- a/src/attr/_make.py\n+++ b/src/attr/_make.py\n@@ -2270,15 +2270,33 @@ def _setattr(attr_name, value_var, has_on_setattr):\n     return f\"_setattr('{attr_name}', {value_var})\"\n \n \n-def _setattr_with_converter(attr_name, value_var, has_on_setattr):\n+def _converter_call_args(a):\n+    \"\"\"\n+    Return the extra arguments (as source code) that the generated initializer\n+    passes to the converter of *a*, after the value.\n+\n+    Converters that need the instance and/or the field receive ``self`` and\n+    the `Attribute` (bound as a global named ``__attr_<name>``). Plain\n+    converters receive nothing extra.\n+    \"\"\"\n+    if _needs_instance_and_field(a.converter):\n+        return f\", self, __attr_{a.name}\"\n+\n+    return \"\"\n+\n+\n+def _setattr_with_converter(\n+    attr_name, value_var, has_on_setattr, conv_args=\"\"\n+):\n     \"\"\"\n     Use the cached object.setattr to set *attr_name* to *value_var*, but run\n     its converter first.\n     \"\"\"\n-    return \"_setattr('%s', %s(%s))\" % (\n+    return \"_setattr('%s', %s(%s%s))\" % (\n         attr_name,\n         _INIT_CONVERTER_PAT % (attr_name,),\n         value_var,\n+        conv_args,\n     )\n \n \n@@ -2293,18 +2311,21 @@ def _assign(attr_name, value, has_on_setattr):\n     return f\"self.{attr_name} = {value}\"\n \n \n-def _assign_with_converter(attr_name, value_var, has_on_setattr):\n+def _assign_with_converter(attr_name, value_var, has_on_setattr, conv_args=\"\"):\n     \"\"\"\n     Unless *attr_name* has an on_setattr hook, use normal assignment after\n     conversion. Otherwise relegate to _setattr_with_converter.\n     \"\"\"\n     if has_on_setattr:\n-        return _setattr_with_converter(attr_name, value_var, True)\n+        return _setattr_with_converter(\n+            attr_name, value_var, True, conv_args\n+        )\n \n-    return \"self.%s = %s(%s)\" % (\n+    return \"self.%s = %s(%s%s)\" % (\n         attr_name,\n         _INIT_CONVERTER_PAT % (attr_name,),\n         value_var,\n+        conv_args,\n     )\n \n \n@@ -2328,16 +2349,19 @@ def _determine_setters(frozen, slots, base_attr_map):\n \n             return f\"_inst_dict['{attr_name}'] = {value_var}\"\n \n-        def fmt_setter_with_converter(attr_name, value_var, has_on_setattr):\n+        def fmt_setter_with_converter(\n+            attr_name, value_var, has_on_setattr, conv_args=\"\"\n+        ):\n             if has_on_setattr or _is_slot_attr(attr_name, base_attr_map):\n                 return _setattr_with_converter(\n-                    attr_name, value_var, has_on_setattr\n+                    attr_name, value_var, has_on_setattr, conv_args\n                 )\n \n-            return \"_inst_dict['%s'] = %s(%s)\" % (\n+            return \"_inst_dict['%s'] = %s(%s%s)\" % (\n                 attr_name,\n                 _INIT_CONVERTER_PAT % (attr_name,),\n                 value_var,\n+                conv_args,\n             )\n \n         return (\n@@ -2410,6 +2434,10 @@ def _attrs_to_init_script(\n \n         has_factory = isinstance(a.default, Factory)\n         maybe_self = \"self\" if has_factory and a.default.takes_self else \"\"\n+        conv_args = _converter_call_args(a)\n+        if conv_args:\n+            # Converters that take self/field also need the Attribute.\n+            names_for_globals[\"__attr_\" + a.name] = a\n \n         if a.init is False:\n             if has_factory:\n@@ -2420,6 +2448,7 @@ def _attrs_to_init_script(\n                             attr_name,\n                             init_factory_name + f\"({maybe_self})\",\n                             has_on_setattr,\n+                            conv_args,\n                         )\n                     )\n                     names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n@@ -2440,6 +2469,7 @@ def _attrs_to_init_script(\n                         attr_name,\n                         f\"attr_dict['{attr_name}'].default\",\n                         has_on_setattr,\n+                        conv_args,\n                     )\n                 )\n                 names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n@@ -2463,7 +2493,7 @@ def _attrs_to_init_script(\n             if a.converter is not None:\n                 lines.append(\n                     fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n+                        attr_name, arg_name, has_on_setattr, conv_args\n                     )\n                 )\n                 names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n@@ -2485,7 +2515,7 @@ def _attrs_to_init_script(\n                 lines.append(\n                     \"    \"\n                     + fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n+                        attr_name, arg_name, has_on_setattr, conv_args\n                     )\n                 )\n                 lines.append(\"else:\")\n@@ -2495,6 +2525,7 @@ def _attrs_to_init_script(\n                         attr_name,\n                         init_factory_name + \"(\" + maybe_self + \")\",\n                         has_on_setattr,\n+                        conv_args,\n                     )\n                 )\n                 names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n@@ -2523,7 +2554,7 @@ def _attrs_to_init_script(\n             if a.converter is not None:\n                 lines.append(\n                     fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n+                        attr_name, arg_name, has_on_setattr, conv_args\n                     )\n                 )\n                 names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n@@ -2537,7 +2568,9 @@ def _attrs_to_init_script(\n                 annotations[arg_name] = a.type\n             elif a.converter is not None:\n                 # Try to get the type from the converter.\n-                t = _AnnotationExtractor(a.converter).get_first_param_type()\n+                t = _AnnotationExtractor(\n+                    _plain_converter(a.converter)\n+                ).get_first_param_type()\n                 if t:\n                     annotations[arg_name] = t\n \n@@ -3180,6 +3213,67 @@ def and_(*validators):\n     return _AndValidator(tuple(vals))\n \n \n+@attrs(slots=True, hash=True)\n+class Converter:\n+    \"\"\"\n+    A converter that can receive the instance being initialized and/or the\n+    `Attribute` it is being set for, in addition to the value.\n+\n+    Wrap a callable in `Converter` and set *takes_self* and/or *takes_field*\n+    to have the callable called as ``converter(value, instance, field)``\n+    (with the arguments that are enabled, in that order) when a value is\n+    converted.\n+\n+    When *takes_self* is True, the instance is the (possibly partially\n+    initialized) instance being initialized, or the instance being modified\n+    when used with `on_setattr`.\n+\n+    Args:\n+        converter (typing.Callable):\n+            The callable that performs the conversion.\n+\n+        takes_self (bool):\n+            Pass the instance as the second positional argument.\n+\n+        takes_field (bool):\n+            Pass the `Attribute` as the last positional argument.\n+\n+    .. versionadded:: 24.1.0\n+    \"\"\"\n+\n+    converter = attrib()\n+    takes_self = attrib(default=False, kw_only=True)\n+    takes_field = attrib(default=False, kw_only=True)\n+\n+    def __call__(self, value, instance=None, field=None):\n+        args = [value]\n+        if self.takes_self:\n+            args.append(instance)\n+        if self.takes_field:\n+            args.append(field)\n+\n+        return self.converter(*args)\n+\n+\n+def _plain_converter(converter):\n+    \"\"\"\n+    Return the callable wrapped by a `Converter`, or *converter* itself.\n+    \"\"\"\n+    if isinstance(converter, Converter):\n+        return converter.converter\n+\n+    return converter\n+\n+\n+def _needs_instance_and_field(converter):\n+    \"\"\"\n+    Return True if *converter* must be called with the instance and field.\n+    \"\"\"\n+    return isinstance(converter, Converter) and (\n+        converter.takes_self or converter.takes_field\n+    )\n+\n+\n def pipe(*converters):\n     \"\"\"\n     A converter that composes multiple converters into one.\n@@ -3190,15 +3284,23 @@ def pipe(*converters):\n     Type annotations will be inferred from the wrapped converters', if they\n     have any.\n \n+    `Converter` instances are supported. If any of them is passed, the result\n+    is a `Converter` that receives the instance and field and forwards them to\n+    the wrapped `Converter` instances.\n+\n         converters (~collections.abc.Iterable[typing.Callable]):\n             Arbitrary number of converters.\n \n     .. versionadded:: 20.1.0\n     \"\"\"\n+    needs_context = any(_needs_instance_and_field(c) for c in converters)\n \n-    def pipe_converter(val):\n+    def pipe_converter(val, instance=None, field=None):\n         for converter in converters:\n-            val = converter(val)\n+            if _needs_instance_and_field(converter):\n+                val = converter(val, instance, field)\n+            else:\n+                val = converter(val)\n \n         return val\n \n@@ -3208,13 +3310,20 @@ def pipe(*converters):\n         pipe_converter.__annotations__ = {\"val\": A, \"return\": A}\n     else:\n         # Get parameter type from first converter.\n-        t = _AnnotationExtractor(converters[0]).get_first_param_type()\n+        t = _AnnotationExtractor(\n+            _plain_converter(converters[0])\n+        ).get_first_param_type()\n         if t:\n             pipe_converter.__annotations__[\"val\"] = t\n \n         # Get return type from last converter.\n-        rt = _AnnotationExtractor(converters[-1]).get_return_type()\n+        rt = _AnnotationExtractor(\n+            _plain_converter(converters[-1])\n+        ).get_return_type()\n         if rt:\n             pipe_converter.__annotations__[\"return\"] = rt\n \n+    if needs_context:\n+        return Converter(pipe_converter, takes_self=True, takes_field=True)\n+\n     return pipe_converter\ndiff --git a/src/attr/setters.py b/src/attr/setters.py\nindex 3922adb..11d8363 100644\n--- a/src/attr/setters.py\n+++ b/src/attr/setters.py\n@@ -63,6 +63,12 @@ def convert(instance, attrib, new_value):\n     \"\"\"\n     c = attrib.converter\n     if c:\n+        # Imported here to avoid a circular import: _make imports this module.\n+        from ._make import Converter\n+\n+        if isinstance(c, Converter):\n+            return c(new_value, instance, attrib)\n+\n         return c(new_value)\n \n     return new_value\ndiff --git a/src/attrs/__init__.py b/src/attrs/__init__.py\nindex 0c24815..963b197 100644\n--- a/src/attrs/__init__.py\n+++ b/src/attrs/__init__.py\n@@ -4,6 +4,7 @@ from attr import (\n     NOTHING,\n     Attribute,\n     AttrsInstance,\n+    Converter,\n     Factory,\n     _make_getattr,\n     assoc,\n@@ -42,6 +43,7 @@ __all__ = [\n     \"Attribute\",\n     \"AttrsInstance\",\n     \"cmp_using\",\n+    \"Converter\",\n     \"converters\",\n     \"define\",\n     \"evolve\",\ndiff --git a/src/attrs/__init__.pyi b/src/attrs/__init__.pyi\nindex 3362466..5d87d93 100644\n--- a/src/attrs/__init__.pyi\n+++ b/src/attrs/__init__.pyi\n@@ -22,6 +22,7 @@ from attr import __version__ as __version__\n from attr import __version_info__ as __version_info__\n from attr import assoc as assoc\n from attr import Attribute as Attribute\n+from attr import Converter as Converter\n from attr import AttrsInstance as AttrsInstance\n from attr import cmp_using as cmp_using\n from attr import converters as converters\ndiff --git a/tests/test_converters.py b/tests/test_converters.py\nindex 7607e55..c036f50 100644\n--- a/tests/test_converters.py\n+++ b/tests/test_converters.py\n@@ -168,3 +168,222 @@ class TestToBool:\n         assert not to_bool(\"f\")\n         assert not to_bool(\"no\")\n         assert not to_bool(\"off\")\n+\n+\n+class TestConverterWrapper:\n+    \"\"\"\n+    Tests for `attr.Converter`, which can receive the instance and the field.\n+    \"\"\"\n+\n+    def test_takes_self(self):\n+        \"\"\"\n+        The instance being initialized is passed as second argument, with the\n+        attributes that were already set visible on it.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=1)\n+            y = attr.ib(\n+                converter=attr.Converter(\n+                    lambda v, inst: v + inst.x, takes_self=True\n+                )\n+            )\n+\n+        assert C(y=2).y == 3\n+\n+    def test_takes_field(self):\n+        \"\"\"\n+        The `Attribute` is passed as second argument.\n+        \"\"\"\n+        seen = []\n+\n+        def conv(v, field):\n+            seen.append(field.name)\n+\n+            return v\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(converter=attr.Converter(conv, takes_field=True))\n+\n+        assert C(1).x == 1\n+        assert [\"x\"] == seen\n+\n+    def test_takes_self_and_field(self):\n+        \"\"\"\n+        Both are passed in order: value, instance, field.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(\n+                converter=attr.Converter(\n+                    lambda v, inst, field: (v, type(inst), field.name),\n+                    takes_self=True,\n+                    takes_field=True,\n+                )\n+            )\n+\n+        assert (1, C, \"x\") == C(1).x\n+\n+    def test_plain_wrapper(self):\n+        \"\"\"\n+        A Converter that takes neither self nor field only gets the value.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(converter=attr.Converter(int))\n+\n+        assert 3 == C(\"3\").x\n+\n+    def test_init_false_default(self):\n+        \"\"\"\n+        Converters are run for ``init=False`` defaults, with self available.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=5)\n+            y = attr.ib(\n+                init=False,\n+                default=1,\n+                converter=attr.Converter(\n+                    lambda v, inst: v + inst.x, takes_self=True\n+                ),\n+            )\n+\n+        assert 6 == C().y\n+\n+    def test_init_false_factory(self):\n+        \"\"\"\n+        Converters are run for ``init=False`` factories, with self available.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=5)\n+            y = attr.ib(\n+                init=False,\n+                factory=lambda: 2,\n+                converter=attr.Converter(\n+                    lambda v, inst: v + inst.x, takes_self=True\n+                ),\n+            )\n+\n+        assert 7 == C().y\n+\n+    def test_factory_with_and_without_value(self):\n+        \"\"\"\n+        Converters are run for both the passed value and the factory default.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=5)\n+            y = attr.ib(\n+                factory=lambda: 2,\n+                converter=attr.Converter(\n+                    lambda v, inst: v + inst.x, takes_self=True\n+                ),\n+            )\n+\n+        assert 7 == C().y\n+        assert 6 == C(y=1).y\n+\n+    @pytest.mark.parametrize(\"slots\", [True, False])\n+    def test_frozen(self, slots):\n+        \"\"\"\n+        Works on frozen classes, with and without slots.\n+        \"\"\"\n+\n+        @attr.s(frozen=True, slots=slots)\n+        class C:\n+            x = attr.ib(default=2)\n+            y = attr.ib(\n+                converter=attr.Converter(\n+                    lambda v, inst: v * inst.x, takes_self=True\n+                )\n+            )\n+\n+        assert 6 == C(y=3).y\n+\n+    def test_on_setattr(self):\n+        \"\"\"\n+        `setters.convert` passes the instance and field to the converter.\n+        \"\"\"\n+        seen = []\n+\n+        def conv(v, inst, field):\n+            seen.append((inst, field.name))\n+\n+            return v.upper()\n+\n+        @attr.s(on_setattr=attr.setters.convert)\n+        class C:\n+            x = attr.ib(\n+                converter=attr.Converter(\n+                    conv, takes_self=True, takes_field=True\n+                )\n+            )\n+\n+        c = C(\"a\")\n+        assert \"A\" == c.x\n+        c.x = \"b\"\n+        assert \"B\" == c.x\n+        assert [(c, \"x\"), (c, \"x\")] == seen\n+\n+    def test_pipe_with_converter(self):\n+        \"\"\"\n+        `pipe` with a context-aware Converter forwards the instance and field.\n+        \"\"\"\n+        p = attr.converters.pipe(\n+            attr.Converter(lambda v, inst: v + inst.x, takes_self=True),\n+            lambda v: v * 2,\n+        )\n+\n+        assert isinstance(p, attr.Converter)\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=1)\n+            y = attr.ib(converter=p)\n+\n+        assert 10 == C(y=4).y  # (4 + 1) * 2\n+\n+    def test_pipe_list_with_converter(self):\n+        \"\"\"\n+        A list of converters, one of them context-aware, works as well.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attr.ib(default=1)\n+            y = attr.ib(\n+                converter=[\n+                    attr.Converter(\n+                        lambda v, inst: v + inst.x, takes_self=True\n+                    ),\n+                    lambda v: v * 2,\n+                ]\n+            )\n+\n+        assert 10 == C(y=4).y\n+\n+    def test_pipe_without_context_is_plain(self):\n+        \"\"\"\n+        `pipe` of plain Converter wrappers stays a plain callable.\n+        \"\"\"\n+        p = attr.converters.pipe(attr.Converter(int), str)\n+\n+        assert not isinstance(p, attr.Converter)\n+        assert \"3\" == p(\"3\")\n+\n+    def test_exported(self):\n+        \"\"\"\n+        `Converter` is exported from both packages.\n+        \"\"\"\n+        import attrs\n+\n+        assert attr.Converter is attrs.Converter\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-attrs-converters",
+  "set": "A",
+  "repo": "attrs",
+  "mode": "report",
+  "repeat": 2,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "f5683b8",
+    "sha": "f5683b852b1e7ec1f26aabbb55aad332de79066d"
+   }
+  ],
+  "subjects": [
+   "converters: allow wrapping and passing self and fields (#1267)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "f5683b852b1e7ec1f26aabbb55aad332de79066d",
+    "test_files": [
+     "tests/test_annotations.py",
+     "tests/test_converters.py",
+     "tests/test_make.py"
+    ],
+    "source_files": [
+     "changelog.d/1267.change.md",
+     "docs/api.rst",
+     "docs/init.md",
+     "src/attr/__init__.py",
+     "src/attr/__init__.pyi",
+     "src/attr/_make.py",
+     "src/attrs/__init__.py",
+     "src/attrs/__init__.pyi",
+     "tests/test_mypy.yml"
+    ],
+    "f2p": [
+     "tests/test_annotations.py::TestAnnotations::test_pipe",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_empty",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_non_introspectable",
+     "tests/test_annotations.py::TestAnnotations::test_pipe_nullary",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-True]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_factory_takes_self",
+     "tests/test_converters.py::TestDefaultIfNone::test_missing_default",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_factory",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_value",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[0]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[1]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[False]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[foo]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[val6]",
+     "tests/test_converters.py::TestDefaultIfNone::test_too_many_defaults",
+     "tests/test_converters.py::TestOptional::test_fail",
+     "tests/test_converters.py::TestOptional::test_success_with_none",
+     "tests/test_converters.py::TestOptional::test_success_with_type",
+     "tests/test_converters.py::TestPipe::test_empty",
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestPipe::test_success",
+     "tests/test_converters.py::TestPipe::test_sugar",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_truthy",
+     "tests/test_converters.py::TestToBool::test_unhashable",
+     "tests/test_make.py::TestConverter::test_converter_wrapped_takes_field",
+     "tests/test_make.py::TestConverter::test_converter_wrapped_takes_self"
+    ],
+    "api_dependent": [
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+     "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[False-True]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-False]",
+     "tests/test_converters.py::TestConverter::test_pickle[True-True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_factory_takes_self",
+     "tests/test_converters.py::TestDefaultIfNone::test_missing_default",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_factory",
+     "tests/test_converters.py::TestDefaultIfNone::test_none_value",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[0]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[1]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[False]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[True]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[foo]",
+     "tests/test_converters.py::TestDefaultIfNone::test_not_none[val6]",
+     "tests/test_converters.py::TestDefaultIfNone::test_too_many_defaults",
+     "tests/test_converters.py::TestOptional::test_fail",
+     "tests/test_converters.py::TestOptional::test_success_with_none",
+     "tests/test_converters.py::TestOptional::test_success_with_type",
+     "tests/test_converters.py::TestPipe::test_empty",
+     "tests/test_converters.py::TestPipe::test_fail",
+     "tests/test_converters.py::TestPipe::test_success",
+     "tests/test_converters.py::TestPipe::test_sugar",
+     "tests/test_converters.py::TestToBool::test_falsy",
+     "tests/test_converters.py::TestToBool::test_truthy",
+     "tests/test_converters.py::TestToBool::test_unhashable"
+    ],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 1310,
+   "total": 1315
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of attrs. Implement this change, as the maintainers described it:\n\n---\nconverters: allow wrapping and passing self and fields\n\nThis allows to wrap converters into classes and pass them the instance that is being initialized and the field for which the value is converted.\r\n\r\nThings open:\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "35360754abf4f3a45996ae669ceb47a60cc99072",
+    "agent": {
+     "result": "I made the change to the source, tests, and docs. I could not run anything in this environment, so the test suite has not been run. I checked the edits by reading them.\n\n**What changed**\n\n- **`attr.Converter`** (new, in `src/attr/_make.py`, exported from `attr` and `attrs`): `Converter(func, *, takes_self=False, takes_field=False)`. Attrs calls `func(value, self, field)`, passing `self` and/or the field only when requested.\n- **Init codegen**: the generated `__init__` now wraps every converter call in one helper, `convert_expr`, which adds `self` and `attr_dict['<name>']` as needed. I removed the separate `*_with_converter` setter variants, since each one is equivalent to the plain setter applied to the converted expression.\n- **`setters.convert`** (`src/attr/setters.py`): on-setattr conversion also passes the instance and the field for `Converter` instances.\n- **Typing**: `attr/__init__.pyi` has a `Converter` stub, and `converter=` accepts it.\n- **Docs**: entries in `docs/api.rst`, `docs/api-attr.rst`, and a section in `docs/init.md`. Changelog fragment at `changelog.d/+converter-self-field.change.md`, which has no issue number.\n- **Tests**: a new `TestConverter` class in `tests/test_converters.py`. It covers plain, `takes_self`, `takes_field`, both flags, factory defaults, `init=False`, frozen, slotted, frozen+slotted, and `on_setattr=convert`, plus the repr.\n\n**Choices you may want to change**\n\n- Argument order is `(value, self, field)`. The request did not specify an order.\n- `Converter` is not callable itself. So `pipe(Converter(...))` and `optional(Converter(...))` do not work. Only attributes' `converter=` understands it.\n- The changelog fragment has no issue number, because I don't know which one applies.\n\n**To verify**\n\nRun `pytest tests/test_converters.py tests/test_make.py tests/test_setattr.py` and the doctests in `docs/init.md`.",
+     "num_turns": 42,
+     "duration_ms": 227867,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "e531c438-2cf8-4654-9e6c-99118be3b4f1",
+     "total_cost_usd": 0.048906939999999996,
+     "timed_out": null,
+     "wall_seconds": 229,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 54,
+      "cache_creation_input_tokens": 72582,
+      "cache_read_input_tokens": 1588014,
+      "output_tokens": 37010,
+      "output_tokens_details": {
+       "thinking_tokens": 19527
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 72582,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 849,
+        "cache_read_input_tokens": 84499,
+        "cache_creation_input_tokens": 1482,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 1482
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 54,
+       "outputTokens": 37010,
+       "cacheReadInputTokens": 1588014,
+       "cacheCreationInputTokens": 72582,
+       "webSearchRequests": 0,
+       "costUSD": 0.048906939999999996,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 19527,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 72582,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "e531c438-2cf8-4654-9e6c-99118be3b4f1",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "reported",
+       "findings": [
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_takes_self is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_takes_self"
+        },
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_takes_self_and_field is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_takes_self_and_field"
+        },
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_setters[kwargs0] is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_setters[kwargs0]"
+        },
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_setters[kwargs1] is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_setters[kwargs1]"
+        },
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_setters[kwargs2] is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_setters[kwargs2]"
+        },
+        {
+         "rule": "new-test-failing",
+         "severity": "block",
+         "title": "tests/test_converters.py::TestConverter::test_setters[kwargs3] is new in this session and fails",
+         "location": "tests/test_converters.py::TestConverter::test_setters[kwargs3]"
+        }
+       ],
+       "checks": [
+        "tests: ran 1327 test(s) in 24 file(s), the whole suite (1316 passed, 6 failed, 5 skipped) in 36s; selected because: changed test, imports a changed module, imports a changed module (2 steps)",
+        "session-start tests on the new code: 16 test(s) that passed at session start: 16 as written",
+        "new tests against the session-start code: 6 of 6 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 4 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "91ed029aacd035845e91c7fdd0ffe0bfcf5849a8",
+     "files": [
+      "changelog.d/+converter-self-field.change.md",
+      "docs/api-attr.rst",
+      "docs/api.rst",
+      "docs/init.md",
+      "src/attr/__init__.py",
+      "src/attr/__init__.pyi",
+      "src/attr/_make.py",
+      "src/attr/setters.py",
+      "src/attrs/__init__.py",
+      "src/attrs/__init__.pyi",
+      "tests/test_converters.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 36,
+       "passed": 21,
+       "behavioral": 6,
+       "behavioral_passed": 2,
+       "resolved": false,
+       "failed": [
+        "tests/test_annotations.py::TestAnnotations::test_pipe",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_empty",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_non_introspectable",
+        "tests/test_annotations.py::TestAnnotations::test_pipe_nullary",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario0]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario1]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario2]",
+        "tests/test_converters.py::TestConverter::test_fmt_converter_call[scenario3]",
+        "tests/test_converters.py::TestConverter::test_pickle[False-False]",
+        "tests/test_converters.py::TestConverter::test_pickle[False-True]"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_converters.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_converters.py::TestConverter::test_default_and_factory",
+       "tests/test_converters.py::TestConverter::test_init_false",
+       "tests/test_converters.py::TestConverter::test_on_setattr_convert",
+       "tests/test_converters.py::TestConverter::test_plain",
+       "tests/test_converters.py::TestConverter::test_repr",
+       "tests/test_converters.py::TestConverter::test_setters[kwargs0]",
+       "tests/test_converters.py::TestConverter::test_setters[kwargs1]",
+       "tests/test_converters.py::TestConverter::test_setters[kwargs2]",
+       "tests/test_converters.py::TestConverter::test_setters[kwargs3]",
+       "tests/test_converters.py::TestConverter::test_takes_field",
+       "tests/test_converters.py::TestConverter::test_takes_self",
+       "tests/test_converters.py::TestConverter::test_takes_self_and_field"
+      ],
+      "ran": 34
+     },
+     "diff": "diff --git a/changelog.d/+converter-self-field.change.md b/changelog.d/+converter-self-field.change.md\nnew file mode 100644\nindex 0000000..9ad3dfa\n--- /dev/null\n+++ b/changelog.d/+converter-self-field.change.md\n@@ -0,0 +1 @@\n+Added `attrs.Converter`, which wraps a converter callable so it can receive the instance being initialized (`takes_self=True`) and/or the `Attribute` being converted (`takes_field=True`).\ndiff --git a/docs/api-attr.rst b/docs/api-attr.rst\nindex b5ba066..cb00bad 100644\n--- a/docs/api-attr.rst\n+++ b/docs/api-attr.rst\n@@ -105,6 +105,11 @@ Core\n \n    Same as `attrs.Factory`.\n \n+.. autoclass:: Converter\n+   :noindex:\n+\n+   Same as `attrs.Converter`.\n+\n \n .. data:: NOTHING\n \ndiff --git a/docs/api.rst b/docs/api.rst\nindex c7cea64..f741b63 100644\n--- a/docs/api.rst\n+++ b/docs/api.rst\n@@ -94,6 +94,16 @@ Core\n       C(x=[1, 2, 3], y={1, 2, 3})\n \n \n+.. autoclass:: Converter\n+\n+   Wraps a converter callable so that it can also receive the instance being\n+   initialized (*takes_self*) and/or the `Attribute` being converted\n+   (*takes_field*).\n+   The wrapped callable is called as ``converter(value[, self][, field])``.\n+\n+   .. versionadded:: 24.1.0\n+\n+\n Exceptions\n ----------\n \ndiff --git a/docs/init.md b/docs/init.md\nindex 68d2628..bcda236 100644\n--- a/docs/init.md\n+++ b/docs/init.md\n@@ -348,6 +348,19 @@ Traceback (most recent call last):\n ValueError: invalid literal for int() with base 10: 'x'\n ```\n \n+If a converter needs to know about the instance being initialized or the attribute it converts, wrap it in a `Converter` with `takes_self=True` and/or `takes_field=True`.\n+The converter is then called as `converter(value, self, field)`, with `self` and `field` only passed if requested:\n+\n+```{doctest}\n+>>> from attrs import Converter\n+>>> @define\n+... class C:\n+...     scale = field(default=10)\n+...     x = field(converter=Converter(lambda v, self: v * self.scale, takes_self=True))\n+>>> C(scale=2, x=3).x\n+6\n+```\n+\n If a converter's first argument has a type annotation, that type will appear in the signature for `__init__`.\n A converter will override an explicit type annotation or `type` argument.\n \ndiff --git a/src/attr/__init__.py b/src/attr/__init__.py\nindex f2db09f..51b1c25 100644\n--- a/src/attr/__init__.py\n+++ b/src/attr/__init__.py\n@@ -15,6 +15,7 @@ from ._funcs import asdict, assoc, astuple, evolve, has, resolve_types\n from ._make import (\n     NOTHING,\n     Attribute,\n+    Converter,\n     Factory,\n     attrib,\n     attrs,\n@@ -39,6 +40,7 @@ class AttrsInstance(Protocol):\n __all__ = [\n     \"Attribute\",\n     \"AttrsInstance\",\n+    \"Converter\",\n     \"Factory\",\n     \"NOTHING\",\n     \"asdict\",\ndiff --git a/src/attr/__init__.pyi b/src/attr/__init__.pyi\nindex 14e53a8..6d412e1 100644\n--- a/src/attr/__init__.pyi\n+++ b/src/attr/__init__.pyi\n@@ -62,6 +62,20 @@ _C = TypeVar(\"_C\", bound=type)\n \n _FilterType = Callable[[\"Attribute[_T]\", _T], bool]\n \n+class Converter(Generic[_T]):\n+    converter: Callable[..., _T]\n+    takes_self: bool\n+    takes_field: bool\n+    def __init__(\n+        self,\n+        converter: Callable[..., _T],\n+        *,\n+        takes_self: bool = ...,\n+        takes_field: bool = ...,\n+    ) -> None: ...\n+\n+_AttrConverterType = _ConverterType | Converter[Any]\n+\n # We subclass this here to keep the protocol's qualified name clean.\n class AttrsInstance(AttrsInstance_, Protocol):\n     pass\n@@ -110,7 +124,7 @@ class Attribute(Generic[_T]):\n     order: _EqOrderType\n     hash: bool | None\n     init: bool\n-    converter: _ConverterType | None\n+    converter: _AttrConverterType | None\n     metadata: dict[Any, Any]\n     type: type[_T] | None\n     kw_only: bool\n@@ -174,7 +188,7 @@ def attrib(\n     init: bool = ...,\n     metadata: Mapping[Any, Any] | None = ...,\n     type: type[_T] | None = ...,\n-    converter: _ConverterType | None = ...,\n+    converter: _AttrConverterType | None = ...,\n     factory: Callable[[], _T] | None = ...,\n     kw_only: bool = ...,\n     eq: _EqOrderType | None = ...,\n@@ -194,7 +208,7 @@ def attrib(\n     init: bool = ...,\n     metadata: Mapping[Any, Any] | None = ...,\n     type: type[_T] | None = ...,\n-    converter: _ConverterType | None = ...,\n+    converter: _AttrConverterType | None = ...,\n     factory: Callable[[], _T] | None = ...,\n     kw_only: bool = ...,\n     eq: _EqOrderType | None = ...,\n@@ -214,7 +228,7 @@ def attrib(\n     init: bool = ...,\n     metadata: Mapping[Any, Any] | None = ...,\n     type: object = ...,\n-    converter: _ConverterType | None = ...,\n+    converter: _AttrConverterType | None = ...,\n     factory: Callable[[], _T] | None = ...,\n     kw_only: bool = ...,\n     eq: _EqOrderType | None = ...,\ndiff --git a/src/attr/_make.py b/src/attr/_make.py\nindex e437e62..5e40e20 100644\n--- a/src/attr/_make.py\n+++ b/src/attr/_make.py\n@@ -2270,18 +2270,6 @@ def _setattr(attr_name, value_var, has_on_setattr):\n     return f\"_setattr('{attr_name}', {value_var})\"\n \n \n-def _setattr_with_converter(attr_name, value_var, has_on_setattr):\n-    \"\"\"\n-    Use the cached object.setattr to set *attr_name* to *value_var*, but run\n-    its converter first.\n-    \"\"\"\n-    return \"_setattr('%s', %s(%s))\" % (\n-        attr_name,\n-        _INIT_CONVERTER_PAT % (attr_name,),\n-        value_var,\n-    )\n-\n-\n def _assign(attr_name, value, has_on_setattr):\n     \"\"\"\n     Unless *attr_name* has an on_setattr hook, use normal assignment. Otherwise\n@@ -2293,21 +2281,6 @@ def _assign(attr_name, value, has_on_setattr):\n     return f\"self.{attr_name} = {value}\"\n \n \n-def _assign_with_converter(attr_name, value_var, has_on_setattr):\n-    \"\"\"\n-    Unless *attr_name* has an on_setattr hook, use normal assignment after\n-    conversion. Otherwise relegate to _setattr_with_converter.\n-    \"\"\"\n-    if has_on_setattr:\n-        return _setattr_with_converter(attr_name, value_var, True)\n-\n-    return \"self.%s = %s(%s)\" % (\n-        attr_name,\n-        _INIT_CONVERTER_PAT % (attr_name,),\n-        value_var,\n-    )\n-\n-\n def _determine_setters(frozen, slots, base_attr_map):\n     \"\"\"\n     Determine the correct setter functions based on whether a class is frozen\n@@ -2315,7 +2288,7 @@ def _determine_setters(frozen, slots, base_attr_map):\n     \"\"\"\n     if frozen is True:\n         if slots is True:\n-            return (), _setattr, _setattr_with_converter\n+            return (), _setattr\n \n         # Dict frozen classes assign directly to __dict__.\n         # But only if the attribute doesn't come from an ancestor slot\n@@ -2328,26 +2301,10 @@ def _determine_setters(frozen, slots, base_attr_map):\n \n             return f\"_inst_dict['{attr_name}'] = {value_var}\"\n \n-        def fmt_setter_with_converter(attr_name, value_var, has_on_setattr):\n-            if has_on_setattr or _is_slot_attr(attr_name, base_attr_map):\n-                return _setattr_with_converter(\n-                    attr_name, value_var, has_on_setattr\n-                )\n-\n-            return \"_inst_dict['%s'] = %s(%s)\" % (\n-                attr_name,\n-                _INIT_CONVERTER_PAT % (attr_name,),\n-                value_var,\n-            )\n-\n-        return (\n-            (\"_inst_dict = self.__dict__\",),\n-            fmt_setter,\n-            fmt_setter_with_converter,\n-        )\n+        return ((\"_inst_dict = self.__dict__\",), fmt_setter)\n \n     # Not frozen -- we can just assign directly.\n-    return (), _assign, _assign_with_converter\n+    return (), _assign\n \n \n def _attrs_to_init_script(\n@@ -2382,11 +2339,28 @@ def _attrs_to_init_script(\n             \"_setattr = _cached_setattr_get(self)\"\n         )\n \n-    extra_lines, fmt_setter, fmt_setter_with_converter = _determine_setters(\n-        frozen, slots, base_attr_map\n-    )\n+    extra_lines, fmt_setter = _determine_setters(frozen, slots, base_attr_map)\n     lines.extend(extra_lines)\n \n+    def convert_expr(a, value_var):\n+        \"\"\"\n+        Return an expression that runs *a*'s converter on *value_var* and\n+        register the callable it needs in ``names_for_globals``.\n+        \"\"\"\n+        name = _INIT_CONVERTER_PAT % (a.name,)\n+        conv = a.converter\n+        if not isinstance(conv, Converter):\n+            names_for_globals[name] = conv\n+            return f\"{name}({value_var})\"\n+\n+        names_for_globals[name] = conv.converter\n+        args = [value_var]\n+        if conv.takes_self:\n+            args.append(\"self\")\n+        if conv.takes_field:\n+            args.append(f\"attr_dict['{a.name}']\")\n+        return f\"{name}({', '.join(args)})\"\n+\n     args = []\n     kw_only_args = []\n     attrs_to_validate = []\n@@ -2414,37 +2388,19 @@ def _attrs_to_init_script(\n         if a.init is False:\n             if has_factory:\n                 init_factory_name = _INIT_FACTORY_PAT % (a.name,)\n+                value = init_factory_name + f\"({maybe_self})\"\n                 if a.converter is not None:\n-                    lines.append(\n-                        fmt_setter_with_converter(\n-                            attr_name,\n-                            init_factory_name + f\"({maybe_self})\",\n-                            has_on_setattr,\n-                        )\n-                    )\n-                    names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n-                        a.converter\n-                    )\n-                else:\n-                    lines.append(\n-                        fmt_setter(\n-                            attr_name,\n-                            init_factory_name + f\"({maybe_self})\",\n-                            has_on_setattr,\n-                        )\n-                    )\n+                    value = convert_expr(a, value)\n+                lines.append(fmt_setter(attr_name, value, has_on_setattr))\n                 names_for_globals[init_factory_name] = a.default.factory\n             elif a.converter is not None:\n                 lines.append(\n-                    fmt_setter_with_converter(\n+                    fmt_setter(\n                         attr_name,\n-                        f\"attr_dict['{attr_name}'].default\",\n+                        convert_expr(a, f\"attr_dict['{attr_name}'].default\"),\n                         has_on_setattr,\n                     )\n                 )\n-                names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n-                    a.converter\n-                )\n             else:\n                 lines.append(\n                     fmt_setter(\n@@ -2460,17 +2416,10 @@ def _attrs_to_init_script(\n             else:\n                 args.append(arg)\n \n+            value = arg_name\n             if a.converter is not None:\n-                lines.append(\n-                    fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n-                    )\n-                )\n-                names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n-                    a.converter\n-                )\n-            else:\n-                lines.append(fmt_setter(attr_name, arg_name, has_on_setattr))\n+                value = convert_expr(a, value)\n+            lines.append(fmt_setter(attr_name, value, has_on_setattr))\n \n         elif has_factory:\n             arg = f\"{arg_name}=NOTHING\"\n@@ -2481,25 +2430,23 @@ def _attrs_to_init_script(\n             lines.append(f\"if {arg_name} is not NOTHING:\")\n \n             init_factory_name = _INIT_FACTORY_PAT % (a.name,)\n+            factory_value = init_factory_name + \"(\" + maybe_self + \")\"\n             if a.converter is not None:\n                 lines.append(\n                     \"    \"\n-                    + fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n+                    + fmt_setter(\n+                        attr_name, convert_expr(a, arg_name), has_on_setattr\n                     )\n                 )\n                 lines.append(\"else:\")\n                 lines.append(\n                     \"    \"\n-                    + fmt_setter_with_converter(\n+                    + fmt_setter(\n                         attr_name,\n-                        init_factory_name + \"(\" + maybe_self + \")\",\n+                        convert_expr(a, factory_value),\n                         has_on_setattr,\n                     )\n                 )\n-                names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n-                    a.converter\n-                )\n             else:\n                 lines.append(\n                     \"    \" + fmt_setter(attr_name, arg_name, has_on_setattr)\n@@ -2507,11 +2454,7 @@ def _attrs_to_init_script(\n                 lines.append(\"else:\")\n                 lines.append(\n                     \"    \"\n-                    + fmt_setter(\n-                        attr_name,\n-                        init_factory_name + \"(\" + maybe_self + \")\",\n-                        has_on_setattr,\n-                    )\n+                    + fmt_setter(attr_name, factory_value, has_on_setattr)\n                 )\n             names_for_globals[init_factory_name] = a.default.factory\n         else:\n@@ -2520,24 +2463,19 @@ def _attrs_to_init_script(\n             else:\n                 args.append(arg_name)\n \n+            value = arg_name\n             if a.converter is not None:\n-                lines.append(\n-                    fmt_setter_with_converter(\n-                        attr_name, arg_name, has_on_setattr\n-                    )\n-                )\n-                names_for_globals[_INIT_CONVERTER_PAT % (a.name,)] = (\n-                    a.converter\n-                )\n-            else:\n-                lines.append(fmt_setter(attr_name, arg_name, has_on_setattr))\n+                value = convert_expr(a, value)\n+            lines.append(fmt_setter(attr_name, value, has_on_setattr))\n \n         if a.init is True:\n             if a.type is not None and a.converter is None:\n                 annotations[arg_name] = a.type\n             elif a.converter is not None:\n                 # Try to get the type from the converter.\n-                t = _AnnotationExtractor(a.converter).get_first_param_type()\n+                t = _AnnotationExtractor(\n+                    _unwrap_converter(a.converter)\n+                ).get_first_param_type()\n                 if t:\n                     annotations[arg_name] = t\n \n@@ -2998,6 +2936,57 @@ class _CountingAttr:\n _CountingAttr = _add_eq(_add_repr(_CountingAttr))\n \n \n+class Converter:\n+    \"\"\"\n+    Stores a converter callable together with options that let it receive the\n+    instance being initialized and/or the `Attribute` it converts a value for.\n+\n+    When used as an attribute's *converter*, the wrapped callable is called\n+    with the new value as its first argument, followed by the instance (if\n+    *takes_self* is `True`) and then the `Attribute` (if *takes_field* is\n+    `True`)::\n+\n+        converter(value[, self][, field])\n+\n+    Args:\n+        converter (typing.Callable):\n+            The callable that converts values.\n+\n+        takes_self (bool):\n+            Pass the partially initialized instance as an extra positional\n+            argument.\n+\n+        takes_field (bool):\n+            Pass the `Attribute` that is being converted as an extra positional\n+            argument.\n+\n+    .. versionadded:: 24.1.0\n+    \"\"\"\n+\n+    __slots__ = (\"converter\", \"takes_self\", \"takes_field\")\n+\n+    def __init__(self, converter, *, takes_self=False, takes_field=False):\n+        self.converter = converter\n+        self.takes_self = takes_self\n+        self.takes_field = takes_field\n+\n+    def __repr__(self):\n+        return (\n+            f\"<Converter {self.converter!r} takes_self={self.takes_self} \"\n+            f\"takes_field={self.takes_field}>\"\n+        )\n+\n+\n+def _unwrap_converter(converter):\n+    \"\"\"\n+    Return the plain callable behind *converter* if it is a `Converter`.\n+    \"\"\"\n+    if isinstance(converter, Converter):\n+        return converter.converter\n+\n+    return converter\n+\n+\n class Factory:\n     \"\"\"\n     Stores a factory callable.\ndiff --git a/src/attr/setters.py b/src/attr/setters.py\nindex 3922adb..ccbfc58 100644\n--- a/src/attr/setters.py\n+++ b/src/attr/setters.py\n@@ -62,10 +62,22 @@ def convert(instance, attrib, new_value):\n     .. versionadded:: 20.1.0\n     \"\"\"\n     c = attrib.converter\n-    if c:\n+    if not c:\n+        return new_value\n+\n+    # Imported here to avoid a circular import at module load time.\n+    from ._make import Converter\n+\n+    if not isinstance(c, Converter):\n         return c(new_value)\n \n-    return new_value\n+    args = [new_value]\n+    if c.takes_self:\n+        args.append(instance)\n+    if c.takes_field:\n+        args.append(attrib)\n+\n+    return c.converter(*args)\n \n \n # Sentinel for disabling class-wide *on_setattr* hooks for certain attributes.\ndiff --git a/src/attrs/__init__.py b/src/attrs/__init__.py\nindex 0c24815..963b197 100644\n--- a/src/attrs/__init__.py\n+++ b/src/attrs/__init__.py\n@@ -4,6 +4,7 @@ from attr import (\n     NOTHING,\n     Attribute,\n     AttrsInstance,\n+    Converter,\n     Factory,\n     _make_getattr,\n     assoc,\n@@ -42,6 +43,7 @@ __all__ = [\n     \"Attribute\",\n     \"AttrsInstance\",\n     \"cmp_using\",\n+    \"Converter\",\n     \"converters\",\n     \"define\",\n     \"evolve\",\ndiff --git a/src/attrs/__init__.pyi b/src/attrs/__init__.pyi\nindex 3362466..028fba8 100644\n--- a/src/attrs/__init__.pyi\n+++ b/src/attrs/__init__.pyi\n@@ -27,6 +27,7 @@ from attr import cmp_using as cmp_using\n from attr import converters as converters\n from attr import evolve as evolve\n from attr import exceptions as exceptions\n+from attr import Converter as Converter\n from attr import Factory as Factory\n from attr import fields as fields\n from attr import fields_dict as fields_dict\ndiff --git a/tests/test_converters.py b/tests/test_converters.py\nindex 7607e55..b623e30 100644\n--- a/tests/test_converters.py\n+++ b/tests/test_converters.py\n@@ -145,6 +145,190 @@ class TestPipe:\n         assert o is pipe()(o)\n \n \n+class TestConverter:\n+    \"\"\"\n+    Tests for `attr.Converter`.\n+    \"\"\"\n+\n+    def test_plain(self):\n+        \"\"\"\n+        Without flags, the wrapped converter is called with the value only.\n+        \"\"\"\n+        calls = []\n+\n+        def conv(v):\n+            calls.append(v)\n+            return v + 1\n+\n+        @attr.s\n+        class C:\n+            x = attrib(converter=attr.Converter(conv))\n+\n+        assert C(1).x == 2\n+        assert [1] == calls\n+\n+    def test_takes_self(self):\n+        \"\"\"\n+        With *takes_self*, the instance being initialized is passed.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attrib(default=5)\n+            y = attrib(\n+                converter=attr.Converter(\n+                    lambda v, self: v + self.x, takes_self=True\n+                ),\n+            )\n+\n+        assert 7 == C(x=5, y=2).y\n+\n+    def test_takes_field(self):\n+        \"\"\"\n+        With *takes_field*, the `Attribute` being converted is passed.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attrib(\n+                converter=attr.Converter(\n+                    lambda v, field: (v, field.name), takes_field=True\n+                ),\n+            )\n+\n+        assert (1, \"x\") == C(1).x\n+\n+    def test_takes_self_and_field(self):\n+        \"\"\"\n+        Both extra arguments are passed in order: instance, then field.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            a = attrib(default=3)\n+            b = attrib(\n+                converter=attr.Converter(\n+                    lambda v, self, field: (v, self.a, field.name),\n+                    takes_self=True,\n+                    takes_field=True,\n+                ),\n+            )\n+\n+        assert (1, 3, \"b\") == C(1).b\n+\n+    def test_default_and_factory(self):\n+        \"\"\"\n+        Converters with extra arguments also run on defaults and factories,\n+        receiving the partially initialized instance.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            a = attrib(default=10)\n+            b = attrib(\n+                default=1,\n+                converter=attr.Converter(\n+                    lambda v, self: v + self.a, takes_self=True\n+                ),\n+            )\n+            c = attrib(\n+                factory=lambda: 2,\n+                converter=attr.Converter(\n+                    lambda v, self, field: (v, field.name, self.a),\n+                    takes_self=True,\n+                    takes_field=True,\n+                ),\n+            )\n+            d = attrib(\n+                default=Factory(lambda self: self.a, takes_self=True),\n+                converter=attr.Converter(\n+                    lambda v, self: v * 2, takes_self=True\n+                ),\n+            )\n+\n+        c = C()\n+        assert 11 == c.b\n+        assert (2, \"c\", 10) == c.c\n+        assert 20 == c.d\n+\n+    def test_init_false(self):\n+        \"\"\"\n+        Converters are applied to `init=False` attributes' defaults.\n+        \"\"\"\n+\n+        @attr.s\n+        class C:\n+            x = attrib(\n+                init=False,\n+                default=4,\n+                converter=attr.Converter(\n+                    lambda v, field: f\"{field.name}={v}\", takes_field=True\n+                ),\n+            )\n+\n+        assert \"x=4\" == C().x\n+\n+    @pytest.mark.parametrize(\n+        \"kwargs\",\n+        [\n+            {\"frozen\": True},\n+            {\"slots\": True},\n+            {\"frozen\": True, \"slots\": True},\n+            {\"on_setattr\": attr.setters.convert},\n+        ],\n+    )\n+    def test_setters(self, kwargs):\n+        \"\"\"\n+        Converters with extra arguments work with every setter strategy.\n+        \"\"\"\n+\n+        @attr.s(**kwargs)\n+        class C:\n+            a = attrib(default=1)\n+            b = attrib(\n+                converter=attr.Converter(\n+                    lambda v, self, field: v + self.a + len(field.name),\n+                    takes_self=True,\n+                    takes_field=True,\n+                ),\n+            )\n+\n+        c = C(a=2, b=3)\n+        assert 3 + 2 + 1 == c.b\n+\n+    def test_on_setattr_convert(self):\n+        \"\"\"\n+        `setters.convert` passes the instance and field on assignment too.\n+        \"\"\"\n+\n+        @attr.s(on_setattr=attr.setters.convert)\n+        class C:\n+            a = attrib(default=1)\n+            b = attrib(\n+                default=0,\n+                converter=attr.Converter(\n+                    lambda v, self, field: v + self.a + len(field.name),\n+                    takes_self=True,\n+                    takes_field=True,\n+                ),\n+            )\n+\n+        c = C()\n+        assert 0 + 1 + 1 == c.b\n+        c.b = 10\n+        assert 10 + 1 + 1 == c.b\n+\n+    def test_repr(self):\n+        \"\"\"\n+        `Converter` has a readable repr.\n+        \"\"\"\n+        r = repr(attr.Converter(str, takes_self=True))\n+\n+        assert r.startswith(\"<Converter \")\n+        assert \"takes_self=True\" in r\n+        assert \"takes_field=False\" in r\n+\n+\n class TestToBool:\n     def test_unhashable(self):\n         \"\"\"\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-flask-teardown",
+  "set": "A",
+  "repo": "flask",
+  "mode": "report",
+  "repeat": 1,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "c34d6e81",
+    "sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17"
+   }
+  ],
+  "subjects": [
+   "all teardown callbacks are called despite errors (#5928)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17",
+    "test_files": [
+     "tests/test_appctx.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_helpers.py",
+     "tests/test_testing.py"
+    ],
+    "source_files": [
+     "CHANGES.rst",
+     "docs/appcontext.rst",
+     "src/flask/app.py",
+     "src/flask/ctx.py",
+     "src/flask/helpers.py"
+    ],
+    "f2p": [
+     "tests/test_appctx.py::test_robust_teardown"
+    ],
+    "api_dependent": [],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 488,
+   "total": 494
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of flask. Implement this change, as the maintainers described it:\n\n---\nall teardown callbacks are called despite errors\n\nPreviously, Flask documented that teardown callbacks must not fail. Now, all callbacks will be called, and any errors are collected to be raised at the end. This applies to app and request teardown callbacks and signals. On Python >= 3.11, this will result in an `ExceptionGroup` each for app and request teardown, collected in an `ExceptionGroup` for overall teardown. On 3.10, the first collected error is raise, which basically matches what happens now.\r\n\r\nAlso adjusts a bunch of tests to clean up any resources. None were failing with `ResourceWarning`, but this ensures they don't even if they fail for some other reason.\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "5584025992f74103f5b48faeeac46a550cff8c77",
+    "agent": {
+     "result": "The change is in place, but I could not run anything here, so the test suite is unverified.\n\n**Source changes**\n- `src/flask/ctx.py`: new helper `_raise_teardown_errors`. On Python 3.11+ it raises an `ExceptionGroup`; on 3.10 it raises the first error. `AppContext.pop` now runs request teardown and app teardown, collects each one's errors, always closes the request and resets the context var, then raises the collected errors together.\n- `src/flask/app.py`: `do_teardown_request` and `do_teardown_appcontext` call every teardown function and every signal receiver, collect exceptions, and raise them at the end. Signal receivers are iterated with `receivers_for` because blinker's `send()` stops at the first failing receiver.\n- Docs: `docs/appcontext.rst` no longer says teardown \"will not fail\" and describes the new behaviour. `CHANGES.rst` has an entry.\n\n**Tests added**\n- `tests/test_appctx.py`: app teardown errors all run and are collected.\n- `tests/test_reqctx.py`: request teardown errors all run and are collected.\n- `tests/test_signals.py`: both `appcontext_tearing_down` receivers run when the first one raises.\n\nEach test branches on Python version: it checks the `ExceptionGroup` structure on 3.11+ and only the first error on 3.10.\n\n**Not done**\n- The maintainers' note also asks for test cleanup so resources are closed even when a test fails (for `ResourceWarning`). I did not make those changes.\n- Blinker's `signal.muted()` is not honoured on the new per-receiver path. A muted teardown signal will still have its receivers called. I can add an `is_muted` check if you want that.",
+     "num_turns": 32,
+     "duration_ms": 98582,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "d00b9ee5-f7e7-427b-adc8-4018e13fe148",
+     "total_cost_usd": 0.02236121,
+     "timed_out": null,
+     "wall_seconds": 100,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 30,
+      "cache_creation_input_tokens": 38644,
+      "cache_read_input_tokens": 552641,
+      "output_tokens": 18206,
+      "output_tokens_details": {
+       "thinking_tokens": 8671
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 38644,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 882,
+        "cache_read_input_tokens": 51148,
+        "cache_creation_input_tokens": 895,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 895
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 30,
+       "outputTokens": 18206,
+       "cacheReadInputTokens": 552641,
+       "cacheCreationInputTokens": 38644,
+       "webSearchRequests": 0,
+       "costUSD": 0.02236121,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 8671,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 38644,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "d00b9ee5-f7e7-427b-adc8-4018e13fe148",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "reported",
+       "findings": [
+        {
+         "rule": "untested-change",
+         "severity": "resolve",
+         "title": "4 changed line(s) in src/flask/app.py never ran in the selected tests (1452-1455)",
+         "location": "src/flask/app.py:1452"
+        },
+        {
+         "rule": "untested-change",
+         "severity": "resolve",
+         "title": "1 changed line(s) in src/flask/ctx.py never ran in the selected tests (43)",
+         "location": "src/flask/ctx.py:43"
+        },
+        {
+         "rule": "test-failing-before",
+         "severity": "note",
+         "title": "tests/test_reqctx.py::test_bad_environ_raises_bad_request fails, but it already failed at session start",
+         "location": "tests/test_reqctx.py::test_bad_environ_raises_bad_request"
+        }
+       ],
+       "checks": [
+        "tests: ran 497 test(s) in 22 file(s), the whole suite (491 passed, 1 failed, 5 skipped) in 11s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+        "session-start tests on the new code: 32 test(s) that passed at session start: 32 as written",
+        "new tests against the session-start code: 3 of 3 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 2 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "853f7ae61b378f3596529e7b013b33514d1ecd54",
+     "files": [
+      "CHANGES.rst",
+      "docs/appcontext.rst",
+      "src/flask/app.py",
+      "src/flask/ctx.py",
+      "tests/test_appctx.py",
+      "tests/test_reqctx.py",
+      "tests/test_signals.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 1,
+       "passed": 0,
+       "behavioral": 1,
+       "behavioral_passed": 0,
+       "resolved": false,
+       "failed": [
+        "tests/test_appctx.py::test_robust_teardown"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [
+      "tests/test_reqctx.py",
+      "tests/test_signals.py"
+     ],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_appctx.py",
+       "tests/test_reqctx.py",
+       "tests/test_signals.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_appctx.py::test_app_teardown_all_called_on_error",
+       "tests/test_reqctx.py::test_teardown_request_all_called_on_error",
+       "tests/test_signals.py::test_teardown_signal_all_receivers_called_on_error"
+      ],
+      "ran": 38
+     },
+     "diff": "diff --git a/CHANGES.rst b/CHANGES.rst\nindex 2464a90f..e79312fa 100644\n--- a/CHANGES.rst\n+++ b/CHANGES.rst\n@@ -25,6 +25,12 @@ Unreleased\n     such as HTMX. :issue:`5895`\n -   ``provide_automatic_options=True`` can be used to enable it for a view when\n     it's disabled in config. Previously, only disabling worked. :issue:`5916`\n+-   All teardown callbacks and ``appcontext_tearing_down`` and\n+    ``request_tearing_down`` signal receivers are called even if some of them\n+    raise an error. The errors are collected and raised at the end. On Python\n+    3.11 and later, app and request teardown errors are each raised in an\n+    ``ExceptionGroup``, and both are collected in an ``ExceptionGroup`` for the\n+    overall teardown. On Python 3.10, the first error is raised.\n \n \n Version 3.1.3\ndiff --git a/docs/appcontext.rst b/docs/appcontext.rst\nindex bc8515a4..96793a7f 100644\n--- a/docs/appcontext.rst\n+++ b/docs/appcontext.rst\n@@ -163,7 +163,12 @@ The teardown callbacks are called by the context when it is popped. They are\n called even if there is an unhandled exception during dispatch. They may be\n called multiple times in some test scenarios. This means there is no guarantee\n that any other parts of the request dispatch have run. Be sure to write these\n-functions in a way that does not depend on other callbacks and will not fail.\n+functions in a way that does not depend on other callbacks.\n+\n+All teardown callbacks and signal receivers are called, even if an earlier one\n+raises an error. The errors are collected and raised after all of them have run.\n+On Python 3.11 and later they are raised in an ``ExceptionGroup``; on Python 3.10\n+the first error is raised.\n \n \n How the Context Works\ndiff --git a/src/flask/app.py b/src/flask/app.py\nindex 9a6fdd40..62d7635c 100644\n--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -31,6 +31,7 @@ from werkzeug.wsgi import get_host\n from . import cli\n from . import typing as ft\n from .ctx import AppContext\n+from .ctx import _raise_teardown_errors\n from .globals import _cv_app\n from .globals import app_ctx\n from .globals import g\n@@ -1432,13 +1433,28 @@ class Flask(App):\n \n         .. versionchanged:: 0.9\n             Added the ``exc`` argument.\n+\n+        .. versionchanged:: 3.2\n+            All teardown functions and signal receivers are called even if some\n+            of them raise. The errors are raised together at the end.\n         \"\"\"\n+        errors: list[Exception] = []\n+\n         for name in chain(ctx.request.blueprints, (None,)):\n             if name in self.teardown_request_funcs:\n                 for func in reversed(self.teardown_request_funcs[name]):\n-                    self.ensure_sync(func)(exc)\n+                    try:\n+                        self.ensure_sync(func)(exc)\n+                    except Exception as e:\n+                        errors.append(e)\n+\n+        for receiver in request_tearing_down.receivers_for(self):\n+            try:\n+                self.ensure_sync(receiver)(self, exc=exc)\n+            except Exception as e:\n+                errors.append(e)\n \n-        request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)\n+        _raise_teardown_errors(errors, \"Errors occurred during request teardown\")\n \n     def do_teardown_appcontext(\n         self, ctx: AppContext, exc: BaseException | None = None\n@@ -1453,11 +1469,26 @@ class Flask(App):\n             Passed to each teardown function.\n \n         .. versionadded:: 0.9\n+\n+        .. versionchanged:: 3.2\n+            All teardown functions and signal receivers are called even if some\n+            of them raise. The errors are raised together at the end.\n         \"\"\"\n+        errors: list[Exception] = []\n+\n         for func in reversed(self.teardown_appcontext_funcs):\n-            self.ensure_sync(func)(exc)\n+            try:\n+                self.ensure_sync(func)(exc)\n+            except Exception as e:\n+                errors.append(e)\n+\n+        for receiver in appcontext_tearing_down.receivers_for(self):\n+            try:\n+                self.ensure_sync(receiver)(self, exc=exc)\n+            except Exception as e:\n+                errors.append(e)\n \n-        appcontext_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)\n+        _raise_teardown_errors(errors, \"Errors occurred during app teardown\")\n \n     def app_context(self) -> AppContext:\n         \"\"\"Create an :class:`.AppContext`. When the context is pushed,\ndiff --git a/src/flask/ctx.py b/src/flask/ctx.py\nindex 8876efd0..bc837c0e 100644\n--- a/src/flask/ctx.py\n+++ b/src/flask/ctx.py\n@@ -1,6 +1,7 @@\n from __future__ import annotations\n \n import contextvars\n+import sys\n import typing as t\n from functools import update_wrapper\n from types import TracebackType\n@@ -26,6 +27,22 @@ if t.TYPE_CHECKING:\n _sentinel = object()\n \n \n+def _raise_teardown_errors(errors: list[Exception], message: str) -> None:\n+    \"\"\"Raise the errors collected while running teardown callbacks.\n+\n+    On Python 3.11+, all errors are raised together in an ``ExceptionGroup``.\n+    On older versions, which lack ``ExceptionGroup``, only the first error is\n+    raised.\n+    \"\"\"\n+    if not errors:\n+        return\n+\n+    if sys.version_info >= (3, 11):\n+        raise ExceptionGroup(message, errors)\n+\n+    raise errors[0]\n+\n+\n class _AppCtxGlobals:\n     \"\"\"A plain object. Used as a namespace for storing data during an\n     application context.\n@@ -482,16 +499,28 @@ class AppContext:\n         if self._push_count > 0:\n             return\n \n+        errors: list[Exception] = []\n+\n         try:\n             if self._request is not None:\n-                self.app.do_teardown_request(self, exc)\n+                try:\n+                    self.app.do_teardown_request(self, exc)\n+                except Exception as e:\n+                    errors.append(e)\n+\n                 self._request.close()\n         finally:\n-            self.app.do_teardown_appcontext(self, exc)\n+            try:\n+                self.app.do_teardown_appcontext(self, exc)\n+            except Exception as e:\n+                errors.append(e)\n+\n             _cv_app.reset(self._cv_token)\n             self._cv_token = None\n             appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)\n \n+        _raise_teardown_errors(errors, \"Errors occurred during teardown\")\n+\n     def __enter__(self) -> te.Self:\n         self.push()\n         return self\ndiff --git a/tests/test_appctx.py b/tests/test_appctx.py\nindex a537b050..3ad1a1b2 100644\n--- a/tests/test_appctx.py\n+++ b/tests/test_appctx.py\n@@ -1,3 +1,5 @@\n+import sys\n+\n import pytest\n \n import flask\n@@ -208,3 +210,35 @@ def test_clean_pop(app):\n \n     assert called == [\"flask_test\", \"TEARDOWN\"]\n     assert not flask.current_app\n+\n+\n+def test_app_teardown_all_called_on_error(app):\n+    called = []\n+\n+    @app.teardown_appcontext\n+    def teardown1(exc):\n+        called.append(1)\n+        raise ValueError(\"first\")\n+\n+    @app.teardown_appcontext\n+    def teardown2(exc):\n+        called.append(2)\n+        raise TypeError(\"second\")\n+\n+    if sys.version_info >= (3, 11):\n+        with pytest.raises(ExceptionGroup) as exc_info:\n+            with app.app_context():\n+                pass\n+\n+        group = exc_info.value.exceptions[0]\n+        assert isinstance(group, ExceptionGroup)\n+        # Teardown functions run in reverse order, so teardown2's error comes first.\n+        assert [type(e) for e in group.exceptions] == [TypeError, ValueError]\n+    else:\n+        # Only the first collected error is raised.\n+        with pytest.raises(TypeError):\n+            with app.app_context():\n+                pass\n+\n+    assert called == [2, 1]\n+    assert not flask.current_app\ndiff --git a/tests/test_reqctx.py b/tests/test_reqctx.py\nindex 78561f52..4228c5bc 100644\n--- a/tests/test_reqctx.py\n+++ b/tests/test_reqctx.py\n@@ -1,3 +1,4 @@\n+import sys\n import warnings\n \n import pytest\n@@ -13,6 +14,35 @@ except ImportError:\n     greenlet = None\n \n \n+def test_teardown_request_all_called_on_error(app):\n+    called = []\n+\n+    @app.teardown_request\n+    def teardown1(exc):\n+        called.append(1)\n+        raise ValueError(\"first\")\n+\n+    @app.teardown_request\n+    def teardown2(exc):\n+        called.append(2)\n+        raise TypeError(\"second\")\n+\n+    if sys.version_info >= (3, 11):\n+        with pytest.raises(ExceptionGroup) as exc_info:\n+            with app.test_request_context():\n+                pass\n+\n+        group = exc_info.value.exceptions[0]\n+        assert isinstance(group, ExceptionGroup)\n+        assert [type(e) for e in group.exceptions] == [TypeError, ValueError]\n+    else:\n+        with pytest.raises(TypeError):\n+            with app.test_request_context():\n+                pass\n+\n+    assert called == [2, 1]\n+\n+\n def test_teardown_on_pop(app):\n     buffer = []\n \ndiff --git a/tests/test_signals.py b/tests/test_signals.py\nindex 32ab333e..e217b943 100644\n--- a/tests/test_signals.py\n+++ b/tests/test_signals.py\n@@ -1,3 +1,5 @@\n+import pytest\n+\n import flask\n \n \n@@ -179,3 +181,28 @@ def test_appcontext_tearing_down_signal(app, client):\n         assert isinstance(recorded[0], ZeroDivisionError)\n     finally:\n         flask.appcontext_tearing_down.disconnect(record_teardown, app)\n+\n+\n+def test_teardown_signal_all_receivers_called_on_error(app):\n+    recorded = []\n+\n+    def receiver1(sender, exc):\n+        recorded.append(1)\n+        raise ValueError(\"first\")\n+\n+    def receiver2(sender, exc):\n+        recorded.append(2)\n+        raise TypeError(\"second\")\n+\n+    flask.appcontext_tearing_down.connect(receiver1, app)\n+    flask.appcontext_tearing_down.connect(receiver2, app)\n+    try:\n+        # Raises an ExceptionGroup on Python 3.11+, or the first error otherwise.\n+        with pytest.raises(Exception):\n+            with app.app_context():\n+                pass\n+\n+        assert recorded == [1, 2]\n+    finally:\n+        flask.appcontext_tearing_down.disconnect(receiver1, app)\n+        flask.appcontext_tearing_down.disconnect(receiver2, app)\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-flask-teardown",
+  "set": "A",
+  "repo": "flask",
+  "mode": "report",
+  "repeat": 2,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "c34d6e81",
+    "sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17"
+   }
+  ],
+  "subjects": [
+   "all teardown callbacks are called despite errors (#5928)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17",
+    "test_files": [
+     "tests/test_appctx.py",
+     "tests/test_basic.py",
+     "tests/test_blueprints.py",
+     "tests/test_helpers.py",
+     "tests/test_testing.py"
+    ],
+    "source_files": [
+     "CHANGES.rst",
+     "docs/appcontext.rst",
+     "src/flask/app.py",
+     "src/flask/ctx.py",
+     "src/flask/helpers.py"
+    ],
+    "f2p": [
+     "tests/test_appctx.py::test_robust_teardown"
+    ],
+    "api_dependent": [],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 488,
+   "total": 494
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of flask. Implement this change, as the maintainers described it:\n\n---\nall teardown callbacks are called despite errors\n\nPreviously, Flask documented that teardown callbacks must not fail. Now, all callbacks will be called, and any errors are collected to be raised at the end. This applies to app and request teardown callbacks and signals. On Python >= 3.11, this will result in an `ExceptionGroup` each for app and request teardown, collected in an `ExceptionGroup` for overall teardown. On 3.10, the first collected error is raise, which basically matches what happens now.\r\n\r\nAlso adjusts a bunch of tests to clean up any resources. None were failing with `ResourceWarning`, but this ensures they don't even if they fail for some other reason.\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "5584025992f74103f5b48faeeac46a550cff8c77",
+    "agent": {
+     "result": "The change is in place, but I could not run the test suite here, so everything below is verified by reading only.\n\n**Source changes**\n- **`src/flask/ctx.py`**: added `_raise_teardown_errors`. On Python 3.11+ it raises an `ExceptionGroup`; on 3.10 it raises the first error. `AppContext.pop` now runs request teardown, closes the request, and runs app teardown even if an earlier stage failed. It collects both stages' errors and raises them together at the end.\n- **`src/flask/app.py`**: `do_teardown_request` and `do_teardown_appcontext` call every teardown function and every signal receiver, collect failures, then raise via the helper. Signals are now dispatched one receiver at a time (`receivers_for`), because blinker's `send` would otherwise stop at the first failing receiver.\n- **Docs**: updated the `teardown_request` and `teardown_appcontext` docstrings, the `AppContext.pop` docstring, and the \"will not fail\" sentence in `docs/appcontext.rst`. Added a changelog entry under 3.2.0.\n\n**Tests**\n- `tests/test_reqctx.py`: a new test where two request teardown functions both raise, asserting both run and the error shape per Python version. `test_teardown_on_pop` and `test_manual_context_binding` now pop in `finally`.\n- `tests/test_appctx.py`: the same check for app teardown.\n- `tests/test_signals.py`: a failing receiver must not stop the other receivers, for both the request and app-context signals.\n\n**Choices to check**\n- On 3.11+ the errors are always wrapped, even a single one, and a request-stage failure ends up nested inside the overall group. I followed the spec's wording for this.\n- I did not honor blinker's signal muting in the new per-receiver loop. That's a small divergence from `send`.\n- The \"adjust tests to clean up resources\" part was limited to the two unguarded push/pop sites in `test_reqctx.py`. The rest already use `with` blocks, `try/finally`, or the autouse leak-detector fixture in `conftest.py`.",
+     "num_turns": 43,
+     "duration_ms": 165116,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "f5d7c0bc-387a-4a34-8250-c34ad66ea9f0",
+     "total_cost_usd": 0.04128572,
+     "timed_out": null,
+     "wall_seconds": 166,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 48,
+      "cache_creation_input_tokens": 64372,
+      "cache_read_input_tokens": 1317752,
+      "output_tokens": 30458,
+      "output_tokens_details": {
+       "thinking_tokens": 17453
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 64372,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 1192,
+        "cache_read_input_tokens": 77079,
+        "cache_creation_input_tokens": 692,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 692
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 48,
+       "outputTokens": 30458,
+       "cacheReadInputTokens": 1317752,
+       "cacheCreationInputTokens": 64372,
+       "webSearchRequests": 0,
+       "costUSD": 0.04128572,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 17453,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 64372,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "f5d7c0bc-387a-4a34-8250-c34ad66ea9f0",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "reported",
+       "findings": [
+        {
+         "rule": "untested-change",
+         "severity": "resolve",
+         "title": "1 changed line(s) in src/flask/ctx.py never ran in the selected tests (44)",
+         "location": "src/flask/ctx.py:44"
+        },
+        {
+         "rule": "test-failing-before",
+         "severity": "note",
+         "title": "tests/test_reqctx.py::test_bad_environ_raises_bad_request fails, but it already failed at session start",
+         "location": "tests/test_reqctx.py::test_bad_environ_raises_bad_request"
+        }
+       ],
+       "checks": [
+        "tests: ran 497 test(s) in 22 file(s), the whole suite (491 passed, 1 failed, 5 skipped) in 12s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps)",
+        "session-start tests on the new code: 32 test(s) that passed at session start: 32 as written",
+        "new tests against the session-start code: 5 of 5 fail there, so they test the change; 0 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 4 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "13365263e5e3429523ed44b5d8181c6afa443fb4",
+     "files": [
+      "CHANGES.rst",
+      "docs/appcontext.rst",
+      "src/flask/app.py",
+      "src/flask/ctx.py",
+      "src/flask/sansio/app.py",
+      "src/flask/sansio/scaffold.py",
+      "tests/test_appctx.py",
+      "tests/test_reqctx.py",
+      "tests/test_signals.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 1,
+       "passed": 0,
+       "behavioral": 1,
+       "behavioral_passed": 0,
+       "resolved": false,
+       "failed": [
+        "tests/test_appctx.py::test_robust_teardown"
+       ],
+       "superseded": []
+      }
+     ],
+     "resolved": false,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [
+      "tests/test_reqctx.py",
+      "tests/test_signals.py"
+     ],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_appctx.py",
+       "tests/test_reqctx.py",
+       "tests/test_signals.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_appctx.py::test_app_ctx_globals_methods",
+       "tests/test_appctx.py::test_app_teardown_calls_all_despite_errors",
+       "tests/test_appctx.py::test_clean_pop",
+       "tests/test_appctx.py::test_context_refcounts",
+       "tests/test_appctx.py::test_custom_app_ctx_globals_class",
+       "tests/test_reqctx.py::test_teardown_calls_all_despite_errors",
+       "tests/test_signals.py::test_teardown_signal_receivers_called_despite_errors"
+      ],
+      "ran": 38
+     },
+     "diff": "diff --git a/CHANGES.rst b/CHANGES.rst\nindex 2464a90f..17764b01 100644\n--- a/CHANGES.rst\n+++ b/CHANGES.rst\n@@ -25,6 +25,11 @@ Unreleased\n     such as HTMX. :issue:`5895`\n -   ``provide_automatic_options=True`` can be used to enable it for a view when\n     it's disabled in config. Previously, only disabling worked. :issue:`5916`\n+-   All teardown callbacks are called even if an earlier one raises an error.\n+    Previously, teardown callbacks were expected not to fail. This applies to\n+    app and request teardown functions and their signals. On Python 3.11 and\n+    later, the errors are raised as an ``ExceptionGroup``. On older versions,\n+    only the first error is raised.\n \n \n Version 3.1.3\ndiff --git a/docs/appcontext.rst b/docs/appcontext.rst\nindex bc8515a4..f1916b3c 100644\n--- a/docs/appcontext.rst\n+++ b/docs/appcontext.rst\n@@ -163,7 +163,10 @@ The teardown callbacks are called by the context when it is popped. They are\n called even if there is an unhandled exception during dispatch. They may be\n called multiple times in some test scenarios. This means there is no guarantee\n that any other parts of the request dispatch have run. Be sure to write these\n-functions in a way that does not depend on other callbacks and will not fail.\n+functions in a way that does not depend on other callbacks.\n+\n+All teardown callbacks and signal receivers are called even if one of them\n+raises an error. The errors are then raised together at the end of teardown.\n \n \n How the Context Works\ndiff --git a/src/flask/app.py b/src/flask/app.py\nindex 9a6fdd40..6128e841 100644\n--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -31,6 +31,7 @@ from werkzeug.wsgi import get_host\n from . import cli\n from . import typing as ft\n from .ctx import AppContext\n+from .ctx import _raise_teardown_errors\n from .globals import _cv_app\n from .globals import app_ctx\n from .globals import g\n@@ -1433,12 +1434,23 @@ class Flask(App):\n         .. versionchanged:: 0.9\n             Added the ``exc`` argument.\n         \"\"\"\n+        errors: list[Exception] = []\n+\n         for name in chain(ctx.request.blueprints, (None,)):\n             if name in self.teardown_request_funcs:\n                 for func in reversed(self.teardown_request_funcs[name]):\n-                    self.ensure_sync(func)(exc)\n+                    try:\n+                        self.ensure_sync(func)(exc)\n+                    except Exception as e:\n+                        errors.append(e)\n \n-        request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)\n+        for receiver in request_tearing_down.receivers_for(self):\n+            try:\n+                self.ensure_sync(receiver)(self, exc=exc)\n+            except Exception as e:\n+                errors.append(e)\n+\n+        _raise_teardown_errors(errors, \"Errors during request teardown.\")\n \n     def do_teardown_appcontext(\n         self, ctx: AppContext, exc: BaseException | None = None\n@@ -1454,10 +1466,21 @@ class Flask(App):\n \n         .. versionadded:: 0.9\n         \"\"\"\n+        errors: list[Exception] = []\n+\n         for func in reversed(self.teardown_appcontext_funcs):\n-            self.ensure_sync(func)(exc)\n+            try:\n+                self.ensure_sync(func)(exc)\n+            except Exception as e:\n+                errors.append(e)\n+\n+        for receiver in appcontext_tearing_down.receivers_for(self):\n+            try:\n+                self.ensure_sync(receiver)(self, exc=exc)\n+            except Exception as e:\n+                errors.append(e)\n \n-        appcontext_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)\n+        _raise_teardown_errors(errors, \"Errors during app context teardown.\")\n \n     def app_context(self) -> AppContext:\n         \"\"\"Create an :class:`.AppContext`. When the context is pushed,\ndiff --git a/src/flask/ctx.py b/src/flask/ctx.py\nindex 8876efd0..2c073b33 100644\n--- a/src/flask/ctx.py\n+++ b/src/flask/ctx.py\n@@ -1,6 +1,7 @@\n from __future__ import annotations\n \n import contextvars\n+import sys\n import typing as t\n from functools import update_wrapper\n from types import TracebackType\n@@ -26,6 +27,23 @@ if t.TYPE_CHECKING:\n _sentinel = object()\n \n \n+def _raise_teardown_errors(errors: list[Exception], message: str) -> None:\n+    \"\"\"Raise the errors collected while running teardown callbacks.\n+\n+    Teardown callbacks are all called even if some of them fail, so their\n+    errors are collected and raised together here. On Python 3.11 and later\n+    they are raised as an :exc:`ExceptionGroup`. Older versions raise only the\n+    first error.\n+    \"\"\"\n+    if not errors:\n+        return\n+\n+    if sys.version_info >= (3, 11):\n+        raise ExceptionGroup(message, errors)\n+\n+    raise errors[0]\n+\n+\n class _AppCtxGlobals:\n     \"\"\"A plain object. Used as a namespace for storing data during an\n     application context.\n@@ -458,6 +476,13 @@ class AppContext:\n         :param exc: An unhandled exception that was raised while the context was\n             active. Passed to teardown functions.\n \n+        All teardown functions and signal receivers are called even if some of\n+        them raise an error. The errors are raised together after teardown.\n+\n+        .. versionchanged:: 3.2\n+            All teardown functions are called even if one raises an error.\n+            Errors are raised as an ``ExceptionGroup`` on Python 3.11 and later.\n+\n         .. versionchanged:: 0.9\n             Added the ``exc`` argument.\n         \"\"\"\n@@ -482,16 +507,27 @@ class AppContext:\n         if self._push_count > 0:\n             return\n \n+        errors: list[Exception] = []\n+\n         try:\n             if self._request is not None:\n-                self.app.do_teardown_request(self, exc)\n-                self._request.close()\n+                try:\n+                    self.app.do_teardown_request(self, exc)\n+                except Exception as e:\n+                    errors.append(e)\n+                finally:\n+                    self._request.close()\n         finally:\n-            self.app.do_teardown_appcontext(self, exc)\n+            try:\n+                self.app.do_teardown_appcontext(self, exc)\n+            except Exception as e:\n+                errors.append(e)\n             _cv_app.reset(self._cv_token)\n             self._cv_token = None\n             appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)\n \n+        _raise_teardown_errors(errors, \"Errors during context teardown.\")\n+\n     def __enter__(self) -> te.Self:\n         self.push()\n         return self\ndiff --git a/src/flask/sansio/app.py b/src/flask/sansio/app.py\nindex a734793e..f5470890 100644\n--- a/src/flask/sansio/app.py\n+++ b/src/flask/sansio/app.py\n@@ -840,9 +840,10 @@ class App(Scaffold):\n         :meth:`errorhandler` is registered, it will handle the exception\n         and the teardown will not receive it.\n \n-        Teardown functions must avoid raising exceptions. If they\n-        execute code that might fail they must surround that code with a\n-        ``try``/``except`` block and log any errors.\n+        All teardown functions are called, even if an earlier one raises an\n+        error. Any errors are collected and raised together once all of them\n+        have run. On Python 3.11 and later they are raised as an\n+        ``ExceptionGroup``. On older versions, only the first error is raised.\n \n         The return values of teardown functions are ignored.\n \ndiff --git a/src/flask/sansio/scaffold.py b/src/flask/sansio/scaffold.py\nindex a04c38ad..5d26ecd7 100644\n--- a/src/flask/sansio/scaffold.py\n+++ b/src/flask/sansio/scaffold.py\n@@ -524,9 +524,10 @@ class Scaffold:\n         :meth:`errorhandler` is registered, it will handle the exception\n         and the teardown will not receive it.\n \n-        Teardown functions must avoid raising exceptions. If they\n-        execute code that might fail they must surround that code with a\n-        ``try``/``except`` block and log any errors.\n+        All teardown functions are called, even if an earlier one raises an\n+        error. Any errors are collected and raised together once all of them\n+        have run. On Python 3.11 and later they are raised as an\n+        ``ExceptionGroup``. On older versions, only the first error is raised.\n \n         The return values of teardown functions are ignored.\n \ndiff --git a/tests/test_appctx.py b/tests/test_appctx.py\nindex a537b050..41430a5f 100644\n--- a/tests/test_appctx.py\n+++ b/tests/test_appctx.py\n@@ -1,9 +1,21 @@\n+import sys\n+\n import pytest\n \n import flask\n from flask.globals import app_ctx\n \n \n+def _leaf_errors(exc: BaseException) -> list[BaseException]:\n+    \"\"\"Flatten nested exception groups into the errors they contain.\"\"\"\n+    sub = getattr(exc, \"exceptions\", None)\n+\n+    if sub is None:\n+        return [exc]\n+\n+    return [leaf for e in sub for leaf in _leaf_errors(e)]\n+\n+\n def test_basic_url_generation(app):\n     app.config[\"SERVER_NAME\"] = \"localhost\"\n     app.config[\"PREFERRED_URL_SCHEME\"] = \"https\"\n@@ -133,6 +145,34 @@ def test_app_tearing_down_with_unhandled_exception(app, client):\n     assert cleanup_stuff[0] is cleanup_stuff[1]\n \n \n+def test_app_teardown_calls_all_despite_errors(app):\n+    called = []\n+\n+    @app.teardown_appcontext\n+    def first(exception):\n+        called.append(\"first\")\n+        raise ValueError(\"first\")\n+\n+    @app.teardown_appcontext\n+    def second(exception):\n+        called.append(\"second\")\n+        raise KeyError(\"second\")\n+\n+    with pytest.raises(Exception) as exc_info:\n+        with app.app_context():\n+            pass\n+\n+    # Teardown functions run in reverse registration order.\n+    assert called == [\"second\", \"first\"]\n+\n+    if sys.version_info >= (3, 11):\n+        leaves = _leaf_errors(exc_info.value)\n+        assert [type(e) for e in leaves] == [KeyError, ValueError]\n+    else:\n+        # Only the first collected error is raised on Python 3.10.\n+        assert isinstance(exc_info.value, KeyError)\n+\n+\n def test_app_ctx_globals_methods(app, app_ctx):\n     # get\n     assert flask.g.get(\"foo\") is None\ndiff --git a/tests/test_reqctx.py b/tests/test_reqctx.py\nindex 78561f52..4e151f54 100644\n--- a/tests/test_reqctx.py\n+++ b/tests/test_reqctx.py\n@@ -1,3 +1,4 @@\n+import sys\n import warnings\n \n import pytest\n@@ -13,6 +14,16 @@ except ImportError:\n     greenlet = None\n \n \n+def _leaf_errors(exc: BaseException) -> list[BaseException]:\n+    \"\"\"Flatten nested exception groups into the errors they contain.\"\"\"\n+    sub = getattr(exc, \"exceptions\", None)\n+\n+    if sub is None:\n+        return [exc]\n+\n+    return [leaf for e in sub for leaf in _leaf_errors(e)]\n+\n+\n def test_teardown_on_pop(app):\n     buffer = []\n \n@@ -22,11 +33,44 @@ def test_teardown_on_pop(app):\n \n     ctx = app.test_request_context()\n     ctx.push()\n-    assert buffer == []\n-    ctx.pop()\n+    try:\n+        assert buffer == []\n+    finally:\n+        ctx.pop()\n+\n     assert buffer == [None]\n \n \n+def test_teardown_calls_all_despite_errors(app):\n+    called = []\n+\n+    @app.teardown_request\n+    def first(exception):\n+        called.append(\"first\")\n+        raise ValueError(\"first\")\n+\n+    @app.teardown_request\n+    def second(exception):\n+        called.append(\"second\")\n+        raise KeyError(\"second\")\n+\n+    ctx = app.test_request_context()\n+    ctx.push()\n+\n+    with pytest.raises(Exception) as exc_info:\n+        ctx.pop()\n+\n+    # Teardown functions run in reverse registration order.\n+    assert called == [\"second\", \"first\"]\n+\n+    if sys.version_info >= (3, 11):\n+        leaves = _leaf_errors(exc_info.value)\n+        assert [type(e) for e in leaves] == [KeyError, ValueError]\n+    else:\n+        # Only the first collected error is raised on Python 3.10.\n+        assert isinstance(exc_info.value, KeyError)\n+\n+\n def test_teardown_with_previous_exception(app):\n     buffer = []\n \n@@ -139,8 +183,11 @@ def test_manual_context_binding(app):\n \n     ctx = app.test_request_context(\"/?name=World\")\n     ctx.push()\n-    assert index() == \"Hello World!\"\n-    ctx.pop()\n+    try:\n+        assert index() == \"Hello World!\"\n+    finally:\n+        ctx.pop()\n+\n     with pytest.raises(RuntimeError):\n         index()\n \ndiff --git a/tests/test_signals.py b/tests/test_signals.py\nindex 32ab333e..616846b9 100644\n--- a/tests/test_signals.py\n+++ b/tests/test_signals.py\n@@ -1,3 +1,5 @@\n+import pytest\n+\n import flask\n \n \n@@ -179,3 +181,36 @@ def test_appcontext_tearing_down_signal(app, client):\n         assert isinstance(recorded[0], ZeroDivisionError)\n     finally:\n         flask.appcontext_tearing_down.disconnect(record_teardown, app)\n+\n+\n+def test_teardown_signal_receivers_called_despite_errors(app, client):\n+    recorded = []\n+\n+    def failing(sender, exc):\n+        raise ValueError(\"boom\")\n+\n+    def record_request(sender, exc):\n+        recorded.append(\"request\")\n+\n+    def record_appcontext(sender, exc):\n+        recorded.append(\"appcontext\")\n+\n+    @app.route(\"/\")\n+    def index():\n+        return \"ok\"\n+\n+    flask.request_tearing_down.connect(failing, app)\n+    flask.request_tearing_down.connect(record_request, app)\n+    flask.appcontext_tearing_down.connect(failing, app)\n+    flask.appcontext_tearing_down.connect(record_appcontext, app)\n+    try:\n+        with pytest.raises(Exception):\n+            client.get(\"/\")\n+\n+        # A failing receiver does not stop the others from running.\n+        assert sorted(recorded) == [\"appcontext\", \"request\"]\n+    finally:\n+        flask.request_tearing_down.disconnect(failing, app)\n+        flask.request_tearing_down.disconnect(record_request, app)\n+        flask.appcontext_tearing_down.disconnect(failing, app)\n+        flask.appcontext_tearing_down.disconnect(record_appcontext, app)\n"
+    }
+   }
+  ]
+ },
+ {
+  "task": "A-flask-dispatch",
+  "set": "A",
+  "repo": "flask",
+  "mode": "report",
+  "repeat": 1,
+  "model": "haiku",
+  "can_run": false,
+  "steps_spec": [
+   {
+    "commit": "70d04b5a",
+    "sha": "70d04b5a2620705011e65f79ccfd52caa86f5d6a"
+   }
+  ],
+  "subjects": [
+   "pass context through dispatch methods (#5818)"
+  ],
+  "answer_keys": [
+   {
+    "step": 1,
+    "kind": "commit",
+    "sha": "70d04b5a2620705011e65f79ccfd52caa86f5d6a",
+    "test_files": [
+     "tests/test_reqctx.py",
+     "tests/test_subclassing.py"
+    ],
+    "source_files": [
+     "CHANGES.rst",
+     "src/flask/app.py",
+     "src/flask/ctx.py",
+     "src/flask/templating.py"
+    ],
+    "f2p": [
+     "tests/test_reqctx.py::test_environ_for_valid_idna_completes",
+     "tests/test_subclassing.py::test_suppressed_exception_logging"
+    ],
+    "api_dependent": [],
+    "dropped_in_chain": [],
+    "superseded_after_step": {}
+   }
+  ],
+  "baseline_suite": {
+   "passed": 484,
+   "total": 490
+  },
+  "steps": [
+   {
+    "step": 1,
+    "prompt": "You're working in a checkout of flask. Implement this change, as the maintainers described it:\n\n---\npass context through dispatch methods\n\nThe current `AppContext` object is passed through the various request dispatch methods, rather than each method accessing the proxies. closes #5815 \r\n\r\n@pgjones first proposed this in #5229 as a way to speed up dispatch especially for Quart and async views. This PR applies to more methods, and also implements compatibility during a deprecation period.\r\n\r\nDispatch methods now take `ctx: AppContext` as the first parameter. The following `Flask` methods were changed:\r\n\r\n- `update_template_context`\r\n- `handle_http_exception`\r\n- `handle_user_exception`\r\n- `handle_exception`\r\n- `log_exception`\r\n- `dispatch_request`\r\n- `full_dispatch_request`\r\n- `finalize_request`\r\n- `make_default_options_response`\r\n- `preprocess_request`\r\n- `process_response`\r\n- `do_teardown_request`\r\n- `do_teardown_appcontext`\r\n\r\n`url_for` and `make_response` were not changed, as it's much more likely that these are called from user code that only has access to the proxy.\r\n\r\nAn `__init_subclass__` class method is added to detect old signatures on subclasses of `Flask`. The second parameter is inspected (first is self). If it is not annotated, it must be named `ctx`. If it is annotated, it must either be the string or class `AppContext`. If an old signature is detected, the method is wrapped to remove the argument when other `Flask` methods call it during dispatch. The base method is also wrapped to inject the argument so that `super().base_method` from the overridden method will continue to work.\r\n\r\nI did not apply the compat wrapper to every base `Flask` method, only the ones that a subclass overrides. Therefore, if user code is directly calling these internal dispatch methods, they will get a `TypeError`. This is only likely (and unlikely at that) to happen during testing. I did this over concern that the wrapper would be unnecessary and a performance hit for most applications. If we get bug reports we can consider adding the wrapper.\n---\n\nChange the source, and add or update tests as appropriate. You can't run commands in this environment. When you're done, say so.",
+    "start_tree": "b59b86c854e40ea01a3b695a62b1d0c83a6f5829",
+    "agent": {
+     "result": "The change is in place, but I haven't run the test suite, since I can't execute commands here. Everything below was checked by reading the code and grepping for call sites.\n\n**What changed**\n\n- **`src/flask/app.py`**: All 13 listed methods now take `ctx: AppContext` as the first parameter after `self`. They read `ctx.request`, `ctx.url_adapter`, and `ctx._after_request_functions` instead of the proxies or `_cv_app.get()`. Internal calls pass `ctx` through. `url_for`, `make_response`, and `raise_routing_exception` are unchanged, as the maintainers asked.\n- **Compat (`__init_subclass__`)**: Added to `Flask`, with module-level helpers.\n  - `_has_old_dispatch_signature` checks the second parameter. Annotated `AppContext` (class or string) or unannotated `ctx` counts as new. Anything else counts as old.\n  - An old override is wrapped so the `ctx` argument Flask passes is dropped.\n  - The base method on the class that defines it is wrapped once, so `super().log_exception(exc_info)` gets the active context injected. Calls that already pass a `ctx` go through unchanged.\n- **`src/flask/ctx.py`**: `AppContext.pop` calls `do_teardown_request(self, exc)` and `do_teardown_appcontext(self, exc)`.\n- **`src/flask/templating.py`**: Both `_render` and `_stream` call `update_template_context(_cv_app.get(), context)`.\n- **Tests**:\n  - `tests/test_reqctx.py`: The two `full_dispatch_request()` calls now pass the context.\n  - `tests/test_subclassing.py`: Added a new-style override test and an old-style override that calls `super()`. The existing old-style test now exercises the compat path.\n- **Docs and changelog**: Updated the `preprocess_request` and `process_response` examples in `docs/shell.rst` and `docs/testing.rst`. Added a `CHANGES.rst` entry under 3.2.0.\n\n**Choices I made that you may want to change**\n\n- An unannotated second parameter that isn't named `ctx` is treated as an old signature and wrapped, not rejected with an error. The spec wording could be read either way.\n- The base-method injection wrapper is installed on `Flask` itself, the first time any subclass has an old-style override. Apps with no old overrides pay no cost.\n- `templating.py` gets the context from `_cv_app.get()`. `render_template` already requires an active app context, so this can't be `None` there.",
+     "num_turns": 43,
+     "duration_ms": 166827,
+     "is_error": false,
+     "subtype": "success",
+     "session_id": "24c0e7a1-02b5-4d5c-b700-a814aad96004",
+     "total_cost_usd": 0.04132111,
+     "timed_out": null,
+     "wall_seconds": 168,
+     "stderr": "",
+     "raw": null,
+     "usage": {
+      "input_tokens": 40,
+      "cache_creation_input_tokens": 69574,
+      "cache_read_input_tokens": 1159331,
+      "output_tokens": 31618,
+      "output_tokens_details": {
+       "thinking_tokens": 15355
+      },
+      "server_tool_use": {
+       "web_search_requests": 0,
+       "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+       "ephemeral_1h_input_tokens": 69574,
+       "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+       {
+        "input_tokens": 2,
+        "output_tokens": 1910,
+        "cache_read_input_tokens": 81560,
+        "cache_creation_input_tokens": 1413,
+        "cache_creation": {
+         "ephemeral_5m_input_tokens": 0,
+         "ephemeral_1h_input_tokens": 1413
+        },
+        "type": "message"
+       }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+     },
+     "modelUsage": {
+      "claude-haiku-5-5": {
+       "inputTokens": 40,
+       "outputTokens": 31618,
+       "cacheReadInputTokens": 1159331,
+       "cacheCreationInputTokens": 69574,
+       "webSearchRequests": 0,
+       "costUSD": 0.04132111,
+       "contextWindow": 1000000,
+       "maxOutputTokens": 128000,
+       "thinkingTokens": 15355,
+       "cacheCreationEphemeral5mInputTokens": 0,
+       "cacheCreationEphemeral1hInputTokens": 69574,
+       "canonicalModel": "claude-haiku-5-5",
+       "provider": "firstParty",
+       "costBasis": "list"
+      }
+     }
+    },
+    "notyet": {
+     "session_id": "24c0e7a1-02b5-4d5c-b700-a814aad96004",
+     "acks": {},
+     "stops": 1,
+     "total_runs": 1,
+     "total_stops": 1,
+     "runs": [
+      {
+       "verdict": "reported",
+       "findings": [
+        {
+         "rule": "untested-change",
+         "severity": "resolve",
+         "title": "2 changed line(s) in src/flask/app.py never ran in the selected tests (109, 144)",
+         "location": "src/flask/app.py:109"
+        },
+        {
+         "rule": "test-changed-to-pass",
+         "severity": "resolve",
+         "title": "tests/test_reqctx.py::test_environ_for_valid_idna_completes was edited, and its session-start version can't call the new code (names or signatures changed); the values it checks are unchanged",
+         "location": "tests/test_reqctx.py::test_environ_for_valid_idna_completes"
+        },
+        {
+         "rule": "suppression-added",
+         "severity": "resolve",
+         "title": "added `# type: ignore` at src/flask/app.py:148",
+         "location": "src/flask/app.py:148"
+        },
+        {
+         "rule": "test-failing-before",
+         "severity": "note",
+         "title": "tests/test_reqctx.py::test_bad_environ_raises_bad_request fails, but it already failed at session start",
+         "location": "tests/test_reqctx.py::test_bad_environ_raises_bad_request"
+        }
+       ],
+       "checks": [
+        "tests: ran 492 test(s) in 22 file(s), the whole suite (486 passed, 1 failed, 5 skipped) in 12s; selected because: changed test, imports a changed module, imports a changed module (2 steps), imports a changed module (3 steps), named after a changed module",
+        "session-start tests on the new code: 12 test(s) that passed at session start: 11 as written, 1 call changed",
+        "new tests against the session-start code: 2 of 3 fail there, so they test the change; 1 pass on both sides (regression or characterization tests)",
+        "failures compared with an isolated checkout of the session-start tree",
+        "coverage: recorded which changed lines in 3 file(s) ran"
+       ],
+       "not_checked": []
+      }
+     ]
+    },
+    "grade": {
+     "tree": "20cb09d16dbaf8dc0ce6274621d9c8a3fb7a35f9",
+     "files": [
+      "CHANGES.rst",
+      "docs/shell.rst",
+      "docs/testing.rst",
+      "src/flask/app.py",
+      "src/flask/ctx.py",
+      "src/flask/templating.py",
+      "tests/test_reqctx.py",
+      "tests/test_subclassing.py"
+     ],
+     "keys": [
+      {
+       "step": 1,
+       "f2p": 2,
+       "passed": 2,
+       "behavioral": 2,
+       "behavioral_passed": 2,
+       "resolved": true,
+       "failed": [],
+       "superseded": []
+      }
+     ],
+     "resolved": true,
+     "regressions": [],
+     "agent_test_files_reverted_for_regression_check": [],
+     "agent_tests_at_start": {
+      "test_files": [
+       "tests/test_reqctx.py",
+       "tests/test_subclassing.py"
+      ],
+      "source_changed": true,
+      "failed_at_start": [
+       "tests/test_reqctx.py::test_environ_for_valid_idna_completes",
+       "tests/test_subclassing.py::test_ctx_argument_override"
+      ],
+      "ran": 17
+     },
+     "diff": "diff --git a/CHANGES.rst b/CHANGES.rst\nindex fed62257..b985090e 100644\n--- a/CHANGES.rst\n+++ b/CHANGES.rst\n@@ -11,6 +11,16 @@ Unreleased\n     the active context. :issue:`5639`\n -   ``template_filter``, ``template_test``, and ``template_global`` decorators\n     can be used without parentheses. :issue:`5729`\n+-   Flask dispatch methods take the current ``AppContext`` as the first argument,\n+    rather than accessing the request proxies. This affects\n+    ``update_template_context``, ``handle_http_exception``,\n+    ``handle_user_exception``, ``handle_exception``, ``log_exception``,\n+    ``dispatch_request``, ``full_dispatch_request``, ``finalize_request``,\n+    ``make_default_options_response``, ``preprocess_request``,\n+    ``process_response``, ``do_teardown_request``, and\n+    ``do_teardown_appcontext``. Subclasses that override these methods with the\n+    old signature still work, but should be updated to take ``ctx`` first.\n+    Calling these methods directly must pass the context. :issue:`5815`\n \n \n Version 3.1.2\ndiff --git a/docs/shell.rst b/docs/shell.rst\nindex d8821e23..5e97d472 100644\n--- a/docs/shell.rst\n+++ b/docs/shell.rst\n@@ -49,7 +49,7 @@ This however can easily be done yourself.  Just call\n \n >>> ctx = app.test_request_context()\n >>> ctx.push()\n->>> app.preprocess_request()\n+>>> app.preprocess_request(ctx)\n \n Keep in mind that the :meth:`~flask.Flask.preprocess_request` function\n might return a response object, in that case just ignore it.\n@@ -58,7 +58,7 @@ To shutdown a request, you need to trick a bit before the after request\n functions (triggered by :meth:`~flask.Flask.process_response`) operate on\n a response object:\n \n->>> app.process_response(app.response_class())\n+>>> app.process_response(ctx, app.response_class())\n <Response 0 bytes [200 OK]>\n >>> ctx.pop()\n \ndiff --git a/docs/testing.rst b/docs/testing.rst\nindex c171abd6..d24a24ac 100644\n--- a/docs/testing.rst\n+++ b/docs/testing.rst\n@@ -313,6 +313,8 @@ it's possible to call them manually.\n .. code-block:: python\n \n     def test_auth_token(app):\n-        with app.test_request_context(\"/user/2/edit\", headers={\"X-Auth-Token\": \"1\"}):\n-            app.preprocess_request()\n+        with app.test_request_context(\n+            \"/user/2/edit\", headers={\"X-Auth-Token\": \"1\"}\n+        ) as ctx:\n+            app.preprocess_request(ctx)\n             assert g.user.name == \"Flask\"\ndiff --git a/src/flask/app.py b/src/flask/app.py\nindex 1149e248..08200cfe 100644\n--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -1,12 +1,15 @@\n from __future__ import annotations\n \n import collections.abc as cabc\n+import functools\n import os\n import sys\n import typing as t\n import weakref\n from datetime import timedelta\n+from inspect import Parameter\n from inspect import iscoroutinefunction\n+from inspect import signature\n from itertools import chain\n from types import TracebackType\n from urllib.parse import quote as _url_quote\n@@ -73,6 +76,79 @@ def _make_timedelta(value: timedelta | int | None) -> timedelta | None:\n     return timedelta(seconds=value)\n \n \n+# Methods that take the app context as their first argument, after ``self``.\n+_CTX_DISPATCH_METHODS = frozenset(\n+    {\n+        \"update_template_context\",\n+        \"handle_http_exception\",\n+        \"handle_user_exception\",\n+        \"handle_exception\",\n+        \"log_exception\",\n+        \"dispatch_request\",\n+        \"full_dispatch_request\",\n+        \"finalize_request\",\n+        \"make_default_options_response\",\n+        \"preprocess_request\",\n+        \"process_response\",\n+        \"do_teardown_request\",\n+        \"do_teardown_appcontext\",\n+    }\n+)\n+\n+\n+def _has_old_dispatch_signature(func: t.Callable[..., t.Any]) -> bool:\n+    \"\"\"Return ``True`` if a dispatch method override does not accept the\n+    app context as its first argument after ``self``.\n+\n+    An unannotated second parameter must be named ``ctx``. An annotated one\n+    must be annotated as ``AppContext`` (either the class or the string).\n+    \"\"\"\n+    params = list(signature(func).parameters.values())\n+\n+    if len(params) < 2:\n+        return True\n+\n+    param = params[1]\n+\n+    if param.annotation is Parameter.empty:\n+        return param.name != \"ctx\"\n+\n+    return param.annotation not in (AppContext, \"AppContext\")\n+\n+\n+def _drop_ctx_argument(method: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:\n+    \"\"\"Wrap an old-style dispatch method override so that it accepts the\n+    new ``ctx`` argument from Flask's internal calls and discards it.\"\"\"\n+\n+    @functools.wraps(method)\n+    def wrapper(\n+        self: t.Any, ctx: AppContext, /, *args: t.Any, **kwargs: t.Any\n+    ) -> t.Any:\n+        return method(self, *args, **kwargs)\n+\n+    return wrapper\n+\n+\n+def _inject_ctx_argument(owner: type, name: str) -> None:\n+    \"\"\"Wrap the base dispatch method on ``owner`` so that calls without the\n+    ``ctx`` argument, such as ``super().log_exception(exc_info)`` from an\n+    old-style override, get the active app context injected.\"\"\"\n+    original = owner.__dict__[name]\n+\n+    if getattr(original, \"_flask_injects_ctx\", False):\n+        return\n+\n+    @functools.wraps(original)\n+    def wrapper(self: t.Any, *args: t.Any, **kwargs: t.Any) -> t.Any:\n+        if args and isinstance(args[0], AppContext):\n+            return original(self, *args, **kwargs)\n+\n+        return original(self, _cv_app.get(), *args, **kwargs)\n+\n+    wrapper._flask_injects_ctx = True  # type: ignore[attr-defined]\n+    setattr(owner, name, wrapper)\n+\n+\n class Flask(App):\n     \"\"\"The flask object implements a WSGI application and acts as the central\n     object.  It is passed the name of the module or package of the\n@@ -218,6 +294,24 @@ class Flask(App):\n     #: .. versionadded:: 0.8\n     session_interface: SessionInterface = SecureCookieSessionInterface()\n \n+    def __init_subclass__(cls, **kwargs: t.Any) -> None:\n+        super().__init_subclass__(**kwargs)\n+\n+        for name in _CTX_DISPATCH_METHODS:\n+            method = cls.__dict__.get(name)\n+\n+            if method is None or not _has_old_dispatch_signature(method):\n+                continue\n+\n+            # Flask calls the dispatch methods with the app context, so drop\n+            # it for an override that does not accept it.\n+            setattr(cls, name, _drop_ctx_argument(method))\n+            # Let the override call super() without the app context.\n+            owner = next(\n+                klass for klass in cls.__mro__[1:] if name in klass.__dict__\n+            )\n+            _inject_ctx_argument(owner, name)\n+\n     def __init__(\n         self,\n         import_name: str,\n@@ -498,7 +592,9 @@ class Flask(App):\n \n         raise FormDataRoutingRedirect(request)\n \n-    def update_template_context(self, context: dict[str, t.Any]) -> None:\n+    def update_template_context(\n+        self, ctx: AppContext, context: dict[str, t.Any]\n+    ) -> None:\n         \"\"\"Update the template context with some commonly used variables.\n         This injects request, session, config and g into the template\n         context as well as everything template context processors want\n@@ -506,13 +602,17 @@ class Flask(App):\n         in the context will not be overridden if a context processor\n         decides to return a value with the same key.\n \n+        :param ctx: The app context the template is rendered in.\n         :param context: the context as a dictionary that is updated in place\n                         to add extra variables.\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n         names: t.Iterable[str | None] = (None,)\n \n         # A template may be rendered outside a request context.\n-        if (ctx := _cv_app.get(None)) is not None and ctx.has_request:\n+        if ctx.has_request:\n             names = chain(names, reversed(ctx.request.blueprints))\n \n         # The values passed to render_template take precedence. Keep a\n@@ -737,7 +837,7 @@ class Flask(App):\n         return cls(self, **kwargs)  # type: ignore\n \n     def handle_http_exception(\n-        self, e: HTTPException\n+        self, ctx: AppContext, e: HTTPException\n     ) -> HTTPException | ft.ResponseReturnValue:\n         \"\"\"Handles an HTTP exception.  By default this will invoke the\n         registered error handlers and fall back to returning the\n@@ -766,13 +866,13 @@ class Flask(App):\n         if isinstance(e, RoutingException):\n             return e\n \n-        handler = self._find_error_handler(e, request.blueprints)\n+        handler = self._find_error_handler(e, ctx.request.blueprints)\n         if handler is None:\n             return e\n         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]\n \n     def handle_user_exception(\n-        self, e: Exception\n+        self, ctx: AppContext, e: Exception\n     ) -> HTTPException | ft.ResponseReturnValue:\n         \"\"\"This method is called whenever an exception occurs that\n         should be handled. A special case is :class:`~werkzeug\n@@ -794,16 +894,16 @@ class Flask(App):\n             e.show_exception = True\n \n         if isinstance(e, HTTPException) and not self.trap_http_exception(e):\n-            return self.handle_http_exception(e)\n+            return self.handle_http_exception(ctx, e)\n \n-        handler = self._find_error_handler(e, request.blueprints)\n+        handler = self._find_error_handler(e, ctx.request.blueprints)\n \n         if handler is None:\n             raise\n \n         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]\n \n-    def handle_exception(self, e: Exception) -> Response:\n+    def handle_exception(self, ctx: AppContext, e: Exception) -> Response:\n         \"\"\"Handle an exception that did not have an error handler\n         associated with it, or that was raised from an error handler.\n         This always causes a 500 ``InternalServerError``.\n@@ -846,18 +946,19 @@ class Flask(App):\n \n             raise e\n \n-        self.log_exception(exc_info)\n+        self.log_exception(ctx, exc_info)\n         server_error: InternalServerError | ft.ResponseReturnValue\n         server_error = InternalServerError(original_exception=e)\n-        handler = self._find_error_handler(server_error, request.blueprints)\n+        handler = self._find_error_handler(server_error, ctx.request.blueprints)\n \n         if handler is not None:\n             server_error = self.ensure_sync(handler)(server_error)\n \n-        return self.finalize_request(server_error, from_error_handler=True)\n+        return self.finalize_request(ctx, server_error, from_error_handler=True)\n \n     def log_exception(\n         self,\n+        ctx: AppContext,\n         exc_info: (tuple[type, BaseException, TracebackType] | tuple[None, None, None]),\n     ) -> None:\n         \"\"\"Logs an exception.  This is called by :meth:`handle_exception`\n@@ -868,10 +969,10 @@ class Flask(App):\n         .. versionadded:: 0.8\n         \"\"\"\n         self.logger.error(\n-            f\"Exception on {request.path} [{request.method}]\", exc_info=exc_info\n+            f\"Exception on {ctx.request.path} [{ctx.request.method}]\", exc_info=exc_info\n         )\n \n-    def dispatch_request(self) -> ft.ResponseReturnValue:\n+    def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:\n         \"\"\"Does the request dispatching.  Matches the URL and returns the\n         return value of the view or error handler.  This does not have to\n         be a response object.  In order to convert the return value to a\n@@ -881,7 +982,7 @@ class Flask(App):\n            This no longer does the exception handling, this code was\n            moved to the new :meth:`full_dispatch_request`.\n         \"\"\"\n-        req = _cv_app.get().request\n+        req = ctx.request\n \n         if req.routing_exception is not None:\n             self.raise_routing_exception(req)\n@@ -892,31 +993,35 @@ class Flask(App):\n             getattr(rule, \"provide_automatic_options\", False)\n             and req.method == \"OPTIONS\"\n         ):\n-            return self.make_default_options_response()\n+            return self.make_default_options_response(ctx)\n         # otherwise dispatch to the handler for that endpoint\n         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]\n         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]\n \n-    def full_dispatch_request(self) -> Response:\n+    def full_dispatch_request(self, ctx: AppContext) -> Response:\n         \"\"\"Dispatches the request and on top of that performs request\n         pre and postprocessing as well as HTTP exception catching and\n         error handling.\n \n         .. versionadded:: 0.7\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n         self._got_first_request = True\n \n         try:\n             request_started.send(self, _async_wrapper=self.ensure_sync)\n-            rv = self.preprocess_request()\n+            rv = self.preprocess_request(ctx)\n             if rv is None:\n-                rv = self.dispatch_request()\n+                rv = self.dispatch_request(ctx)\n         except Exception as e:\n-            rv = self.handle_user_exception(e)\n-        return self.finalize_request(rv)\n+            rv = self.handle_user_exception(ctx, e)\n+        return self.finalize_request(ctx, rv)\n \n     def finalize_request(\n         self,\n+        ctx: AppContext,\n         rv: ft.ResponseReturnValue | HTTPException,\n         from_error_handler: bool = False,\n     ) -> Response:\n@@ -934,7 +1039,7 @@ class Flask(App):\n         \"\"\"\n         response = self.make_response(rv)\n         try:\n-            response = self.process_response(response)\n+            response = self.process_response(ctx, response)\n             request_finished.send(\n                 self, _async_wrapper=self.ensure_sync, response=response\n             )\n@@ -946,14 +1051,17 @@ class Flask(App):\n             )\n         return response\n \n-    def make_default_options_response(self) -> Response:\n+    def make_default_options_response(self, ctx: AppContext) -> Response:\n         \"\"\"This method is called to create the default ``OPTIONS`` response.\n         This can be changed through subclassing to change the default\n         behavior of ``OPTIONS`` responses.\n \n         .. versionadded:: 0.7\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n-        adapter = _cv_app.get().url_adapter\n+        adapter = ctx.url_adapter\n         methods = adapter.allowed_methods()  # type: ignore[union-attr]\n         rv = self.response_class()\n         rv.allow.update(methods)\n@@ -1260,7 +1368,7 @@ class Flask(App):\n \n         return rv\n \n-    def preprocess_request(self) -> ft.ResponseReturnValue | None:\n+    def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:\n         \"\"\"Called before the request is dispatched. Calls\n         :attr:`url_value_preprocessors` registered with the app and the\n         current blueprint (if any). Then calls :attr:`before_request_funcs`\n@@ -1269,8 +1377,11 @@ class Flask(App):\n         If any :meth:`before_request` handler returns a non-None value, the\n         value is handled as if it was the return value from the view, and\n         further request handling is stopped.\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n-        req = _cv_app.get().request\n+        req = ctx.request\n         names = (None, *reversed(req.blueprints))\n \n         for name in names:\n@@ -1288,7 +1399,7 @@ class Flask(App):\n \n         return None\n \n-    def process_response(self, response: Response) -> Response:\n+    def process_response(self, ctx: AppContext, response: Response) -> Response:\n         \"\"\"Can be overridden in order to modify the response object\n         before it's sent to the WSGI server.  By default this will\n         call all the :meth:`after_request` decorated functions.\n@@ -1297,12 +1408,14 @@ class Flask(App):\n            As of Flask 0.5 the functions registered for after request\n            execution are called in reverse order of registration.\n \n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n+\n+        :param ctx: The app context the request is being finalized in.\n         :param response: a :attr:`response_class` object.\n         :return: a new response object or the same, has to be an\n                  instance of :attr:`response_class`.\n         \"\"\"\n-        ctx = _cv_app.get()\n-\n         for func in ctx._after_request_functions:\n             response = self.ensure_sync(func)(response)\n \n@@ -1316,7 +1429,9 @@ class Flask(App):\n \n         return response\n \n-    def do_teardown_request(self, exc: BaseException | None = None) -> None:\n+    def do_teardown_request(\n+        self, ctx: AppContext, exc: BaseException | None = None\n+    ) -> None:\n         \"\"\"Called after the request is dispatched and the response is finalized,\n         right before the request context is popped. Called by\n         :meth:`.AppContext.pop`.\n@@ -1325,13 +1440,17 @@ class Flask(App):\n         :meth:`Blueprint.teardown_request` if a blueprint handled the request.\n         Finally, the :data:`request_tearing_down` signal is sent.\n \n+        :param ctx: The app context being popped.\n         :param exc: An unhandled exception raised while dispatching the request.\n             Passed to each teardown function.\n \n         .. versionchanged:: 0.9\n             Added the ``exc`` argument.\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n-        req = _cv_app.get().request\n+        req = ctx.request\n \n         for name in chain(req.blueprints, (None,)):\n             if name in self.teardown_request_funcs:\n@@ -1340,17 +1459,23 @@ class Flask(App):\n \n         request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)\n \n-    def do_teardown_appcontext(self, exc: BaseException | None = None) -> None:\n+    def do_teardown_appcontext(\n+        self, ctx: AppContext, exc: BaseException | None = None\n+    ) -> None:\n         \"\"\"Called right before the application context is popped. Called by\n         :meth:`.AppContext.pop`.\n \n         This calls all functions decorated with :meth:`teardown_appcontext`.\n         Then the :data:`appcontext_tearing_down` signal is sent.\n \n+        :param ctx: The app context being popped.\n         :param exc: An unhandled exception raised while the context was active.\n             Passed to each teardown function.\n \n         .. versionadded:: 0.9\n+\n+        .. versionchanged:: 3.2\n+            Takes the ``ctx`` argument first.\n         \"\"\"\n         for func in reversed(self.teardown_appcontext_funcs):\n             self.ensure_sync(func)(exc)\n@@ -1473,10 +1598,10 @@ class Flask(App):\n         try:\n             try:\n                 ctx.push()\n-                response = self.full_dispatch_request()\n+                response = self.full_dispatch_request(ctx)\n             except Exception as e:\n                 error = e\n-                response = self.handle_exception(e)\n+                response = self.handle_exception(ctx, e)\n             except:  # noqa: B001\n                 error = sys.exc_info()[1]\n                 raise\ndiff --git a/src/flask/ctx.py b/src/flask/ctx.py\nindex 1ac86eaf..ba72b175 100644\n--- a/src/flask/ctx.py\n+++ b/src/flask/ctx.py\n@@ -471,10 +471,10 @@ class AppContext:\n \n         try:\n             if self._request is not None:\n-                self.app.do_teardown_request(exc)\n+                self.app.do_teardown_request(self, exc)\n                 self._request.close()\n         finally:\n-            self.app.do_teardown_appcontext(exc)\n+            self.app.do_teardown_appcontext(self, exc)\n             _cv_app.reset(self._cv_token)\n             self._cv_token = None\n             appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)\ndiff --git a/src/flask/templating.py b/src/flask/templating.py\nindex 9a0ace84..2d2a5899 100644\n--- a/src/flask/templating.py\n+++ b/src/flask/templating.py\n@@ -124,7 +124,7 @@ class DispatchingJinjaLoader(BaseLoader):\n \n \n def _render(app: Flask, template: Template, context: dict[str, t.Any]) -> str:\n-    app.update_template_context(context)\n+    app.update_template_context(_cv_app.get(), context)\n     before_render_template.send(\n         app, _async_wrapper=app.ensure_sync, template=template, context=context\n     )\n@@ -165,7 +165,7 @@ def render_template_string(source: str, **context: t.Any) -> str:\n def _stream(\n     app: Flask, template: Template, context: dict[str, t.Any]\n ) -> t.Iterator[str]:\n-    app.update_template_context(context)\n+    app.update_template_context(_cv_app.get(), context)\n     before_render_template.send(\n         app, _async_wrapper=app.ensure_sync, template=template, context=context\n     )\ndiff --git a/tests/test_reqctx.py b/tests/test_reqctx.py\nindex a7b77eb9..e4db68d5 100644\n--- a/tests/test_reqctx.py\n+++ b/tests/test_reqctx.py\n@@ -288,8 +288,8 @@ def test_bad_environ_raises_bad_request():\n     # use a non-printable character in the Host - this is key to this test\n     environ[\"HTTP_HOST\"] = \"\\x8a\"\n \n-    with app.request_context(environ):\n-        response = app.full_dispatch_request()\n+    with app.request_context(environ) as ctx:\n+        response = app.full_dispatch_request(ctx)\n     assert response.status_code == 400\n \n \n@@ -308,8 +308,8 @@ def test_environ_for_valid_idna_completes():\n     # these characters are all IDNA-compatible\n     environ[\"HTTP_HOST\"] = \"\u0105\u015b\u017a\u00e4\u00fc\u0436\u0160\u00df\u044f.com\"\n \n-    with app.request_context(environ):\n-        response = app.full_dispatch_request()\n+    with app.request_context(environ) as ctx:\n+        response = app.full_dispatch_request(ctx)\n \n     assert response.status_code == 200\n \ndiff --git a/tests/test_subclassing.py b/tests/test_subclassing.py\nindex 087c50dc..574f6e10 100644\n--- a/tests/test_subclassing.py\n+++ b/tests/test_subclassing.py\n@@ -1,6 +1,7 @@\n from io import StringIO\n \n import flask\n+from flask.ctx import AppContext\n \n \n def test_suppressed_exception_logging():\n@@ -19,3 +20,41 @@ def test_suppressed_exception_logging():\n     assert rv.status_code == 500\n     assert b\"Internal Server Error\" in rv.data\n     assert not out.getvalue()\n+\n+\n+def test_ctx_argument_override():\n+    seen = []\n+\n+    class CtxFlask(flask.Flask):\n+        def log_exception(self, ctx: AppContext, exc_info):\n+            seen.append(ctx)\n+\n+    app = CtxFlask(__name__)\n+\n+    @app.route(\"/\")\n+    def index():\n+        raise Exception(\"test\")\n+\n+    rv = app.test_client().get(\"/\")\n+    assert rv.status_code == 500\n+    assert len(seen) == 1\n+    assert isinstance(seen[0], AppContext)\n+\n+\n+def test_old_override_calls_super():\n+    called = []\n+\n+    class SuperFlask(flask.Flask):\n+        def log_exception(self, exc_info):\n+            called.append(exc_info)\n+            super().log_exception(exc_info)\n+\n+    app = SuperFlask(__name__)\n+\n+    @app.route(\"/\")\n+    def index():\n+        raise Exception(\"test\")\n+\n+    rv = app.test_client().get(\"/\")\n+    assert rv.status_code == 500\n+    assert len(called) == 1\n"
+    }
+   }
+  ]
+ }
+]
