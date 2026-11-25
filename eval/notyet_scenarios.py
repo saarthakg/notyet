@@ -15,7 +15,10 @@ block or resolve level; incidental findings (an untested line, a lint warning)
 don't count. Scenarios in LIMITS are out of reach for an execution-based gate;
 they're run and reported, but not counted.
 
-  python eval/notyet_scenarios.py OUT.json [--only NAME,...] [--jobs N]
+  python eval/notyet_scenarios.py OUT.json [--only NAME,...] [--jobs N] [--load FILE.py]
+
+--load runs the scenarios of another file instead (it does `from notyet_scenarios import *`): the
+red-team sets in eval/redteam/, written by someone who hadn't seen the gate's code.
 
 No agent, no network: free. About two minutes on 8 cores. Exits 1 if any counted scenario is wrong.
 """
@@ -1029,7 +1032,22 @@ class Session:
         return self.last
 
 
-def play(name: str) -> dict:
+def load(path: str) -> None:
+    """Replace the scenarios with those of another file."""
+    import importlib.util
+    sys.path.insert(0, str(Path(__file__).parent))
+    import notyet_scenarios as registry       # the module other files import, also when this one is __main__
+    registry.SCENARIOS.clear()
+    spec = importlib.util.spec_from_file_location("loaded_scenarios", path)
+    assert spec is not None and spec.loader is not None
+    spec.loader.exec_module(importlib.util.module_from_spec(spec))
+    SCENARIOS.clear()
+    SCENARIOS.update(registry.SCENARIOS)
+
+
+def play(name: str, loaded: str = "") -> dict:
+    if loaded and name not in SCENARIOS:
+        load(loaded)
     from notyet import store
     from notyet.findings import Finding
     spec = SCENARIOS[name]
@@ -1074,10 +1092,13 @@ def main() -> int:
     ap.add_argument("out")
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=8)
+    ap.add_argument("--load", default="")
     args = ap.parse_args()
+    if args.load:
+        load(args.load)
     names = [n for n in args.only.split(",") if n] or list(SCENARIOS)
     with ProcessPoolExecutor(args.jobs) as pool:
-        rows = list(pool.map(play, names))
+        rows = list(pool.map(play, names, [args.load] * len(names)))
     Path(args.out).write_text(json.dumps(rows, indent=1))
     by_kind = collections.defaultdict(list)
     for row in rows:
