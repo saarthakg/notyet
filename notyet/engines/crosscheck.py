@@ -114,7 +114,8 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
     side = side_of(ctx)
     if not side.modules and not side.infra:
         return
-    files = impacted(ctx, side, selected)
+    # a file this check had no time for now can't be judged by its old version either
+    files = [f for f in impacted(ctx, side, selected) if side.modules.get(f, f) not in unfinished]
     if not files:
         return
     started = time.monotonic()
