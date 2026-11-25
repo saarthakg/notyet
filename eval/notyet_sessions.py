@@ -335,7 +335,7 @@ def commit_prompt(repo: str, task: str, first: bool, can_run: bool = True) -> st
 
 def run_agent(work: Path, prompt: str, resume: str | None, model: str = "", can_run: bool = True) -> dict:
     cmd = ["claude", "-p", prompt, "--output-format", "json", "--permission-mode", "acceptEdits",
-           "--setting-sources", "project,local", "--strict-mcp-config",
+           "--setting-sources", "project,local", "--strict-mcp-config", "--max-budget-usd", "3",
            "--allowedTools", *(t for t in ALLOWED if can_run or "pytest" not in t)]
     if model:
         cmd += ["--model", model]
