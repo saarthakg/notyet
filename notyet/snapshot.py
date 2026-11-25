@@ -174,19 +174,19 @@ def materialize(root: str, tree: str, dest: str, paths: list[str] | None = None)
 # Ignored directories a checkout must not share with the working tree.
 _NOT_SHARED = {"__pycache__", ".git", ".venv", "venv", "env", ".tox", ".nox", ".pytest_cache", ".ruff_cache",
                ".mypy_cache", ".hypothesis", "build", "dist", "htmlcov", "site-packages"}
-MAX_IGNORED_FILES = 400
-MAX_IGNORED_BYTES = 8_000_000
+MAX_IGNORED_FILES = 4000
+MAX_IGNORED_BYTES = 60_000_000
 
 
-def add_ignored(root: str, dest: str) -> None:
+def add_ignored(root: str, dest: str) -> list[str]:
     """Add to the checkout at `dest` the gitignored files a fresh one lacks but the code may need: a
-    generated `_version.py`, a compiled extension, local test data. Files are copied; wholly ignored
-    directories (node_modules, a generated package) are linked."""
+    generated `_version.py`, a compiled extension, local test data. Copied, never linked: a test that
+    writes to or deletes its data must not reach the user's. Returns what was left out (too much to copy)."""
     try:
         listing = git(root, "ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z")
     except GitError:
-        return
-    budget, n = MAX_IGNORED_BYTES, 0
+        return []
+    left_out, room, files = [], MAX_IGNORED_BYTES, MAX_IGNORED_FILES
     for rel in filter(None, listing.split("\0")):
         parts = rel.rstrip("/").split("/")
         if set(parts) & _NOT_SHARED or parts[-1].endswith((".egg-info", ".pyc", ".log")) or parts[-1].startswith(".coverage"):
@@ -194,17 +194,40 @@ def add_ignored(root: str, dest: str) -> None:
         src, target = os.path.join(root, rel.rstrip("/")), os.path.join(dest, rel.rstrip("/"))
         if os.path.lexists(target) or not os.path.isdir(os.path.dirname(target)):
             continue
-        n += 1
-        if n > MAX_IGNORED_FILES:
-            return
-        try:
-            if rel.endswith("/"):
-                os.symlink(src, target)
-            elif (size := os.path.getsize(src)) <= budget:
-                budget -= size
-                shutil.copy2(src, target)
-        except OSError:
+        size, count = _measure(src, room, files)
+        if size > room or count > files:
+            left_out.append(rel)
             continue
+        room, files = room - size, files - count
+        try:
+            if os.path.isdir(src) and not os.path.islink(src):
+                shutil.copytree(src, target, symlinks=True, ignore=shutil.ignore_patterns(*_NOT_SHARED))
+            else:
+                shutil.copy2(src, target, follow_symlinks=False)
+        except (OSError, shutil.Error):
+            left_out.append(rel)
+    return left_out
+
+
+def _measure(path: str, room: int, files: int) -> tuple[int, int]:
+    """(bytes, files) under a path, stopping once either is over its limit."""
+    if os.path.islink(path) or not os.path.isdir(path):
+        try:
+            return os.lstat(path).st_size, 1
+        except OSError:
+            return 0, 1
+    size = count = 0
+    for folder, dirs, names in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in _NOT_SHARED]
+        for name in names:
+            count += 1
+            try:
+                size += os.lstat(os.path.join(folder, name)).st_size
+            except OSError:
+                pass
+            if size > room or count > files:
+                return size, count
+    return size, count
 
 
 @contextmanager

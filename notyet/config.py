@@ -80,16 +80,34 @@ def parse(text: Optional[str], source: str) -> Config:
     except tomllib.TOMLDecodeError as e:
         cfg.problems.append(f"{CONFIG_FILE} is not valid TOML ({e}); using defaults")
         return cfg
-    test = data.get("test", {})
-    gate = data.get("gate", {})
-    cfg.test_command = (test.get("command") or "").strip() or None
-    cfg.budget_seconds = int(test.get("budget_seconds", cfg.budget_seconds))
-    cfg.widen_seconds = int(test.get("widen_seconds", cfg.widen_seconds))
-    static = data.get("static", {})
-    cfg.ruff = (static.get("ruff") or "").strip() or None
-    cfg.pyright = (static.get("pyright") or "").strip() or None
-    cfg.static_budget_seconds = int(static.get("budget_seconds", cfg.static_budget_seconds))
-    for rule, severity in data.get("rules", {}).items():
+    def table(name: str) -> dict:
+        value = data.get(name, {})
+        if not isinstance(value, dict):
+            cfg.problems.append(f"[{name}] isn't a table; ignored")
+            return {}
+        return value
+
+    def seconds(where: dict, name: str, default: int) -> int:
+        value = where.get(name, default)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+            cfg.problems.append(f"{name} {value!r} isn't a number of seconds; using {default}")
+            return default
+        return int(value)
+
+    def command(where: dict, name: str) -> Optional[str]:
+        value = where.get(name) or ""
+        if not isinstance(value, str):
+            cfg.problems.append(f"{name} {value!r} isn't a command; ignored")
+            return None
+        return value.strip() or None
+
+    test, gate, static = table("test"), table("gate"), table("static")
+    cfg.test_command = command(test, "command")
+    cfg.budget_seconds = seconds(test, "budget_seconds", cfg.budget_seconds)
+    cfg.widen_seconds = seconds(test, "widen_seconds", cfg.widen_seconds)
+    cfg.ruff, cfg.pyright = command(static, "ruff"), command(static, "pyright")
+    cfg.static_budget_seconds = seconds(static, "budget_seconds", cfg.static_budget_seconds)
+    for rule, severity in table("rules").items():
         if severity in RULE_SETTINGS:
             cfg.rules[rule] = severity
         else:
@@ -107,7 +125,7 @@ def load(root: str, tree: Optional[str] = None) -> Config:
     if tree is not None:
         return parse(snapshot.show(root, tree, CONFIG_FILE), f"{CONFIG_FILE} at session start")
     path = Path(root) / CONFIG_FILE
-    return parse(path.read_text() if path.exists() else None, CONFIG_FILE)
+    return parse(path.read_text(errors="replace") if path.exists() else None, CONFIG_FILE)
 
 
 def detect_test_command(root: str) -> Optional[str]:

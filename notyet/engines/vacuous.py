@@ -23,10 +23,9 @@ import os
 from pathlib import PurePosixPath
 
 from notyet import snapshot, testrun
-from notyet.engines.execution import _BaselineCache, _canary
+from notyet.engines.execution import _BaselineCache, _canary, source_path_env
 from notyet.engines.integrity import changed_functions
 from notyet.findings import Context, EngineResult, Finding
-from notyet.pyresolve import find_python_source_roots
 
 MAX_TESTS = 60
 MAX_EVIDENCE = 5
@@ -107,7 +106,7 @@ def _run_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tu
     with snapshot.checkout(ctx.root, ctx.baseline_tree, "vacuous") as tmp:
         if overlay:
             snapshot.materialize(ctx.root, ctx.current_tree, tmp, paths=overlay)
-        env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}
+        env = source_path_env(tmp)
         # a copied-in conftest.py could change how imports resolve: prove it again
         if any(PurePosixPath(p).name == "conftest.py" for p in overlay) or not cache.canary_ok(dirs):
             ok, why = _canary(ctx, tmp, files, env)
@@ -115,7 +114,7 @@ def _run_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tu
                 return {}, why
             if not any(PurePosixPath(p).name == "conftest.py" for p in overlay):
                 cache.canary_passed(dirs)
-        timeout = max(30.0, min(ctx.config.budget_seconds, ctx.time_left() - 5))
+        timeout = ctx.cap(max(30.0, ctx.config.budget_seconds))
         run = testrun.run_tests(command, tmp, node_ids, env=env, timeout=timeout)
     if run.crashed:
         return {}, f"the test command failed on the session-start tree ({run.crashed})"

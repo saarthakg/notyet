@@ -53,6 +53,10 @@ class Context:
     def time_left(self) -> float:
         return float("inf") if self.deadline is None else self.deadline - time.monotonic()
 
+    def cap(self, seconds: float) -> float:
+        """A timeout of at most `seconds` that leaves time to finish the check and write the receipt."""
+        return max(5.0, min(seconds, self.time_left() - 15))
+
     @property
     def layout(self) -> layout_mod.Layout:
         return layout_mod.read(self.root, (self.baseline_tree, self.current_tree))
@@ -65,7 +69,7 @@ class Context:
             self._checkouts["baseline"] = holder
             path = os.path.realpath(holder.name)
             snapshot.materialize(self.root, self.baseline_tree, path)
-            snapshot.add_ignored(self.root, path)
+            self.shared["left_out"] = snapshot.add_ignored(self.root, path)
         return os.path.realpath(self._checkouts["baseline"].name)
 
     def close(self) -> None:

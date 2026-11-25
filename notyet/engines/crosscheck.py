@@ -39,7 +39,6 @@ from dataclasses import dataclass, field
 from notyet import snapshot, testrun
 from notyet.engines.integrity import changed_functions, constants_of, test_bodies
 from notyet.findings import Context, EngineResult, Finding
-from notyet.pyresolve import find_python_source_roots
 
 MAX_ITEMS = 10
 BATCH = 12
@@ -69,8 +68,8 @@ def side_of(ctx: Context) -> Side:
             side.config.append(new or old or "")
         elif not any(p and lay.is_test_side(p) for p in (old, new)):
             continue
-        elif old and lay.is_test_module(old):
-            side.modules[old] = new
+        elif old and lay.is_test_module(old):      # renamed to something pytest doesn't collect: gone
+            side.modules[old] = new if new and lay.is_test_module(new) else None
         elif old or _can_interfere(ctx, d.path):     # an added file mostly only adds
             side.support.append(new or old or "")
         if old:
@@ -130,38 +129,52 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
             if os.path.lexists(os.path.join(tmp, p)):
                 os.remove(os.path.join(tmp, p))
         snapshot.materialize(ctx.root, ctx.baseline_tree, tmp, paths=side.restore)
-        env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}
-        for batch in [files[i:i + BATCH] for i in range(0, len(files), BATCH)]:
+        env = source_path_env(tmp)
+        queue = [files[i:i + BATCH] for i in range(0, len(files), BATCH)]
+        cannot_run: list[str] = []
+        while queue:
+            batch = queue.pop(0)
             left = limit - (time.monotonic() - started)
             if left < 2:
                 cut += batch
                 continue
-            r = testrun.run_pytest(command, tmp, batch, timeout=left, env=env)
+            r = testrun.run_pytest(command, tmp, batch, timeout=ctx.cap(left), env=env)
+            if r.crashed and len(batch) > 1:       # one bad conftest takes its whole run down: go file by file
+                queue = [[f] for f in batch] + queue
+                continue
             if r.crashed:
                 crash = r.crashed
+                cannot_run += batch
                 continue
             if r.timed_out:
                 cut += [f for f in batch if f not in {n.split("::")[0] for n in r.results}]
             old.results.update(r.results)
         shaky = [r.nodeid for r in old.failures if "::" in r.nodeid][:200]
         if shaky:      # fail twice before it counts
-            again = testrun.run_pytest(command, tmp, shaky, timeout=limit, env=env)
+            again = testrun.run_pytest(command, tmp, shaky, timeout=ctx.cap(limit), env=env)
             for nid in shaky:
                 if nid in again.results and not again.results[nid].bad:
                     old.results[nid] = again.results[nid]
         if hooks and ctx.time_left() > 30:      # does a bare `pytest` still find them?
-            then_ids = testrun.collect(command, tmp, [], env=env, timeout=90)
-            now_ids = testrun.collect(command, ctx.root, [], env=source_path_env(ctx.root), timeout=90)
+            then_ids = testrun.collect(command, tmp, [], env=env, timeout=ctx.cap(90))
+            now_ids = testrun.collect(command, ctx.root, [], env=source_path_env(ctx.root), timeout=ctx.cap(90))
             if then_ids is None or now_ids is None:
                 result.not_checked.append(f"test collection with {', '.join(hooks)} changed: couldn't collect the suite "
                                           f"{'now' if now_ids is None else 'with the session-start test setup'}")
             else:
-                dropped = {testrun.function_of(n) for n in then_ids} - {testrun.function_of(n) for n in now_ids}
+                now_fns = {testrun.function_of(n) for n in now_ids}
+                for n in then_ids:
+                    then, _, name = testrun.function_of(n).partition("::")
+                    now = side.modules.get(then, then)        # by the name its file has now
+                    if now is not None and f"{now}::{name}" not in now_fns:
+                        dropped.add(f"{then}::{name}")
     if cut:
-        result.not_checked.append(f"session-start tests on the new code: {len(cut)} of {len(files)} test file(s) "
-                                  f"didn't run in time: {', '.join(cut[:5])}")
-    if crash and not old.results:
-        _support_broken(side, crash, files, current, result)
+        result.gaps.append(f"session-start tests incomplete on the new code: {len(cut)} of {len(files)} test file(s) "
+                           f"didn't run in time: {', '.join(cut[:5])}")
+    if cannot_run:
+        _support_broken(side, crash, cannot_run, current, result)
+        files = [f for f in files if f not in cannot_run]
+    if not old.results:
         return
 
     uncollected = [f for f in files if f in old.results and old.results[f].bad]
@@ -337,8 +350,9 @@ def _disabled(fn: str, here, holds: bool, evidence: list[str], result: EngineRes
 
 def _support_broken(side: Side, crash: str, files: list[str], current: testrun.Run, result: EngineResult) -> None:
     """The session-start test setup doesn't even start on the new code (its conftest imports something gone)."""
-    if any(r.bad for r in current.results.values()):
-        return                            # failures are already reported
+    moved = {old: new for old, new in side.modules.items()}
+    if any(r.bad and n.split("::")[0] in {moved.get(f, f) for f in files} for n, r in current.results.items()):
+        return                            # these files' failures are already reported
     result.findings.append(Finding(
         rule="test-changed-to-pass", severity="resolve", location=(side.infra or files)[0],
         key="setup|" + "|".join(sorted(side.infra or files)),
@@ -381,7 +395,8 @@ def _skips_here(ctx: Context, command: str, fns: list[str]) -> set[str]:
     doing, not a difference between the two directories."""
     if not fns or ctx.time_left() < 10:
         return set()
+    from notyet.engines.execution import source_path_env
     with snapshot.checkout(ctx.root, ctx.current_tree, "newtests") as tmp:
-        env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}
-        got = testrun.run_tests(command, tmp, fns, env=env, timeout=max(30, ctx.config.budget_seconds / 2))
+        env = source_path_env(tmp)
+        got = testrun.run_tests(command, tmp, fns, env=env, timeout=ctx.cap(max(30, ctx.config.budget_seconds / 2)))
     return {f for f in fns if testrun.outcome_of(f, got.results) == "skipped"}

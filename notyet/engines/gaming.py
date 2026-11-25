@@ -16,6 +16,7 @@ import re
 
 from notyet import snapshot
 from notyet.findings import Context, EngineResult, Finding
+from notyet.source import parse
 
 TEST_MODULES = {"pytest", "_pytest", "unittest", "nose", "hypothesis"}
 TEST_ENV = re.compile(r"^PYTEST_(CURRENT_TEST|VERSION|XDIST_WORKER\w*|ADDOPTS)$")
@@ -41,9 +42,8 @@ def run(ctx: Context) -> EngineResult:
 
 
 def _signs(source: str) -> list[tuple[int, str, str, str]]:
-    try:
-        tree = ast.parse(source)
-    except SyntaxError:
+    tree = parse(source)
+    if tree is None:
         return []
     out = []
     for node in ast.walk(tree):

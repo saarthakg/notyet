@@ -10,12 +10,14 @@ Loop safety (docs/PLAN.md §3.6):
 - never blocks while background work is running.
 """
 import time
+import traceback
 from dataclasses import asdict, dataclass, field, replace
 from typing import Callable, Optional
 
 from notyet import config as config_mod
 from notyet import receipt as receipt_mod
 from notyet import snapshot, store
+from notyet.source import printable
 from notyet.findings import Context, EngineResult, Finding, find_ack
 
 MAX_BLOCKS = 6
@@ -61,7 +63,11 @@ def run_engines(ctx: Context, engines: Optional[list[Engine]] = None) -> EngineR
         try:
             result.extend(engine(ctx))
         except Exception as e:  # an engine failure is reported, never fatal
-            result.not_checked.append(f"{getattr(engine, '__module__', 'engine')} failed: {e}")
+            name = getattr(engine, "__module__", "engine").rsplit(".", 1)[-1]
+            store.log_error(ctx.root, f"{name}: {e}\n{traceback.format_exc()}")
+            result.gaps.append(f"the {name} check failed: {e}")
+    for f in result.findings:       # text from the repo can hold bytes that aren't UTF-8
+        f.title, f.location, f.evidence = printable(f.title), printable(f.location), [printable(e) for e in f.evidence]
     return result
 
 
@@ -101,7 +107,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     standing = outstanding(result.findings, session.acks)
     repeats = _same_set_streak(session, [f.id for f in standing])
 
-    if not standing and not result.checks:
+    if not standing and not result.checks and not result.gaps:
         verdict = "not-checked"
     elif not standing and any((find_ack(f, session.acks) or {}).get("category") == "needs-human" for f in result.findings):
         verdict = "needs-review"      # the agent may stop, but this is not a pass

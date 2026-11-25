@@ -27,6 +27,7 @@ from typing import Iterable, Optional
 
 from notyet.pyresolve import find_python_source_roots, resolve_python_import
 from notyet import snapshot, store
+from notyet.source import parse
 
 
 def python_blobs(root: str, tree: str) -> dict[str, str]:
@@ -47,9 +48,8 @@ _DOTTED = re.compile(r"[A-Za-z_]\w*(\.[A-Za-z_]\w*)+\.?$|[A-Za-z_]\w*\.$")
 
 def _imports_of(source: str) -> tuple[list[tuple[str, list[str]]], set[str]]:
     """([(module, names)] for import statements, dotted names that appear in strings)."""
-    try:
-        tree = ast.parse(source)
-    except (SyntaxError, ValueError):
+    tree = parse(source)
+    if tree is None:
         return [], set()
     specs, strings = [], set()
     for node in ast.walk(tree):
@@ -80,7 +80,7 @@ def _mentions(path: str) -> list[str]:
 
 class ImportGraph:
     """`checkout`: where the files of `tree` can be read, when that isn't the working tree."""
-    VERSION = 3      # bump when edges are computed differently, so cached ones aren't reused
+    VERSION = 4      # bump when edges are computed differently, so cached ones aren't reused
 
     def __init__(self, root: str, tree: str, checkout: Optional[str] = None):
         self.root, self.files_root = root, checkout or root
@@ -128,7 +128,7 @@ class ImportGraph:
 
     def _read(self, rel: str) -> str:
         try:
-            return Path(os.path.join(self.files_root, rel)).read_text(encoding="utf-8", errors="replace")
+            return Path(os.path.join(self.files_root, rel)).read_text(encoding="utf-8", errors="surrogateescape")
         except OSError:
             return ""
 
@@ -143,6 +143,12 @@ class ImportGraph:
             targets |= hits
         for text in strings:
             targets |= self._named(text, full, roots)
+        for t in list(targets):       # importing pkg.sub.mod runs pkg/__init__.py and pkg/sub/__init__.py first
+            folder = os.path.dirname(t)
+            while folder:
+                if f"{folder}/__init__.py" in self.blobs:
+                    targets.add(f"{folder}/__init__.py")
+                folder = os.path.dirname(folder)
         targets.discard(rel)
         return sorted(targets)
 

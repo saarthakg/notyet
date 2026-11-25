@@ -96,3 +96,42 @@ def test_a_conflict_keeps_the_old_starting_point_and_says_so(repo):
     _git(repo, "checkout", "-q", "--force", "upstream")
     moves.follow(str(repo), session)
     assert session.baseline_tree == base and session.moves[0]["ok"] is False
+
+
+def test_switching_to_a_branch_that_is_behind(repo):
+    _git(repo, "switch", "-qc", "feature")
+    _write(repo, "tests/test_feat.py", "def test_f():\n    pass\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "feature work, before the session")
+    session = start(repo)
+    _git(repo, "switch", "-q", "main")
+    _git(repo, "switch", "-qc", "fix")
+    moves.follow(str(repo), session)
+    assert changed(repo, session) == []
+    _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + "\n# the fix\n")
+    _git(repo, "commit", "-qam", "fix")
+    moves.follow(str(repo), session)
+    assert changed(repo, session) == ["pkg/calc.py"]
+
+
+def test_the_sessions_work_squash_merged_elsewhere_is_still_its_work(repo, tmp_path):
+    remote = tmp_path / "remote.git"
+    _git(repo, "clone", "-q", "--bare", str(repo), str(remote))
+    _git(repo, "remote", "add", "origin", str(remote))
+    _git(repo, "fetch", "-q")
+    _git(repo, "branch", "-q", "--set-upstream-to=origin/main", "main")
+    session = start(repo)
+    session.started -= 60
+    _git(repo, "switch", "-qc", "work")
+    _write(repo, "tests/test_calc.py", "def test_add():\n    pass\n")
+    _git(repo, "commit", "-qam", "weaken")
+    _git(repo, "push", "-q", "origin", "work")
+    other = tmp_path / "other"
+    _git(repo, "clone", "-q", str(remote), str(other))
+    _git(other, "merge", "-q", "--squash", "origin/work")
+    _git(other, "commit", "-qm", "squashed")
+    _git(other, "push", "-q", "origin", "main")
+    _git(repo, "switch", "-q", "main")
+    _git(repo, "pull", "-q", "--ff-only")
+    moves.follow(str(repo), session)
+    assert changed(repo, session) == ["tests/test_calc.py"]

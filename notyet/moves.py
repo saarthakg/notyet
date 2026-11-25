@@ -8,8 +8,11 @@ starting point moves with the part of the move that came from elsewhere.
 What the session committed itself is known from HEAD's reflog (commit, cherry-pick,
 rebase picks, ...). Every other new commit counts as arriving from elsewhere only if
 it's older than the session or is on a remote-tracking branch; anything else stays part
-of the session's change. Moving *back* (git reset, checking out an ancestor) never moves
-the starting point: work that disappears that way should be seen.
+of the session's change. So does one that holds a file exactly as a commit of the session's
+does: its own work coming back, squash-merged.
+
+Checking out another branch moves the starting point there, also when it's behind. `git reset`
+never does: work that disappears that way should be seen.
 
 The new starting point is rebuilt with git's own three-way merge (git merge-tree, 2.38+),
 keeping edits the user hadn't committed when the session began. If that conflicts, the
@@ -40,12 +43,13 @@ def follow(root: str, session: store.Session) -> None:
     if head is None or session.baseline_commit is None or head == session.head_seen:
         return
     session.head_seen = head
-    arrived = _arrived(root, session, head)
-    if not arrived:
+    mine = _written_here(root, session.reflog_length)
+    arrived = _arrived(root, session, head, mine)
+    behind = "" if arrived else _checked_out_behind(root, session, head, mine)
+    if not arrived and not behind:
         return
     try:
-        frontier = _frontier(root, arrived, session.baseline_commit, head)
-        base = _merged(root, frontier)
+        base = behind or _merged(root, _frontier(root, arrived, session.baseline_commit, head))
         tree = _tree(root, base)
         moved = _carry(root, session.baseline_commit, session.baseline_tree, base)     # the user's uncommitted edits
         if moved is None:
@@ -63,18 +67,41 @@ def follow(root: str, session: store.Session) -> None:
     session.moves.append({"commits": len(arrived), "head": head, "ok": True})
 
 
-def _arrived(root: str, session: store.Session, head: str) -> list[str]:
+def _arrived(root: str, session: store.Session, head: str, mine: set[str]) -> list[str]:
     out = snapshot.git(root, "rev-list", "--format=%H %ct", "--no-commit-header", head, "--not", session.baseline_commit or head)
     new = [(sha, int(at)) for sha, at in (line.split() for line in out.splitlines() if line)]
     if not new:
         return []
-    mine = _written_here(root, session.reflog_length)
     recent = [sha for sha, at in new if sha not in mine and at > session.started]
     on_remote: set[str] = set()
     if recent:
         not_on_remote = set(snapshot.git(root, "rev-list", head, "--not", "--remotes").split())
         on_remote = {sha for sha in recent if sha not in not_on_remote}
+        ours = {f for sha in mine for f in _files_of(root, sha)} if on_remote else set()
+        on_remote = {sha for sha in on_remote if not ours & _files_of(root, sha)}
     return [sha for sha, at in new if sha not in mine and (at <= session.started or sha in on_remote)]
+
+
+def _files_of(root: str, commit: str) -> set[tuple[str, str]]:
+    """(path, content) of what a commit changed."""
+    out = snapshot.git(root, "diff-tree", "-r", "-m", "--root", "--no-commit-id", "--no-renames", commit)
+    return {(line.split("\t", 1)[1], line.split()[3]) for line in out.splitlines()
+            if line.startswith(":") and line.split()[3].strip("0")}
+
+
+def _checked_out_behind(root: str, session: store.Session, head: str, mine: set[str]) -> str:
+    """The commit a branch switch led to, when nothing on it is new: main, from a feature branch. "" if HEAD
+    didn't get there by switching (the last word was a reset), or still contains the starting point."""
+    log = _reflog(root)
+    moves = [what for _, what in log[:max(0, len(log) - session.reflog_length)] if what.startswith(("checkout:", "reset:"))]
+    if not moves or any(what.startswith("reset:") for what in moves):
+        return ""
+    if not snapshot.git(root, "rev-list", "-n", "1", session.baseline_commit or head, "--not", head).strip():
+        return ""
+    for sha in snapshot.git(root, "rev-list", "--first-parent", "-n", "500", head).split():
+        if sha not in mine:
+            return sha
+    return ""
 
 
 def _reflog(root: str) -> list[tuple[str, str]]:

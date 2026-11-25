@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from notyet import snapshot
 from notyet.findings import Context, EngineResult, Finding
+from notyet.source import parse
 
 DISABLING_DECORATORS = ("mark.skip", "mark.xfail", "unittest.skip", "skipIf", "skipUnless", "expectedFailure")
 AUTOUSE = {"autouse fixture"}
@@ -103,9 +104,8 @@ def _changed_module_names(before_source: str, after_source: str) -> set[str]:
     """Module-level values and helpers (not tests, not imports) whose
     definition changed, appeared or disappeared."""
     def definitions(source: str) -> dict[str, str]:
-        try:
-            tree = ast.parse(source)
-        except SyntaxError:
+        tree = parse(source)
+        if tree is None:
             return {}
         defs: dict[str, str] = {}
         for node in tree.body:
@@ -128,9 +128,8 @@ def _changed_module_names(before_source: str, after_source: str) -> set[str]:
 
 def _functions(source: str) -> dict[str, TestFunc]:
     """Every function that looks like a test, at any class depth, whatever the class is called."""
-    try:
-        tree = ast.parse(source)
-    except SyntaxError:
+    tree = parse(source)
+    if tree is None:
         return {}
     out: dict[str, TestFunc] = {}
 

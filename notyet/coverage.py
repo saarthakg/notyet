@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 from notyet.findings import Finding
+from notyet.source import parse
 
 PLUGIN = "notyet_lines"          # what pytest loads with -p: it saves when the run ends
 RECORDER = "notyet_lines_core"    # lineplugin.py, imported at start-up. A module of its own, because pytest
@@ -98,8 +99,10 @@ def read(out: str, root: str) -> dict[str, set[int]] | None:
 
 
 def executable_lines(source: str, filename: str = "<changed>") -> set[int]:
+    tree = parse(source)
+    if tree is None:
+        return set()
     try:
-        tree = ast.parse(source)
         code = compile(tree, filename, "exec")
     except (SyntaxError, ValueError):
         return set()

@@ -15,13 +15,14 @@ A notyet hook must never break the agent's session: any error is logged to
 import difflib
 import json
 import shlex
+import signal
 import sys
 import time
 import traceback
 from pathlib import Path
 from typing import Optional
 
-from notyet import gate, moves, snapshot, store
+from notyet import gate, moves, snapshot, store, testrun
 
 EVENTS = {"session-start": "SessionStart", "prompt": "UserPromptSubmit", "stop": "Stop"}
 NAME = "Claude Code"
@@ -105,7 +106,14 @@ def _is_pending_work(task: dict, session: store.Session) -> bool:
     return seen < SEEN_BEFORE
 
 
+def _terminated(signum, frame):
+    """The host gave up on this hook: take the test runs along, and leave through the cleanups."""
+    testrun.kill_all()
+    raise SystemExit(0)
+
+
 def main(event: str) -> int:
+    signal.signal(signal.SIGTERM, _terminated)
     try:
         payload = json.loads(sys.stdin.read() or "{}")
     except json.JSONDecodeError:

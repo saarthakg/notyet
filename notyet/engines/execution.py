@@ -21,6 +21,7 @@ import json
 import os
 import tempfile
 import time
+import traceback
 from pathlib import PurePosixPath
 
 from notyet import coverage, layout, pyimports, snapshot, store, testrun
@@ -42,7 +43,11 @@ def source_path_env(root: str, env: dict | None = None) -> dict:
     broke (or points elsewhere) mid-session isn't blamed on the session."""
     env = dict(env or {})
     rest = env.get("PYTHONPATH")
-    env["PYTHONPATH"] = os.pathsep.join([str(r) for r in find_python_source_roots(root)] + ([rest] if rest else []))
+    roots = [str(r) for r in find_python_source_roots(root)
+             # packages inside a tests directory are fixtures or helpers: pytest finds those its own way, and
+             # tests/data/proj/string/ must not stand in front of the standard library
+             if not set(os.path.relpath(r, os.path.realpath(root)).split(os.sep)) & {"tests", "test", "testing"}]
+    env["PYTHONPATH"] = os.pathsep.join(roots + ([rest] if rest else []))
     return env
 
 
@@ -182,7 +187,7 @@ def run(ctx: Context) -> EngineResult:
                 current.results.update(run_.results)
                 batches_run.append(batch)
                 times.record(batch, run_)
-                if not run_.timed_out:
+                if not run_.timed_out and not run_.aborted:
                     seen = {n.split("::")[0] for n in run_.results}
                     ran_nothing.update(f for f in batch if f not in seen)
             return run_
@@ -203,6 +208,12 @@ def run(ctx: Context) -> EngineResult:
             elif run_.timed_out:
                 skipped_files += [f for f in batch if not any(n.startswith(f + "::") for n in run_.results)]
                 stuck = max(stuck, coverage.running(trace_out), key=lambda s: s[1])
+            elif run_.aborted:
+                left_out = [f for f in batch if not any(n.split("::")[0] == f for n in run_.results)]
+                if left_out:
+                    result.gaps.append(f"tests incomplete: pytest stopped early; {len(left_out)} of {len(batch)} test file(s) "
+                                       f"have no results")
+                widened = [w for w in widened if w not in left_out]
 
         # then the rest of the suite, as far as it's known to be quick: the selection follows what it can
         # read, and plugins, entry points and the like can't be read
@@ -261,7 +272,7 @@ def run(ctx: Context) -> EngineResult:
     alone = testrun.Run()
     if failing:  # re-run failures by themselves
         alone = testrun.run_pytest(command, ctx.root, [f.nodeid for f in failing], env=source_path_env(ctx.root),
-                                   timeout=max(30, cfg.budget_seconds / 2))
+                                   timeout=ctx.cap(max(30, cfg.budget_seconds / 2)))
 
     # ── compare with session start: the same files, in the same order, on that tree ─
     changed_tests = [d.path for d in ctx.deltas if d.status != "D" and lay.is_test_module(d.path)]
@@ -302,12 +313,15 @@ def run(ctx: Context) -> EngineResult:
         for _ in range(CONFIRMATIONS if len(suspects) <= MAX_CONFIRMED else 0):
             if alone.seconds > 10 or not suspects:
                 break
-            repeat = testrun.run_pytest(command, ctx.root, suspects, env=source_path_env(ctx.root), timeout=60)
+            repeat = testrun.run_pytest(command, ctx.root, suspects, env=source_path_env(ctx.root), timeout=ctx.cap(60))
             steady = [n for n in suspects if not (n in repeat.results and repeat.results[n].outcome == "passed")]
             flaky += [n for n in suspects if n not in steady]
             suspects = steady
         failing = [f for f in failing if f.nodeid not in flaky]
 
+    if failing and ctx.shared.get("left_out"):
+        result.not_checked.append("the session-start checkout lacks ignored files too large to copy "
+                                  f"({', '.join(ctx.shared['left_out'][:3])}), so failures there prove nothing")
     unverified: list[testrun.TestResult] = []
     regressions: list[Finding] = []
     before_too: list[Finding] = []
@@ -337,7 +351,9 @@ def run(ctx: Context) -> EngineResult:
             testrun.function_of(n) for n in baseline_collected.get(test_file, set())}
         before = baseline.get(f.nodeid)
         evidence = [line for line in f.message.splitlines() if line.strip()][:3]
-        if baseline_ok and before is not None and before.bad:
+        if baseline_ok and before is not None and before.bad and ctx.shared.get("left_out"):
+            unverified.append(f)       # it may fail there only for lack of what couldn't be copied
+        elif baseline_ok and before is not None and before.bad:
             before_too.append(Finding(
                 rule="test-failing-before", severity="note", location=f.nodeid,
                 title=f"{f.nodeid} fails, but it already failed at session start", evidence=evidence))
@@ -390,7 +406,7 @@ def run(ctx: Context) -> EngineResult:
     # ── are the session's new tests collected at all? ─────────────────────────
     if changed_tests:
         from notyet.engines.integrity import test_names
-        now_collected = testrun.collect(command, ctx.root, changed_tests, env=source_path_env(ctx.root), timeout=60)
+        now_collected = testrun.collect(command, ctx.root, changed_tests, env=source_path_env(ctx.root), timeout=ctx.cap(60))
         for d in ctx.deltas:
             if now_collected is None or d.path not in changed_tests:
                 continue
@@ -407,12 +423,20 @@ def run(ctx: Context) -> EngineResult:
 
     # ── the session-start tests on the new code; the new tests on the session-start code ─
     from notyet.engines import crosscheck, vacuous
-    if ctx.time_left() > 15:
-        crosscheck.run(ctx, command, current, set(skipped_files), [t for t, _, _ in tests], result)
-    else:
-        result.not_checked.append("session-start tests on the new code: no time left in this check")
-    if changed_tests and not skipped_files and ctx.time_left() > 10:
-        vacuous.check(ctx, command, current.results, result)
+    try:
+        if ctx.time_left() > 30:
+            crosscheck.run(ctx, command, current, set(skipped_files), [t for t, _, _ in tests], result)
+        elif any(lay.is_test_side(d.path) for d in ctx.deltas):
+            result.gaps.append("session-start tests NOT run on the new code: no time left in this check")
+    except Exception as e:      # what was found so far still counts
+        store.log_error(ctx.root, f"cross-check: {e}\n{traceback.format_exc()}")
+        result.gaps.append(f"session-start tests NOT run on the new code: internal error ({e})")
+    try:
+        if changed_tests and not skipped_files and ctx.time_left() > 30:
+            vacuous.check(ctx, command, current.results, result)
+    except Exception as e:
+        store.log_error(ctx.root, f"vacuous: {e}\n{traceback.format_exc()}")
+        result.not_checked.append(f"new tests against the session-start code: internal error ({e})")
 
     passed = sum(1 for r in current.results.values() if r.outcome == "passed")
     bad = sum(1 for r in current.results.values() if r.bad)
@@ -444,7 +468,7 @@ def _hang(ctx: Context, command: str, nodeid: str, seconds: float) -> list[Findi
     if not os.path.exists(os.path.join(tmp, nodeid.split("::")[0])):
         before = None
     else:
-        run_ = testrun.run_pytest(command, tmp, [nodeid], timeout=HANG_SECONDS, env=source_path_env(tmp, {}))
+        run_ = testrun.run_pytest(command, tmp, [nodeid], timeout=ctx.cap(HANG_SECONDS), env=source_path_env(tmp, {}))
         if run_.timed_out or testrun.outcome_of(nodeid, run_.results) != "passed":
             return []
         before = run_.seconds
@@ -535,7 +559,7 @@ def _report_crash(ctx: Context, command: str, batch: list[str], why: str, result
     this session broke them (a conftest, an import at module level)."""
     tmp = ctx.baseline_checkout()
     present = [p for p in batch if os.path.exists(os.path.join(tmp, p))]
-    before = testrun.collect(command, tmp, present, env=source_path_env(tmp, {}), timeout=60) if present else None
+    before = testrun.collect(command, tmp, present, env=source_path_env(tmp, {}), timeout=ctx.cap(60)) if present else None
     if before:
         result.findings.append(Finding(
             rule="test-run-broken", severity="block", location=batch[0],
@@ -577,7 +601,7 @@ def _baseline(ctx: Context, wanted: list[str], whole_files: list[str]):
                 return False, why, {}, {}, set()
             cache.canary_passed(dirs)
         if need_collect:
-            got = testrun.collect(command, tmp, need_collect, env=env, timeout=60)
+            got = testrun.collect(command, tmp, need_collect, env=env, timeout=ctx.cap(60))
             if got is None:
                 return False, "couldn't collect the relevant test files at session start", {}, {}, set()
             for p in need_collect:
@@ -586,9 +610,11 @@ def _baseline(ctx: Context, wanted: list[str], whole_files: list[str]):
                     cache.errors[p] = True
         if ids := to_run():
             run_ = testrun.run_tests(command, tmp, ids, env=env,
-                                     timeout=max(30, min(cfg.budget_seconds, ctx.time_left() - 10)))
+                                     timeout=ctx.cap(max(30, cfg.budget_seconds)))
             if run_.crashed:
                 return False, f"the test command failed on the session-start tree ({run_.crashed})", {}, {}, set()
+            if run_.timed_out and any(n not in run_.results for n in ids):
+                return False, "ran out of time on the session-start tree", {}, {}, set()
             for n in ids:
                 r = run_.results.get(n)
                 if r is not None or not run_.timed_out:
@@ -632,13 +658,15 @@ def _baseline_batch(ctx: Context, command: str, batch: list[str], failing: list[
             return False, why, {}
         cache.canary_passed(dirs)
     limit = max(30.0, min(COMPANY_SECONDS, ctx.time_left() - 20))
-    run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=limit)
+    run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=ctx.cap(limit))
     if run_.timed_out:       # too slow to repeat whole: the failing files, together
         files = sorted({n.split("::")[0] for n in failing} & set(files))
-        run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=max(30, min(ctx.config.budget_seconds, ctx.time_left() - 10)))
+        run_ = testrun.run_pytest(command, tmp, files, env=env, timeout=ctx.cap(max(30, ctx.config.budget_seconds)))
     if run_.crashed:
         return False, f"the test command failed on the session-start tree ({run_.crashed})", {}
-    if not run_.timed_out:
+    if run_.timed_out and any(n not in run_.results for n in failing):
+        return False, "ran out of time on the session-start tree", {}
+    if not run_.timed_out and not run_.aborted:
         cache.batches[key] = {n: [r.outcome, r.message[:500]] for n, r in run_.results.items()}
     for n, r in run_.results.items():
         if r.bad:
@@ -653,7 +681,7 @@ def _once_more(ctx: Context, command: str, batches: list[list[str]], failing: li
     out: dict[str, testrun.TestResult] = {}
     for batch in batches:
         if any(f.nodeid.split("::")[0] in batch for f in failing) and ctx.time_left() > 30:
-            run_ = testrun.run_pytest(command, ctx.root, batch, env=source_path_env(ctx.root), timeout=max(30, budget))
+            run_ = testrun.run_pytest(command, ctx.root, batch, env=source_path_env(ctx.root), timeout=ctx.cap(max(30, budget)))
             out.update(run_.results)
     return out
 
@@ -745,7 +773,7 @@ def _canary(ctx: Context, tmp: str, test_files: list[str], env) -> tuple[bool, s
         with open(path, "w") as f:
             f.write(body)
         canaries.append(os.path.relpath(path, tmp))
-    run = testrun.run_pytest(command, tmp, canaries, env=env, timeout=60)
+    run = testrun.run_pytest(command, tmp, canaries, env=env, timeout=ctx.cap(60))
     for rel in canaries:
         os.remove(os.path.join(tmp, rel))
     if run.crashed or not run.results:
