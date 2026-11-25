@@ -23,6 +23,8 @@ TEMPLATE = """\
 command = "{command}"
 # Seconds the gate may spend running tests at each check.
 budget_seconds = 60
+# Of those, seconds for tests beyond the ones that use the changed code (0: never).
+widen_seconds = 20
 
 [static]
 # Optional: linters/type checkers diffed against the session-start tree.
@@ -40,6 +42,7 @@ mode = "report"
 class Config:
     test_command: Optional[str] = None
     budget_seconds: int = 60
+    widen_seconds: int = 20                   # time for tests beyond the selected ones
     mode: str = "report"                      # report | enforce
     ruff: Optional[str] = None                # command that runs ruff, e.g. ".venv/bin/ruff"
     pyright: Optional[str] = None             # command that runs pyright
@@ -74,6 +77,7 @@ def parse(text: Optional[str], source: str) -> Config:
     gate = data.get("gate", {})
     cfg.test_command = (test.get("command") or "").strip() or None
     cfg.budget_seconds = int(test.get("budget_seconds", cfg.budget_seconds))
+    cfg.widen_seconds = int(test.get("widen_seconds", cfg.widen_seconds))
     static = data.get("static", {})
     cfg.ruff = (static.get("ruff") or "").strip() or None
     cfg.pyright = (static.get("pyright") or "").strip() or None

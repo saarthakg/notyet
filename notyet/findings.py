@@ -1,9 +1,13 @@
 """Findings, and the context engines work from."""
 import hashlib
+import os
+import tempfile
 import time
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
+from notyet import layout as layout_mod
+from notyet import snapshot
 from notyet.config import Config
 from notyet.snapshot import FileDelta
 from notyet.store import Session
@@ -43,9 +47,31 @@ class Context:
     current_tree: str
     deltas: list[FileDelta]
     deadline: Optional[float] = None      # time.monotonic() by which the whole check must end
+    shared: dict[str, Any] = field(default_factory=dict)      # what one engine learned that another needs
+    _checkouts: dict[str, tempfile.TemporaryDirectory] = field(default_factory=dict)
 
     def time_left(self) -> float:
         return float("inf") if self.deadline is None else self.deadline - time.monotonic()
+
+    @property
+    def layout(self) -> layout_mod.Layout:
+        return layout_mod.read(self.root, (self.baseline_tree, self.current_tree))
+
+    def baseline_checkout(self) -> str:
+        """The session-start tree in a directory of its own, shared by the engines (which must not edit
+        it). Removed by close()."""
+        if "baseline" not in self._checkouts:
+            holder = tempfile.TemporaryDirectory(prefix="notyet-baseline-")
+            self._checkouts["baseline"] = holder
+            path = os.path.realpath(holder.name)
+            snapshot.materialize(self.root, self.baseline_tree, path)
+            snapshot.add_ignored(self.root, path)
+        return os.path.realpath(self._checkouts["baseline"].name)
+
+    def close(self) -> None:
+        for holder in self._checkouts.values():
+            holder.cleanup()
+        self._checkouts.clear()
 
 
 @dataclass

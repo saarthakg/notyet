@@ -26,8 +26,8 @@ Engine = Callable[[Context], EngineResult]
 
 
 def default_engines() -> list[Engine]:
-    from notyet.engines import execution, history, integrity, static, undone
-    return [execution.run, integrity.run, static.run, undone.run, history.run]
+    from notyet.engines import execution, gaming, history, integrity, static, undone
+    return [execution.run, integrity.run, gaming.run, static.run, undone.run, history.run]
 
 
 @dataclass
@@ -70,7 +70,9 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
     if background_busy:
         return Decision(verdict="no-change")  # the session isn't done; check when it is
     current = snapshot.snapshot(root)
-    if current == session.baseline_tree:
+    # back where the session started: nothing to check, unless this turn got there by undoing earlier ones
+    undid = bool(session.turns) and session.turns[-1]["tree"] != current
+    if current == session.baseline_tree and not undid:
         return Decision(verdict="no-change")
     cfg = config_mod.load(root, session.baseline_tree)
     ctx = Context(root=root, session=session, config=cfg, baseline_tree=session.baseline_tree,
@@ -83,7 +85,10 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
             return Decision(verdict="no-change")      # this exact tree was already checked
         result = _result_from(previous.result)       # re-decide with current acknowledgments
     else:
-        result = run_engines(ctx, engines)
+        try:
+            result = run_engines(ctx, engines)
+        finally:
+            ctx.close()
         result.not_checked = cfg.problems + result.not_checked
         live = config_mod.load(root)
         if _gate_settings(live) != _gate_settings(cfg):
@@ -123,7 +128,7 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
 
 
 def _gate_settings(cfg: config_mod.Config) -> tuple:
-    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds)
+    return (cfg.test_command, cfg.mode, cfg.budget_seconds, cfg.widen_seconds, cfg.ruff, cfg.pyright, cfg.static_budget_seconds)
 
 
 def _same_set_streak(session: store.Session, ids: list[str]) -> int:

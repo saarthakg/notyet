@@ -1,34 +1,19 @@
-"""Test integrity: did the session weaken the tests instead of fixing the code?
+"""Test integrity, read from the source: assertions removed from a test, and (when the session-start
+tests couldn't be run on the new code, see crosscheck.py) tests switched off.
 
-A test function counts as edited when its body or decorators changed (a
-`parametrize` expectation is part of the test), or a module-level value or
-helper it uses changed. For every test function that existed at session
-start and was edited:
-  - a skip or xfail added (decorator, `pytest.skip()` in the body, a module
-    `pytestmark`): the test no longer checks anything. Block.
-  - the session-start version of the test, run against the new code, fails:
-    the test was changed to accept new behavior. Block: only a fix, or
-    handing it to the user (a requested behavior change is a fine reason).
-  - fewer assertions than before: fix or justify.
-
-The session-start version runs in a checkout of the current tree with just
-that test file swapped back, so it tests exactly the code the agent wrote.
-A failure there only blocks if the same test passed on the session-start
-tree (checked in an isolated checkout, behind the import canary).
+Also the reading of test modules the other engines share. A test function counts as edited when its
+body, its decorators (a `parametrize` expectation is part of the test) or its class's setup changed,
+or a module-level value, helper or fixture it uses did.
 """
 import ast
-import os
-import tempfile
 from dataclasses import dataclass
 
-from notyet import snapshot, testrun
-from notyet.engines.execution import _canary, is_test_module
+from notyet import snapshot
 from notyet.findings import Context, EngineResult, Finding
-from notyet.pyresolve import find_python_source_roots
 
 DISABLING_DECORATORS = ("mark.skip", "mark.xfail", "unittest.skip", "skipIf", "skipUnless", "expectedFailure")
+AUTOUSE = {"autouse fixture"}
 DISABLING_CALLS = ("pytest.skip", "pytest.xfail", "self.skipTest", "pytest.importorskip")
-MAX_OLD_TEST_RUNS = 40
 
 
 @dataclass
@@ -38,111 +23,35 @@ class TestFunc:
     disablers: frozenset[str]
     assertions: int
     body: str                 # normalized source of the body, to tell edits apart
+    setup: str = ""           # normalized source of its class, without the test methods
+    collected: bool = True    # by pytest's default naming
 
 
 def run(ctx: Context) -> EngineResult:
     result = EngineResult()
-    edited_files = [(d.old_path or d.path, d.path) for d in ctx.deltas
-                    if d.status in ("M", "R") and is_test_module(d.path)]
-    if not edited_files:
-        return result
-
-    to_rerun: dict[str, list[str]] = {}          # current path → edited test functions
-    old_paths: dict[str, str] = {}
-    for old_path, path in edited_files:
-        before_source = snapshot.show(ctx.root, ctx.baseline_tree, old_path) or ""
-        after_source = snapshot.show(ctx.root, ctx.current_tree, path) or ""
-        before, after = _functions(before_source), _functions(after_source)
-        edited = changed_functions(before_source, after_source)
+    for d in ctx.deltas:
+        if d.status not in ("M", "R") or not ctx.layout.is_test_module(d.path):
+            continue
+        before = _functions(snapshot.show(ctx.root, ctx.baseline_tree, d.old_path or d.path) or "")
+        after = _functions(snapshot.show(ctx.root, ctx.current_tree, d.path) or "")
         for name in sorted(before.keys() & after.keys()):
             b, a = before[name], after[name]
-            nid = f"{path}::{name}"
+            nid = f"{d.path}::{name}"
             added = sorted(a.disablers - b.disablers)
-            if added:
+            if added and not ctx.shared.get("crosscheck"):
                 result.findings.append(Finding(
                     rule="test-disabled", severity="block", location=nid,
                     title=f"{nid} was switched off this session ({', '.join(added)})",
                     evidence=added[:3],
                     action="Remove the skip/xfail and fix the code. If the test should really be off, "
                            "hand it to the user: `ack <id> --needs-human \"why\"`."))
-                continue
-            if a.assertions < b.assertions:
+            elif not added and a.assertions < b.assertions:
                 result.findings.append(Finding(
                     rule="assertions-removed", severity="resolve", location=nid,
                     title=f"{nid} checks less than it did: {b.assertions} assertion(s) at session start, "
                           f"{a.assertions} now",
                     action="Restore the assertions, or acknowledge why they no longer apply."))
-            if edited.get(name) == "edited":
-                to_rerun.setdefault(path, []).append(name)
-                old_paths[path] = old_path
-
-    if to_rerun:
-        _run_old_versions(ctx, to_rerun, old_paths, result)
     return result
-
-
-def _run_old_versions(ctx: Context, to_rerun: dict[str, list[str]], old_paths: dict[str, str],
-                      result: EngineResult) -> None:
-    """Run the session-start version of each edited test against the new code."""
-    cfg = ctx.config
-    if not cfg.test_command:
-        return
-    command = testrun.anchored(cfg.test_command, ctx.root)
-    node_ids = [f"{p}::{n}" for p, names in to_rerun.items() for n in names][:MAX_OLD_TEST_RUNS]
-    with tempfile.TemporaryDirectory(prefix="notyet-oldtests-") as tmp:
-        tmp = os.path.realpath(tmp)
-        snapshot.materialize(ctx.root, ctx.current_tree, tmp)
-        for path in to_rerun:
-            with open(os.path.join(tmp, path), "w") as f:
-                f.write(snapshot.show(ctx.root, ctx.baseline_tree, old_paths[path]) or "")
-        env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}
-        old_on_new = testrun.run_tests(command, tmp, node_ids, env=env, timeout=max(30, cfg.budget_seconds))
-    if old_on_new.crashed:
-        result.not_checked.append(f"session-start versions of edited tests: {old_on_new.crashed}")
-        return
-    failing = [testrun.TestResult(n, "failed", testrun.failure_of(n, old_on_new.results)) for n in node_ids
-               if testrun.outcome_of(n, old_on_new.results) == "failed"]
-    result.checks.append(f"ran the session-start version of {len(node_ids)} edited test(s) against the new code "
-                         f"({len(failing)} failed)")
-    if not failing:
-        return
-
-    # Did those tests pass on the session-start tree? Otherwise they prove nothing.
-    passed_before, why = _passed_at_session_start(ctx, command, [r.nodeid for r in failing])
-    if why:
-        result.not_checked.append(f"session-start versions of edited tests: {why}")
-    for r in failing:
-        evidence = [line for line in r.message.splitlines() if line.strip()][:3]
-        if r.nodeid in passed_before:
-            result.findings.append(Finding(
-                rule="test-changed-to-pass", severity="block", location=r.nodeid,
-                title=f"{r.nodeid} as it was at session start fails on the new code; the test was edited "
-                      f"instead", evidence=evidence,
-                action="Fix the code so the original test passes. If the behavior change was asked for, "
-                       "hand it to the user: `ack <id> --needs-human \"the change that was requested\"`."))
-        elif why:
-            result.findings.append(Finding(
-                rule="test-changed-to-pass", severity="resolve", location=r.nodeid,
-                title=f"{r.nodeid} as it was at session start fails on the new code (couldn't confirm it "
-                      f"passed at session start)", evidence=evidence,
-                action="Fix the code, or acknowledge the behavior change with the reason."))
-
-
-def _passed_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tuple[set[str], str]:
-    with tempfile.TemporaryDirectory(prefix="notyet-baseline-") as tmp:
-        tmp = os.path.realpath(tmp)
-        snapshot.materialize(ctx.root, ctx.baseline_tree, tmp)
-        env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}
-        files = sorted({n.split("::")[0] for n in node_ids if os.path.exists(os.path.join(tmp, n.split("::")[0]))})
-        if not files:
-            return set(), "the edited test files didn't exist at session start (renamed?)"
-        ok, why = _canary(ctx, tmp, files, env)
-        if not ok:
-            return set(), why
-        run = testrun.run_tests(command, tmp, node_ids, env=env, timeout=max(30, ctx.config.budget_seconds))
-    if run.crashed:
-        return set(), f"the test command failed on the session-start tree ({run.crashed})"
-    return {n for n in node_ids if testrun.outcome_of(n, run.results) == "passed"}, ""
 
 
 # ── reading test functions ─────────────────────────────────────────────────────
@@ -156,17 +65,28 @@ def changed_functions(before_source: str, after_source: str) -> dict[str, str]:
         old = before.get(name)
         if old is None:
             out[name] = "new"
-        elif _signature(old) != _signature(func) or changed_names & _names_used(func.node):
+        elif _signature(old) != _signature(func) or changed_names & (_names_used(func.node) | AUTOUSE):
             out[name] = "edited"
     return out
 
 
-def _signature(func: TestFunc) -> tuple[str, str]:
-    return func.body, "\n".join(ast.unparse(d) for d in getattr(func.node, "decorator_list", []))
+def test_bodies(source: str) -> dict[str, str]:
+    """{test name: its body and decorators, normalized}, to recognize a test that moved."""
+    return {name: "\n".join(_signature(f)[:2]) for name, f in _functions(source).items()}
+
+
+def test_names(source: str) -> set[str]:
+    """Test functions pytest's default naming collects from a module ("test_x", "TestC::test_x")."""
+    return {name for name, f in _functions(source).items() if f.collected}
+
+
+def _signature(func: TestFunc) -> tuple[str, str, str]:
+    return func.body, "\n".join(ast.unparse(d) for d in getattr(func.node, "decorator_list", [])), func.setup
 
 
 def _names_used(node: ast.AST) -> set[str]:
-    return {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
+    """Names a test refers to, including the fixtures it asks for."""
+    return {n.id for n in ast.walk(node) if isinstance(n, ast.Name)} | {a.arg for a in ast.walk(node) if isinstance(a, ast.arg)}
 
 
 def _changed_module_names(before_source: str, after_source: str) -> set[str]:
@@ -187,31 +107,40 @@ def _changed_module_names(before_source: str, after_source: str) -> set[str]:
                             defs[n.id] = ast.unparse(node)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) \
                     and not node.name.startswith(("test", "Test")):
-                defs[node.name] = ast.unparse(node)
+                text = ast.unparse(node)
+                defs[node.name] = text
+                if "autouse=True" in text:      # applies to every test without being named
+                    defs["autouse fixture"] = defs.get("autouse fixture", "") + text
         return defs
     before, after = definitions(before_source), definitions(after_source)
     return {n for n in before.keys() | after.keys() if before.get(n) != after.get(n)}
 
 
 def _functions(source: str) -> dict[str, TestFunc]:
+    """Every function that looks like a test, at any class depth, whatever the class is called."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
         return {}
-    module_marks = _module_disablers(tree)
-    out = {}
-    for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test"):
-            out[node.name] = _read(node.name, node, module_marks)
-        elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
-            class_marks = module_marks | _decorator_disablers(node)
-            for item in node.body:
-                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith("test"):
-                    out[f"{node.name}::{item.name}"] = _read(f"{node.name}::{item.name}", item, class_marks)
+    out: dict[str, TestFunc] = {}
+
+    def visit(body: list[ast.stmt], prefix: str, marks: frozenset[str], setup: str, collected: bool) -> None:
+        for node in body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test"):
+                out[prefix + node.name] = _read(prefix + node.name, node, marks, setup, collected)
+            elif isinstance(node, ast.ClassDef):
+                rest = [n for n in node.body if not isinstance(n, ast.ClassDef)
+                        and not (isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test"))]
+                bases = [ast.unparse(b) for b in node.bases]
+                visit(node.body, f"{prefix}{node.name}::", marks | _decorator_disablers(node) | _mark_disablers(node.body),
+                      "\n".join([setup, *bases, *(ast.unparse(n) for n in rest)]),
+                      collected and (node.name.startswith("Test") or any("TestCase" in b for b in bases)))
+
+    visit(tree.body, "", _mark_disablers(tree.body), "", True)
     return out
 
 
-def _read(name: str, node, inherited: frozenset[str]) -> TestFunc:
+def _read(name: str, node, inherited: frozenset[str], setup: str, collected: bool) -> TestFunc:
     disablers = set(inherited) | _decorator_disablers(node)
     assertions = 0
     for sub in ast.walk(node):
@@ -219,12 +148,13 @@ def _read(name: str, node, inherited: frozenset[str]) -> TestFunc:
             assertions += 1
         elif isinstance(sub, ast.Call):
             func = ast.unparse(sub.func)
-            if func.split(".")[-1].startswith("assert") or func in ("pytest.raises", "pytest.warns"):
+            if func.split(".")[-1].lower().startswith("assert") or func in ("pytest.raises", "pytest.warns") \
+                    or func.startswith("_assert") or func.split(".")[-1].startswith("_assert"):
                 assertions += 1
             if func in DISABLING_CALLS:
                 disablers.add(f"{func}()")
     body = "\n".join(ast.unparse(stmt) for stmt in node.body)
-    return TestFunc(name, node, frozenset(disablers), assertions, body)
+    return TestFunc(name, node, frozenset(disablers), assertions, body, setup, collected)
 
 
 def _decorator_disablers(node) -> frozenset[str]:
@@ -236,9 +166,10 @@ def _decorator_disablers(node) -> frozenset[str]:
     return frozenset(found)
 
 
-def _module_disablers(tree: ast.Module) -> frozenset[str]:
+def _mark_disablers(body: list[ast.stmt]) -> frozenset[str]:
+    """`pytestmark = pytest.mark.skip(...)` in a module or class body."""
     found = set()
-    for node in tree.body:
+    for node in body:
         if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in node.targets):
             text = ast.unparse(node.value)
             if any(k in text for k in DISABLING_DECORATORS):

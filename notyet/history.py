@@ -75,7 +75,7 @@ def read_history(
 
     def flush():
         if sha is not None:
-            commits.append(Commit(sha, date, list(dict.fromkeys(files)), dict(then)))
+            commits.append(Commit(sha, date or "", list(dict.fromkeys(files)), dict(then)))
 
     for line in out.splitlines():
         if line.startswith("@@"):

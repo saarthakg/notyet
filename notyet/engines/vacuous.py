@@ -20,16 +20,10 @@ The same import canary as the other session-start runs guards the checkout.
 """
 import hashlib
 import os
-import tempfile
 from pathlib import PurePosixPath
 
 from notyet import snapshot, testrun
-from notyet.engines.execution import (
-    _BaselineCache,
-    _canary,
-    in_test_dir,
-    is_test_module,
-)
+from notyet.engines.execution import _BaselineCache, _canary
 from notyet.engines.integrity import changed_functions
 from notyet.findings import Context, EngineResult, Finding
 from notyet.pyresolve import find_python_source_roots
@@ -38,15 +32,11 @@ MAX_TESTS = 60
 MAX_EVIDENCE = 5
 
 
-def is_test_side(path: str) -> bool:
-    return is_test_module(path) or PurePosixPath(path).name == "conftest.py" or in_test_dir(path)
-
-
 def written_tests(ctx: Context) -> list[str]:
     """Node ids ("file::func", "file::Class::func") of test functions the session added or edited."""
     out = []
     for d in ctx.deltas:
-        if d.status == "D" or not is_test_module(d.path):
+        if d.status == "D" or not ctx.layout.is_test_module(d.path):
             continue
         before = (snapshot.show(ctx.root, ctx.baseline_tree, d.old_path or d.path) or "") if d.status != "A" else ""
         after = snapshot.show(ctx.root, ctx.current_tree, d.path) or ""
@@ -55,7 +45,7 @@ def written_tests(ctx: Context) -> list[str]:
 
 
 def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], result: EngineResult) -> None:
-    source_changed = any(d.path.endswith(".py") and not is_test_side(d.path) for d in ctx.deltas)
+    source_changed = any(d.path.endswith(".py") and not ctx.layout.is_test_side(d.path) for d in ctx.deltas)
     if not source_changed:
         return
     passing_now = [n for n in written_tests(ctx) if testrun.outcome_of(n, current) == "passed"][:MAX_TESTS]
@@ -91,18 +81,16 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
 def _run_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tuple[dict[str, testrun.TestResult], str]:
     """Run `node_ids` on the session-start tree plus the session's test-side
     files. Cached per session-start tree and test-side content."""
-    overlay = sorted(d.path for d in ctx.deltas if d.status != "D" and is_test_side(d.path))
+    overlay = sorted(d.path for d in ctx.deltas if d.status != "D" and ctx.layout.is_test_side(d.path))
     listing = snapshot.git(ctx.root, "ls-tree", "-r", ctx.current_tree, "--", *overlay) if overlay else ""
     key = hashlib.sha1(("|".join(sorted(node_ids)) + "\n" + listing).encode()).hexdigest()[:16]
     cache = _BaselineCache(ctx.root, ctx.baseline_tree, command)
     if key in cache.vacuous:
-        return {n: testrun.TestResult(n, *r) for n, r in cache.vacuous[key].items()}, ""
+        return {n: testrun.TestResult(n, r[0], r[1]) for n, r in cache.vacuous[key].items()}, ""
 
     files = sorted({n.split("::")[0] for n in node_ids})
     dirs = sorted({os.path.dirname(p) for p in files})
-    with tempfile.TemporaryDirectory(prefix="notyet-vacuous-") as tmp:
-        tmp = os.path.realpath(tmp)
-        snapshot.materialize(ctx.root, ctx.baseline_tree, tmp)
+    with snapshot.checkout(ctx.root, ctx.baseline_tree, "vacuous") as tmp:
         if overlay:
             snapshot.materialize(ctx.root, ctx.current_tree, tmp, paths=overlay)
         env = {"PYTHONPATH": os.pathsep.join(str(r) for r in find_python_source_roots(tmp))}

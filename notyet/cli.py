@@ -148,7 +148,8 @@ def cmd_check(args) -> int:
     if decision.verdict == "no-change":
         print(f"No changes compared with {args.base}.")
         return 0
-    print(Path(decision.receipt_path).read_text())
+    if decision.receipt_path:
+        print(Path(decision.receipt_path).read_text())
     return 1 if decision.verdict in ("blocked", "unresolved") or (
         decision.verdict == "reported" and args.strict) else 0
 
