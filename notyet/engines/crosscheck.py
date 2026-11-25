@@ -22,6 +22,10 @@ This is execution, not pattern matching: it doesn't matter how a test was made
 to pass. What it can't see is source code that behaves differently under test
 (engines/gaming.py looks for the common forms of that).
 
+A test that already failed at session start gets the same question. If it still fails as it was
+written, and the session's version passes (or is skipped, or gone), then the test was changed and
+the code it asked for wasn't: failing-test-changed, fix or justify. (Sometimes the test was wrong.)
+
 Names moving is not behavior changing: when a session-start module can't even be
 imported on the new code (a renamed import), its unedited tests are judged by
 their new run, and only its edited ones are raised, as fix-or-justify.
@@ -164,6 +168,8 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
     bad = [r.nodeid for r in old.failures if "::" in r.nodeid]
     passed_before, why = passed_at_session_start(ctx, command, bad, uncollected)
     if why:
+        uncollected = []
+    if why:
         result.not_checked.append(f"session-start versions of changed tests: {why}")
 
     # ── one verdict per test function ────────────────────────────────────────
@@ -180,6 +186,8 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
 
     now_fns = {testrun.function_of(n) for n in current.results if "::" in n}
     known = {n.split("::")[0] for n in current.results} - unfinished
+    never_fixed: list[tuple[str, str]] = []
+    already = {testrun.function_of(n) for n in bad} - set(fails)
     by_support: list[str] = []
     skip_to_confirm: list[str] = []
     tally: Counter = Counter()
@@ -242,6 +250,26 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
             by_support.append(fn)
             tally["changed"] += 1
 
+    for fn in sorted(already):
+        then, _, name = fn.partition("::")
+        now_file = side.modules.get(then, then)
+        if now_file is not None and now_file not in known and fn not in dropped:
+            continue
+        now = "missing" if now_file is None or fn in dropped else testrun.outcome_of(f"{now_file}::{name}", current.results)
+        if now != "failed":
+            never_fixed.append((fn, {"passed": "passes", "skipped": "is skipped", "missing": "is gone"}[now]))
+    if never_fixed:
+        first, how = never_fixed[0]
+        rest = f" (and {len(never_fixed) - 1} more like it)" if len(never_fixed) > 1 else ""
+        result.findings.append(Finding(
+            rule="failing-test-changed", severity="resolve", location=first, key="|".join(fn for fn, _ in never_fixed),
+            title=f"{first} failed at session start and {how} now, but as it was written then it still fails on the new "
+                  f"code{rest}",
+            evidence=_evidence(old.results, next((n for n in bad if testrun.function_of(n) == first), None), first)
+            + [fn for fn, _ in never_fixed[1:4]],
+            action="Fix the code so the original test passes. If the test itself was wrong, acknowledge that and say why."))
+        tally["failing before, only the test changed"] += len(never_fixed)
+
     confirmed = _skips_here(ctx, command, skip_to_confirm)
     for fn in skip_to_confirm:
         if fn in confirmed:
@@ -260,7 +288,7 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
                    "to the user: `ack <id> --needs-human \"the change that was requested\"`."))
     if tally:
         result.checks.append(
-            f"session-start tests on the new code: {sum(tally.values())} test(s) that passed at session start: "
+            f"session-start tests on the new code: {sum(tally.values())} test(s): "
             + ", ".join(f"{n} {k}" for k, n in tally.most_common()))
     ctx.shared["crosscheck"] = {f.location for f in result.findings if f.rule == "test-disabled"}
 

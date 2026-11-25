@@ -70,7 +70,7 @@ def test_strengthening_or_refactoring_a_test_is_fine(repo):
                                        "def test_sub():\n    assert sub(3, 1) == 2\n")
     result = check(repo)
     assert result.findings == []
-    assert any("2 test(s) that passed at session start: 2 as written" in c for c in result.checks)
+    assert any("2 test(s): 2 as written" in c for c in result.checks)
 
 
 def test_a_requested_behavior_change_blocks_until_handed_to_the_user(repo):

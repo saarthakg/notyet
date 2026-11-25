@@ -64,6 +64,9 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
         result.checks.append(
             f"new tests against the session-start code: {len(tells)} of {len(outcomes)} fail there, so they test "
             f"the change; {len(same)} pass on both sides (regression or characterization tests){tail}")
+    elif same and (fixed := _fixed_existing(ctx, command, current)):
+        result.checks.append(f"new tests against the session-start code: all {len(same)} pass there, but {fixed} existing "
+                             f"test(s) that failed at session start pass now, so the change is tested{tail}")
     elif same:
         result.findings.append(Finding(
             rule="test-vacuous", severity="resolve", location=same[0], key="|".join(same),
@@ -76,6 +79,17 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
     else:
         result.not_checked.append(f"new tests against the session-start code: none of {len(outcomes)} could be "
                                   f"compared (skipped or not collected there)")
+
+
+def _fixed_existing(ctx: Context, command: str, current: dict[str, testrun.TestResult]) -> int:
+    """How many tests failed on the session-start tree and pass now: a fix for a failing test needs no new one."""
+    from notyet.engines.execution import _baseline_batch
+    fixed = 0
+    for batch in ctx.shared.get("batches", [])[:1]:       # the most relevant tests ran first
+        ok, _, then = _baseline_batch(ctx, command, batch, [])
+        if ok:
+            fixed += sum(1 for n, r in then.items() if r.bad and n in current and current[n].outcome == "passed")
+    return fixed
 
 
 def _run_at_session_start(ctx: Context, command: str, node_ids: list[str]) -> tuple[dict[str, testrun.TestResult], str]:

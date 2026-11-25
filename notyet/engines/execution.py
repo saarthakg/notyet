@@ -227,6 +227,7 @@ def run(ctx: Context) -> EngineResult:
         result.findings += _coverage_findings(ctx, changed_src, {})
         return result
     ctx.shared["ran_nothing"] = ran_nothing
+    ctx.shared["batches"] = batches_run
     coverage_check = None
     if changed_src:
         if hits is None:
@@ -620,7 +621,7 @@ def _baseline_batch(ctx: Context, command: str, batch: list[str], failing: list[
 
     if key in cache.batches:
         return True, "", saved(key)
-    if all(cache.failed.get(n) for n in failing):
+    if failing and all(cache.failed.get(n) for n in failing):
         return True, "", {n: testrun.TestResult(n, "failed", cache.failed[n]) for n in failing}
     tmp = ctx.baseline_checkout()
     env = source_path_env(tmp, {})
