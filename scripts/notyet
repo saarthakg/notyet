@@ -4,6 +4,7 @@ plugin's hooks call. Runs on any python3: notyet needs 3.11, so it looks for one
 
 A plugin's hooks fire in every project, so as a hook this does nothing in a repo without .notyet.toml.
 """
+import io
 import json
 import os
 import shutil
@@ -13,8 +14,13 @@ import sys
 HERE = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
-def configured():
-    here = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+def configured(payload):
+    """Is the repo this event is about configured? The payload says where; the environment is a guess."""
+    try:
+        here = json.loads(payload).get("cwd")
+    except (ValueError, AttributeError):
+        here = None
+    here = os.path.abspath(here or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     while True:
         if os.path.exists(os.path.join(here, ".notyet.toml")):
             return True
@@ -26,13 +32,17 @@ def configured():
 def main():
     args = sys.argv[1:]
     hook = args[:1] == ["hook"]
-    if hook and not configured():
+    payload = sys.stdin.read() if hook else ""
+    if hook and not configured(payload):
         return 0
+    if hook:
+        sys.stdin = io.StringIO(payload)
     if sys.version_info < (3, 11):
         for name in ("python3.14", "python3.13", "python3.12", "python3.11"):
             found = shutil.which(name)
             if found:
-                return subprocess.call([found, os.path.realpath(__file__)] + args)
+                return subprocess.run([found, os.path.realpath(__file__)] + args, input=payload if hook else None,
+                                      universal_newlines=True).returncode
         if hook and args[-1:] == ["session-start"]:
             print(json.dumps({"systemMessage": "notyet needs Python 3.11 or later and found none, so nothing is checked."}))
         elif not hook:

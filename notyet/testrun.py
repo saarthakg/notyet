@@ -6,6 +6,7 @@ can't be trusted. Every run gets a hard timeout.
 """
 import json
 import os
+import re
 import shlex
 import signal
 import subprocess
@@ -129,7 +130,7 @@ def run_pytest(command: str, cwd: str, targets: list[str], timeout: float,
         start = time.monotonic()
         try:
             proc = subprocess.Popen(argv, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                                    env={**os.environ, **(env or {}), "PYTHONDONTWRITEBYTECODE": "1"},
+                                    env={**clean_environ(), **(env or {}), "PYTHONDONTWRITEBYTECODE": "1"},
                                     start_new_session=True)
         except OSError as e:
             return Run(crashed=f"couldn't start the test command: {e}")
@@ -150,6 +151,14 @@ def run_pytest(command: str, cwd: str, targets: list[str], timeout: float,
             tail = (stdout + stderr).strip().splitlines()[-6:]
             run.crashed = f"the test command exited {proc.returncode} without results: " + " | ".join(tail)
         return run
+
+
+# What the host sets for its hooks. A test that sees them can behave differently here than in anyone's shell.
+_HOST = re.compile(r"CLAUDECODE|CLAUDE_(PROJECT_DIR|ENV_FILE|PLUGIN_\w+|CODE_\w+)|CODEX_(THREAD_ID|SANDBOX\w*)|AI_AGENT|NOTYET_ENTRY")
+
+
+def clean_environ() -> dict[str, str]:
+    return {k: v for k, v in os.environ.items() if not _HOST.fullmatch(k)}
 
 
 INTERRUPT_GRACE = 10   # seconds pytest gets, after Ctrl-C, to write the junit file
@@ -283,7 +292,7 @@ def collect(command: str, cwd: str, targets: list[str], timeout: float,
             "--continue-on-collection-errors", f"--rootdir={cwd}"]
         try:
             subprocess.run(argv, cwd=cwd, capture_output=True, timeout=timeout, check=False, stdin=subprocess.DEVNULL,
-                           env={**os.environ, **env, "NOTYET_COLLECT_OUT": out, "PYTHONDONTWRITEBYTECODE": "1"})
+                           env={**clean_environ(), **env, "NOTYET_COLLECT_OUT": out, "PYTHONDONTWRITEBYTECODE": "1"})
             with open(out) as f:
                 data = json.load(f)
         except (subprocess.TimeoutExpired, OSError, ValueError):
