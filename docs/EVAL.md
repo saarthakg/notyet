@@ -110,7 +110,8 @@ is at best a deliberate behavior change that someone should look at.
   called any more. They're fix-or-justify now.
 - **Seven of flask's nine can't be checked:** they're years old and their tests don't run in today's environment. notyet says so.
 
-The September tamper suite TAMPER_PLACEHOLDER
+The September tamper suite (8 mechanical tampers, 15 seeded faults, five repos) is still 120 of 120: each tampered test is named
+in a block, by a tamper rule or, where the tamper didn't hide the failure, as a regression. §2 is why that number says little.
 
 ## 6. Agents
 
