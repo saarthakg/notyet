@@ -120,7 +120,8 @@ def test_the_session_start_run_is_cached(repo, monkeypatch):
     with_buggy_sub(repo)
     _write(repo, "pkg/calc.py", FIXED_SUB)
     _write(repo, "tests/test_calc.py", CALC_TESTS + "\n\ndef test_sub():\n    assert sub(2, 2) == 0\n")
-    first = check(repo)
+    check(repo)
+    first = check(repo)         # by now it knows how long the suite takes, and runs it in one go
     calls = []
     real = snapshot.materialize
     base = snapshot.head_tree(str(repo))
