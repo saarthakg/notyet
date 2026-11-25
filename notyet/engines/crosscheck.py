@@ -254,7 +254,7 @@ def run(ctx: Context, command: str, current: testrun.Run, unfinished: set[str], 
         result.checks.append(
             f"session-start tests on the new code: {sum(tally.values())} test(s) that passed at session start: "
             + ", ".join(f"{n} {k}" for k, n in tally.most_common()))
-    ctx.shared["crosscheck"] = True
+    ctx.shared["crosscheck"] = {f.location for f in result.findings if f.rule == "test-disabled"}
 
 
 def _removed(fn: str, now_file, still_there: bool, holds: bool, side: Side, evidence: list[str], result: EngineResult) -> None:

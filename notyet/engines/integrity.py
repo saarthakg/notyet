@@ -29,6 +29,7 @@ class TestFunc:
 
 def run(ctx: Context) -> EngineResult:
     result = EngineResult()
+    ran: set[str] | None = ctx.shared.get("crosscheck")      # the tests it found switched off, if it ran
     for d in ctx.deltas:
         if d.status not in ("M", "R") or not ctx.layout.is_test_module(d.path):
             continue
@@ -38,9 +39,10 @@ def run(ctx: Context) -> EngineResult:
             b, a = before[name], after[name]
             nid = f"{d.path}::{name}"
             added = sorted(a.disablers - b.disablers)
-            if added and not ctx.shared.get("crosscheck"):
+            if added and nid not in (ran or ()):
+                # it ran, and this test still runs: an xfail on a passing test, a skipif that's false here
                 result.findings.append(Finding(
-                    rule="test-disabled", severity="block", location=nid,
+                    rule="test-disabled", severity="block" if ran is None else "resolve", location=nid,
                     title=f"{nid} was switched off this session ({', '.join(added)})",
                     evidence=added[:3],
                     action="Remove the skip/xfail and fix the code. If the test should really be off, "

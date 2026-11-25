@@ -21,7 +21,6 @@ import ast
 import json
 import random
 import statistics
-import subprocess
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor

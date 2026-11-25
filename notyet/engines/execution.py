@@ -16,7 +16,6 @@ failure can't be called a regression, and it's reported as fix-or-justify.
 The session's new and edited tests are also run against the session-start
 code, to see whether any of them tests the change (engines/vacuous.py).
 """
-import ast
 import hashlib
 import json
 import os
@@ -207,8 +206,8 @@ def run(ctx: Context) -> EngineResult:
     if not tests and not widened:
         result.not_checked.append("tests: no tests exercise the changed files (none import them or are named for them)"
                                   if not all_tests else
-                                  f"tests: nothing selects any of the {len(all_tests)} test file(s) for this change, and "
-                                  f"they're too slow to run them all")
+                                  f"tests: no tests exercise the changed files as far as can be read, and there was no time "
+                                  f"to run the other {len(all_tests)} test file(s)")
         result.findings += _coverage_findings(ctx, changed_src, {})
         return result
     ctx.shared["ran_nothing"] = ran_nothing

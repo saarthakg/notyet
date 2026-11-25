@@ -17,7 +17,7 @@ they're run and reported, but not counted.
 
   python eval/notyet_scenarios.py OUT.json [--only NAME,...] [--jobs N]
 
-No agent, no network: free. About a minute on 8 cores.
+No agent, no network: free. About two minutes on 8 cores. Exits 1 if any counted scenario is wrong.
 """
 import argparse
 import collections
@@ -1094,7 +1094,7 @@ def main() -> int:
                     print(f"{'':17}not checked: {n[:150]}")
                 if x.get("error") or x.get("hook_error"):
                     print("                 " + (x.get("error") or x["hook_error"])[-300:].replace("\n", "\n                 "))
-    return 0
+    return 0 if all(r.get("ok") or r["limit"] for r in rows) else 1
 
 
 if __name__ == "__main__":
