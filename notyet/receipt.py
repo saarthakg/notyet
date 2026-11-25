@@ -5,6 +5,7 @@ The agent-facing message stays small (Claude Code caps hook text at 10,000
 characters, and long messages get skimmed): the top findings, what to do,
 and how to acknowledge.
 """
+import os
 import shlex
 import sys
 import time
@@ -29,7 +30,9 @@ VERDICT_TEXT = {
 
 def invocation() -> str:
     """How the agent should call notyet (the same interpreter the hook runs in)."""
-    return f"{shlex.quote(sys.executable)} -m notyet"   # paths with spaces must survive a copy into a shell
+    entry = os.environ.get("NOTYET_ENTRY")             # run from a checkout (the plugin), not installed
+    target = shlex.quote(entry) if entry else "-m notyet"
+    return f"{shlex.quote(sys.executable)} {target}"   # paths with spaces must survive a copy into a shell
 
 
 def _where(f: Finding) -> str:

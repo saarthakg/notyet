@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Run notyet from this checkout, without installing it (it has no dependencies). What the Claude Code
+plugin's hooks call. Runs on any python3: notyet needs 3.11, so it looks for one.
+
+A plugin's hooks fire in every project, so as a hook this does nothing in a repo without .notyet.toml.
+"""
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+
+def configured():
+    here = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    while True:
+        if os.path.exists(os.path.join(here, ".notyet.toml")):
+            return True
+        if os.path.dirname(here) == here:
+            return False
+        here = os.path.dirname(here)
+
+
+def main():
+    args = sys.argv[1:]
+    hook = args[:1] == ["hook"]
+    if hook and not configured():
+        return 0
+    if sys.version_info < (3, 11):
+        for name in ("python3.14", "python3.13", "python3.12", "python3.11"):
+            found = shutil.which(name)
+            if found:
+                return subprocess.call([found, os.path.realpath(__file__)] + args)
+        if hook and args[-1:] == ["session-start"]:
+            print(json.dumps({"systemMessage": "notyet needs Python 3.11 or later and found none, so nothing is checked."}))
+        elif not hook:
+            sys.stderr.write("notyet needs Python 3.11 or later.\n")
+        return 0 if hook else 2
+    sys.path.insert(0, HERE)
+    os.environ["NOTYET_ENTRY"] = os.path.realpath(__file__)      # how the agent should call it back
+    from notyet import cli
+    return cli.main(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

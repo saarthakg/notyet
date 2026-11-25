@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/notyet\" hook claude session-start", "timeout": 60}]}],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/notyet\" hook claude prompt", "timeout": 60}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/notyet\" hook claude stop", "timeout": 900}]}]
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "notyet",
+  "owner": {"name": "Saarthak Gupta"},
+  "plugins": [{"name": "notyet", "source": "./", "description": "A completion gate for Python repos with pytest"}]
+}

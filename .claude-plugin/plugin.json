@@ -1,0 +1,8 @@
+{
+  "name": "notyet",
+  "version": "0.2.0",
+  "description": "A completion gate: when Claude says it's done, run the tests the change reaches, compare them with session start, and say what was broken, weakened or left untested.",
+  "author": {"name": "Saarthak Gupta"},
+  "homepage": "https://github.com/saarthakg/notyet",
+  "keywords": ["testing", "pytest", "verification", "hooks"]
+}
