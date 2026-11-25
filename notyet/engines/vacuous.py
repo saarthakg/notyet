@@ -13,6 +13,8 @@ So the rule is per session, not per test:
   - the session changed source code, and none of its new or edited tests
     fails at session start: fix or justify ("test-vacuous"). A refactor or a
     regression test is a fine justification;
+  - an earlier check in the session asked for tests of untested lines: these are
+    those tests, not reported;
   - at least one fails at session start: the change is tested; the ones that
     pass on both sides are only counted on the receipt;
   - only tests changed: nothing to compare, not reported.
@@ -66,6 +68,9 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
     elif same and (fixed := _fixed_existing(ctx, command, current)):
         result.checks.append(f"new tests against the session-start code: all {len(same)} pass there, but {fixed} existing "
                              f"test(s) that failed at session start pass now, so the change is tested{tail}")
+    elif same and _asked_for(ctx):
+        result.checks.append(f"new tests against the session-start code: all {len(same)} pass there; they cover lines an "
+                             f"earlier check in this session reported as untested{tail}")
     elif same:
         result.findings.append(Finding(
             rule="test-vacuous", severity="resolve", location=same[0], key="|".join(same),
@@ -78,6 +83,12 @@ def check(ctx: Context, command: str, current: dict[str, testrun.TestResult], re
     else:
         result.not_checked.append(f"new tests against the session-start code: none of {len(outcomes)} could be "
                                   f"compared (skipped or not collected there)")
+
+
+def _asked_for(ctx: Context) -> bool:
+    """Did an earlier check ask for tests of untested lines? On a refactor, tests that answer it pass on both
+    sides, and the gate mustn't object to what it asked for."""
+    return any(f.get("rule") == "untested-change" for run in ctx.session.runs for f in run.result.get("findings", []))
 
 
 def _fixed_existing(ctx: Context, command: str, current: dict[str, testrun.TestResult]) -> int:

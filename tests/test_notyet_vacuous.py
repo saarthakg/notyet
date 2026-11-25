@@ -200,3 +200,17 @@ def test_binary_test_data_is_copied_exactly(repo):
     _write(repo, "tests/test_calc.py", CALC_TESTS + "\n\nimport pathlib\n\n\ndef test_sub():\n"
            "    a, _, b = pathlib.Path(__file__).with_name('data.bin').read_bytes()\n    assert sub(a, b) == 0\n")
     assert [f.location for f in vacuous(check(repo))] == ["tests/test_calc.py::test_sub"]
+
+
+def test_tests_the_gate_asked_for_are_not_called_vacuous(repo):
+    """A refactor with an untested line: the test written for it passes on both sides, as it should."""
+    from notyet import gate, store
+    with_buggy_sub(repo)
+    root = str(repo)
+    session = store.start_session(root, "asked", "session-start")
+    _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text().replace("def add(a, b):\n", "def add(a, b):\n    if a is None:\n        return b\n"))
+    first = gate.check(root, session)
+    assert "untested-change" in [f.rule for f in first.findings]
+    _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text().replace("    if a is None:\n        return b\n", "    a = a\n"))
+    _write(repo, "tests/test_calc.py", (repo / "tests/test_calc.py").read_text() + "\n\ndef test_add_zero():\n    assert add(0, 0) == 0\n")
+    assert "test-vacuous" not in [f.rule for f in gate.check(root, session).findings]
