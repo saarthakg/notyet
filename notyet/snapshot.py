@@ -10,22 +10,33 @@ import os
 import re
 import shutil
 import subprocess
-import tarfile
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Iterator, Optional
 
 
 class GitError(RuntimeError):
     pass
 
 
+# Output is parsed, so the user's own git configuration mustn't change its shape: diff.noprefix
+# alone used to empty every diff notyet read, and silently.
+_STABLE = [a for kv in ("core.quotePath=false", "diff.noprefix=false", "diff.mnemonicPrefix=false", "diff.renames=true",
+                        "diff.external=", "diff.orderFile=/dev/null", "diff.suppressBlankEmpty=false", "diff.relative=false",
+                        "diff.srcPrefix=a/", "diff.dstPrefix=b/", "color.ui=false")
+           for a in ("-c", kv)]
+# set when notyet runs inside a git hook: they'd point git at another index or repo
+_LEAKING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_PREFIX", "GIT_EXTERNAL_DIFF", "GIT_DIFF_OPTS")
+
+
 def git(root: str, *args: str, env: Optional[dict] = None, input: Optional[str] = None) -> str:
+    base = {k: v for k, v in os.environ.items() if k not in _LEAKING}
     try:
         return subprocess.run(
-            ["git", "-C", root, *args], capture_output=True, text=True, check=True,
-            env={**os.environ, **(env or {})}, input=input,
+            ["git", *_STABLE, "-C", root, *args], capture_output=True, text=True, check=True, encoding="utf-8",
+            errors="surrogateescape", env={**base, **(env or {})}, input=input,
         ).stdout
     except FileNotFoundError:
         raise GitError("git is not installed") from None
@@ -65,8 +76,26 @@ def snapshot(root: str) -> str:
             # look unchanged.
             shutil.copy2(real_index, index)
         env = {"GIT_INDEX_FILE": str(index)}
+        _unhide(root, env)
         git(root, "add", "--all", env=env)
         return git(root, "write-tree", env=env).strip()
+
+
+def _unhide(root: str, env: dict) -> None:
+    """Clear `assume-unchanged` (and `skip-worktree` on files that are present) in the temporary
+    index: with either bit, git would report an edited file as unchanged."""
+    if not os.path.exists(env["GIT_INDEX_FILE"]):
+        return
+    hidden, skipped = [], []
+    for entry in git(root, "ls-files", "-v", "-z", env=env).split("\0"):
+        tag, path = entry[:1], entry[2:]
+        if tag.islower():
+            hidden.append(path)
+        if tag in ("S", "s") and os.path.lexists(os.path.join(root, path)):
+            skipped.append(path)     # an absent one is a sparse checkout doing its job
+    for flag, paths in (("--no-assume-unchanged", hidden), ("--no-skip-worktree", skipped)):
+        if paths:
+            git(root, "update-index", flag, "-z", "--stdin", env=env, input="\0".join(paths) + "\0")
 
 
 @dataclass
@@ -126,11 +155,64 @@ def show(root: str, tree: str, path: str) -> Optional[str]:
 
 
 def materialize(root: str, tree: str, dest: str, paths: list[str] | None = None) -> None:
-    """Write the files of `tree` (or just `paths` in it) into `dest`, byte for
-    byte (read-only for the repo)."""
-    proc = subprocess.Popen(["git", "-C", root, "archive", "--format=tar", tree, *(["--", *paths] if paths else [])],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    with tarfile.open(fileobj=proc.stdout, mode="r|") as tar:
-        tar.extractall(dest, filter="data")
-    if proc.wait() != 0:
-        raise GitError(f"git archive failed: {proc.stderr.read().decode()[:300]}")
+    """Write the files of `tree` (or just `paths` in it) into `dest`, as a checkout would.
+
+    Not `git archive`: that leaves out `export-ignore` paths (often the tests) and rewrites
+    `export-subst` ones."""
+    if paths is not None and not paths:
+        return
+    with tempfile.TemporaryDirectory(prefix="notyet-index-") as tmp:
+        env = {"GIT_INDEX_FILE": os.path.join(tmp, "index")}
+        git(root, "read-tree", tree, env=env)
+        prefix = f"--prefix={os.path.join(dest, '')}"
+        if paths is None:
+            git(root, "checkout-index", "--all", "--force", prefix, env=env)
+        else:
+            git(root, "checkout-index", "--force", prefix, "-z", "--stdin", env=env, input="\0".join(paths) + "\0")
+
+
+# Ignored directories a checkout must not share with the working tree.
+_NOT_SHARED = {"__pycache__", ".git", ".venv", "venv", "env", ".tox", ".nox", ".pytest_cache", ".ruff_cache",
+               ".mypy_cache", ".hypothesis", "build", "dist", "htmlcov", "site-packages"}
+MAX_IGNORED_FILES = 400
+MAX_IGNORED_BYTES = 8_000_000
+
+
+def add_ignored(root: str, dest: str) -> None:
+    """Add to the checkout at `dest` the gitignored files a fresh one lacks but the code may need: a
+    generated `_version.py`, a compiled extension, local test data. Files are copied; wholly ignored
+    directories (node_modules, a generated package) are linked."""
+    try:
+        listing = git(root, "ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z")
+    except GitError:
+        return
+    budget, n = MAX_IGNORED_BYTES, 0
+    for rel in filter(None, listing.split("\0")):
+        parts = rel.rstrip("/").split("/")
+        if set(parts) & _NOT_SHARED or parts[-1].endswith((".egg-info", ".pyc", ".log")) or parts[-1].startswith(".coverage"):
+            continue
+        src, target = os.path.join(root, rel.rstrip("/")), os.path.join(dest, rel.rstrip("/"))
+        if os.path.lexists(target) or not os.path.isdir(os.path.dirname(target)):
+            continue
+        n += 1
+        if n > MAX_IGNORED_FILES:
+            return
+        try:
+            if rel.endswith("/"):
+                os.symlink(src, target)
+            elif (size := os.path.getsize(src)) <= budget:
+                budget -= size
+                shutil.copy2(src, target)
+        except OSError:
+            continue
+
+
+@contextmanager
+def checkout(root: str, tree: str, label: str) -> Iterator[str]:
+    """A throwaway directory holding `tree` (plus the ignored files it needs to run). The path is
+    resolved: macOS temp dirs live behind /var -> /private/var, and every path check compares with it."""
+    with tempfile.TemporaryDirectory(prefix=f"notyet-{label}-") as tmp:
+        tmp = os.path.realpath(tmp)
+        materialize(root, tree, tmp)
+        add_ignored(root, tmp)
+        yield tmp
