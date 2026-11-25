@@ -156,3 +156,11 @@ def test_undoing_everything_back_to_the_start_is_still_seen(repo):
     run = store.load_session(root, "u").runs[-1]
     assert [f["rule"] for f in run.result["findings"]] == ["undone-work"]
     assert snapshot.snapshot(root) == store.load_session(root, "u").baseline_tree
+
+
+def test_init_says_whether_the_test_command_works(repo, capsys):
+    from tests.conftest import PYTEST
+    assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", PYTEST]) == 0
+    assert "The test command finds 4 test(s)." in capsys.readouterr().out
+    assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", "python3 -c 'raise SystemExit(3)'"]) == 0
+    assert "Warning" in capsys.readouterr().out

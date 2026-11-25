@@ -53,8 +53,20 @@ def cmd_init(args) -> int:
     if not _confirm("Write it?", args.yes):
         return 1
     path.write_text(text)
+    print(_try_command(root, command))
     print(f"Wrote {path}. Review the test command, then run `notyet install claude`.")
     return 0
+
+
+def _try_command(root: str, command: str) -> str:
+    """Does the test command work at all? Better found out now than at the end of a session."""
+    from notyet import testrun
+    from notyet.engines.execution import source_path_env
+    found = testrun.collect(testrun.anchored(command, root), root, [], timeout=60, env=source_path_env(root))
+    if found is None:
+        return f"Warning: `{command} --collect-only` didn't work here. Fix the command in {config_mod.CONFIG_FILE} before relying on the gate."
+    broken = f"; {len(found.errors)} file(s) can't be collected: {', '.join(sorted(found.errors)[:3])}" if found.errors else ""
+    return f"The test command finds {len(found)} test(s){broken}."
 
 
 def cmd_install(args) -> int:
