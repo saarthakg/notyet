@@ -223,6 +223,13 @@ debugging left in, new code nothing calls.
   built what was named and updated the docs asked for). The first replay found one false alarm, a file the prompt
   named as something to follow ("the conventions in AGENT_PRINCIPLES.md", which doesn't exist), and one bug in the
   replay itself (it gave each check the whole session's prompts). In CI the pull request's description is the request.
+- **A real pull request** (a throwaway on this repo, closed: a new module with a TODO, nothing calling it, and a
+  description asking for docs). The Action posted the brief as one comment and edited that same comment on each push.
+  It found two bugs. A new module nothing imported selected 16 test files and ran out the budget: git's `-m notyet`
+  (a commit message) was read as `python -m notyet`, and that was taken to run every module in the package. And the new
+  function wasn't reported as unused, because a README sentence, a recorded JSON result and a `# rounded up` comment
+  contained the word. Both are fixed: `-m` counts only after a Python interpreter and runs the package's `__main__`; a
+  use is code, config, or docs that name it as code. The 600 human commits still give 4 with an item.
 - **What this doesn't show:** how often agents stop short in real use. Requests that fit in one turn of `claude -p`
   were finished every time here; the reports in RESEARCH.md §12 come from long interactive sessions with a to-do list,
   which this harness doesn't reproduce.
