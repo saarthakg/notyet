@@ -186,10 +186,40 @@ real bug (the plugin trusted the host's environment, so one new test failed only
 this work had deliberately changed, which the author's own summary hadn't mentioned, and 43 were lint, suppressions and other noise. That led to
 grouping, a bounded check, test runs without the host's variables, and `tests/test_notyet_dogfood.py`.
 
+### Unfinished work (November 2026)
+
+The checks in `plan.py` and `engines/finish.py` (docs/RESEARCH.md §12): the agent's own to-do list, TODOs, placeholders,
+debugging left in, new code nothing calls.
+
+- **Human commits, as a false-alarm rate.** 600 merged commits that changed source (flask, click, attrs, httpx, rich,
+  requests; `eval/notyet_finish_precision.py`, checks only, seconds). First run: 5 with an item; three patterns were false
+  alarms (prose about "existing code", one-line typing stubs, `Protocol[T]` bases) and were fixed. After: 4 commits. Two
+  are real leftovers that a maintainer merged (commented-out `save_html`/`save_svg` debug calls in rich, one with a
+  developer's home-directory path); two are TODOs kept on purpose. The unused-code check looked at 61 new names in these
+  commits and found every one used.
+- **Recorded dogfood trees** (`eval/notyet_recheck.py`, 25 turns). One false alarm, fixed: `_Bytes.makefile`, a socket
+  method `http.client` calls, would have sent the agent back five times; a public method with no caller in the repo is
+  no longer reported. One real item, shown to the user: a `failed_lookups` property an agent added so old tests could
+  still read state it had moved, the change §6 counts as making the code worse.
+- **Fourth round, multi-part requests** (4 sessions, 8 turns; Sonnet and Haiku; a returns journey then cancellations,
+  per-source configuration then `--dry-run`; each request had 5-7 parts including docs and tests). Checked by hand
+  against the request: every agent did every part, including the docs. The new checks found nothing to send back and
+  sent nothing back; the same test-only shim appeared again and went to the user. The interruptions (4 of 8 turns) were
+  all for changed lines no test ran, and each one led to a real test.
+- **The plan check end to end.** None of those sessions kept a to-do list: the harness ran Claude Code with project
+  settings only and without the task tools allowed, so the agents just edited. A Haiku session with the task tools,
+  told to plan three steps and stop after one, was sent back by the real hook with "2 of 3 step(s) in your own plan
+  aren't done". Its second closing message said steps 2 (`mul`) and 3 (`div`) were pending as asked, which notyet failed
+  to count as saying so (step names were too short for the word match); a step is now recognized by the code name it's
+  about.
+- **What this doesn't show:** how often agents stop short in real use. Requests that fit in one turn of `claude -p`
+  were finished every time here; the reports in RESEARCH.md §12 come from long interactive sessions with a to-do list,
+  which this harness doesn't reproduce.
+
 ## 7. What this doesn't show
 
-- **Incomplete or wrong-but-consistent work passes.** If no test expresses it, the gate can't see it. This is the most common
-  fault in the real-commit sessions.
+- **Incomplete or wrong-but-consistent work passes** when no test, plan step or leftover in the code shows it: a part of
+  the request nobody wrote down. This is the most common fault in the real-commit sessions.
 - **Real use.** Eight sessions on two small projects is a start, and the prompts were written by the tool's author, not by a developer with a job to do. Whether the interruptions are worth it over weeks, in someone's daily
   work, still has to be seen.
 - **Large repos.** The biggest suite here runs in seconds. On Django's source the import graph takes 12s once, and under a second after,

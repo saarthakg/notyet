@@ -25,7 +25,7 @@ import notyet_sessions as ns  # noqa: E402
 from notyet import testrun  # noqa: E402
 from notyet.engines.execution import source_path_env  # noqa: E402
 
-TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "Bash(.venv/bin/python:*)", "Bash(git diff:*)", "Bash(git status:*)",
+TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "TaskCreate", "TaskUpdate", "TaskList", "TaskGet",   # the agent's own plan "Bash(.venv/bin/python:*)", "Bash(git diff:*)", "Bash(git status:*)",
          "Bash(git log:*)", "Bash(git show:*)", "Bash(git mv:*)", "Bash(git rm:*)", "Bash(ls:*)", "Bash(wc:*)", "Bash(grep:*)",
          "Bash(PYTHONPATH=src .venv/bin/python:*)", f"Bash({ns.NOTYET_PY} -m notyet ack:*)"]
 

@@ -169,9 +169,11 @@ Measured in November 2026, against ground truth that doesn't come from notyet it
 | **False blocks** on mutations their suite passes | **0 / 39** |
 | Reviewed human commits that get a block-level finding (deliberate behavior changes) | 9 / 39 |
 | Time per check on those repos, median | 6–16s |
+| **Unfinished-work checks** on 600 merged human commits: commits with an item (2 real leftovers, 2 deliberate TODOs) | **4 / 600** |
 
-What it doesn't do matters as much. It can't see work that is incomplete rather than broken, the agent tasks were built
-to have couplings, and real use over weeks hasn't been measured yet. The method, the caveats and the mistakes are in
+What it doesn't do matters as much. It can't see a part of the request that no test, plan step or leftover shows; how
+often agents stop short in real use isn't measured (in eight multi-part turns every agent finished); the agent tasks were
+built to have couplings; and real use over weeks hasn't been measured yet. The method, the caveats and the mistakes are in
 [docs/EVAL.md](docs/EVAL.md).
 
 ## Commands
