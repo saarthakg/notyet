@@ -98,6 +98,7 @@ that turns failures into passes: if the original would fail on the new code, tha
 | Work from an earlier turn, or your uncommitted edits, was undone | fix or justify |
 | Source that checks whether it's being tested; an `__eq__` that is always true | fix or justify |
 | Steps of the agent's own to-do list still pending when it stops | fix or justify |
+| Something new your request named (`--dry-run`, `start_return`, `returns.jsonl`) that exists nowhere; docs you asked for, untouched | fix or justify |
 | New TODO/FIXME comments, empty functions, "rest of the code here" comments | fix or justify |
 | `breakpoint()` and debugger calls, debug prints, commented-out code | fix or justify |
 | New functions or classes nothing calls; new public ones only tests call | fix or justify |
@@ -114,8 +115,8 @@ Only for what the agent **doesn't know or didn't say**. In recorded sessions age
 tests they had changed, and almost never about the regressions they had caused, because they didn't know. So in enforce mode:
 
 - **sent back:** broken or hanging tests, new code no test runs, new type errors, test changes the agent's closing
-  message doesn't mention, and unfinished work: plan steps and TODOs it doesn't mention, placeholders, debugger calls
-  and debug prints, new code nothing calls. Mentioning a test change, or what's left, is enough; no command needed.
+  message doesn't mention, and unfinished work: plan steps, TODOs and parts of the request it doesn't mention,
+  placeholders, debugger calls and debug prints, new code nothing calls. Mentioning a test change, or what's left, is enough; no command needed.
 - **not sent back, shown to you:** test changes and unfinished steps it did mention, moves and renames, lint,
   suppressions, commented-out code, new public code only tests call, undone work.
 
@@ -150,7 +151,12 @@ The same checks on a pull request, agent or not, against the branch point:
 - uses: saarthakg/notyet@main      # annotates the diff, writes the receipt to the job summary
 ```
 
-or `notyet check --base origin/main --merge-base [--format json|github] [--fail-on block|resolve|never]`.
+On a pull request it also keeps one comment up to date with the brief (what isn't done, what broke, what the tests now
+check), and reads the description as the request: a flag or a function it says the change adds has to exist. The job
+needs `permissions: pull-requests: write` for the comment; set `comment: false` to leave it out.
+
+or `notyet check --base origin/main --merge-base [--format json|github] [--fail-on block|resolve|never]
+[--request-file PR.md] [--comment-file OUT.md]`.
 An item is accepted by giving the reason where reviewers see it, in a commit message:
 
 ```
