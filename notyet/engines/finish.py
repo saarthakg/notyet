@@ -294,7 +294,12 @@ def _unwired(ctx: Context, sources: dict[str, str], before: dict[str, str], adde
 
 
 def _uses(ctx: Context, names: set[str]) -> dict[str, list[tuple[str, int]]]:
-    """Where each name appears as a word in the current tree's tracked text files."""
+    """Where each name is used in the current tree: in code or config, or in docs that name it as code.
+
+    A README sentence, a recorded JSON result or a `# rounded up` comment that happens to contain the word isn't a caller;
+    docs that write `rounded` or rounded() document it as API. A string in code still counts (getattr, dispatch tables,
+    entry points name functions in strings).
+    """
     out: dict[str, list[tuple[str, int]]] = {}
     if not names:
         return out
@@ -302,17 +307,38 @@ def _uses(ctx: Context, names: set[str]) -> dict[str, list[tuple[str, int]]]:
     for name in sorted(names):
         pattern += ["-e", name]
     try:
-        text = snapshot.git(ctx.root, "-c", "grep.column=false", "-c", "grep.fullName=false", "grep", "-I", "-n", "-o", "-w", "-F", "--no-color", *pattern, ctx.current_tree)
+        text = snapshot.git(ctx.root, "-c", "grep.column=false", "-c", "grep.fullName=false", "grep", "-I", "-n", "-w", "-F",
+                            "--no-color", *pattern, ctx.current_tree)
     except snapshot.GitError:       # no match at all exits 1
         return out
     prefix = ctx.current_tree + ":"
+    words = re.compile(r"\b(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")\b")
     for line in text.splitlines():
         if not line.startswith(prefix):
             continue
-        path, n, word = line[len(prefix):].rsplit(":", 2)
-        if word in names:
-            out.setdefault(word, []).append((path, int(n)))
+        path, n, content = line[len(prefix):].split(":", 2)
+        if _DATA.search(path):
+            continue
+        prose = bool(_PROSE.search(path))
+        if path.endswith((".py", ".pyi")):
+            code, hashed, comment = content.partition("#")
+            if hashed and not any(q in code for q in "'\""):
+                content = code          # a comment, unless the # may sit inside a string
+        for m in words.finditer(content):
+            if prose and not _as_code(content, m.start(), m.end()):
+                continue
+            if (path, int(n)) not in out.get(m.group(1), []):
+                out.setdefault(m.group(1), []).append((path, int(n)))
     return out
+
+
+_DATA = re.compile(r"\.(json|jsonl|csv|tsv|html?|xml|svg|log|lock)$", re.IGNORECASE)
+_PROSE = re.compile(r"\.(md|rst|txt|adoc)$", re.IGNORECASE)
+
+
+def _as_code(text: str, start: int, end: int) -> bool:
+    """Does prose name this word as code: `name`, ``name``, :func:`name`, name(), obj.name?"""
+    return text[start - 1:start] in ("`", ".") or text[end:end + 1] == "`" or text[end:].lstrip().startswith("(")
 
 
 def _defs(tree: Optional[ast.AST]):
