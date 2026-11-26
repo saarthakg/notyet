@@ -62,11 +62,16 @@ def _imports_of(source: str) -> tuple[list[tuple[str, list[str]]], set[str]]:
                 strings.add(node.value)
         elif isinstance(node, (ast.List, ast.Tuple, ast.Call)):
             items = node.args if isinstance(node, ast.Call) else node.elts
-            for flag, value in zip(items, items[1:]):
+            for before, flag, value in zip([None, *items], items, items[1:]):
                 program = getattr(value, "value", None)
-                if getattr(flag, "value", None) == "-m" and isinstance(program, str):
-                    strings |= {program + ".__main__", program + "."}
+                if getattr(flag, "value", None) == "-m" and isinstance(program, str) and _interpreter(before):
+                    strings |= {program + ".__main__", program}
     return specs, strings
+
+
+def _interpreter(node: Optional[ast.AST]) -> bool:
+    """Is this what comes before `-m pkg` when Python runs a program (sys.executable, "python3")? Not git's `-m message`."""
+    return node is not None and bool(re.search(r"python|executable|interp", ast.unparse(node), re.IGNORECASE))
 
 
 def _mentions(path: str) -> list[str]:
@@ -80,7 +85,7 @@ def _mentions(path: str) -> list[str]:
 
 class ImportGraph:
     """`checkout`: where the files of `tree` can be read, when that isn't the working tree."""
-    VERSION = 4      # bump when edges are computed differently, so cached ones aren't reused
+    VERSION = 5      # bump when edges are computed differently, so cached ones aren't reused
 
     def __init__(self, root: str, tree: str, checkout: Optional[str] = None):
         self.root, self.files_root = root, checkout or root
