@@ -145,7 +145,7 @@ _STOP = {"with", "that", "this", "from", "into", "when", "then", "them", "have",
          "should", "would", "also", "than", "more", "only", "file", "files", "code", "test", "tests", "update"}
 _LEFT = re.compile(r"\b(not (yet )?(done|finished|complete|implemented|started)|left (to do|for|undone|open)|remain|"
                    r"still (need|to do|todo|pending|open)|next steps?|didn'?t (get|finish|do)|haven'?t|not addressed|"
-                   r"follow.?up|out of scope|skipp|deferr|postpon|todo|pending|incomplete|unfinished)", re.IGNORECASE)
+                   r"follow.?up|out of scope|skipp|deferr|postpon|todo|pending|incomplete|unfinished|dropp|no longer|not needed|won'?t)", re.IGNORECASE)
 
 
 def mentioned(message: str, subjects: list[str]) -> Optional[str]:
