@@ -123,6 +123,7 @@ def _placeholders(text: str, added: set[int], old_text: str) -> list[tuple[int, 
     tree = parse(text)
     if tree is None:
         return []
+    lines = text.splitlines()
     old = parse(old_text)
     had = {_qual(n, p) for p, n in _defs(old)} if old is not None else set()
     out = []
@@ -138,7 +139,7 @@ def _placeholders(text: str, added: set[int], old_text: str) -> list[tuple[int, 
         body = node.body[1:] if node.body and _is_docstring(node.body[0]) else node.body
         if not body or not all(_empty(s) for s in body):
             continue
-        if len(body) == 1 and isinstance(body[0], ast.Expr) and body[0].lineno == (node.returns or node.args).end_lineno:
+        if len(body) == 1 and isinstance(body[0], ast.Expr) and lines[body[0].lineno - 1][:body[0].col_offset].strip():
             continue        # `def f(...) -> T: ...` on one line declares a signature (for type checkers), it isn't a stub
         # a method that raises NotImplementedError or does nothing is often a base class's hook to override;
         # one that promises a value and returns none isn't
