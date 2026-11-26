@@ -115,6 +115,18 @@ def test_conftest_fixtures_dotted_names_and_programs_are_uses(repo):
     assert "tests/test_tool.py" in graph.importers(["scripts/tool.py"])
 
 
+def test_a_program_run_with_dash_m_is_its_main_not_every_module_in_its_package(repo):
+    # found on a real pull request: git's `-m notyet` (a commit message) made a new, unimported module look used everywhere
+    _write(repo, "pkg/__main__.py", "from pkg.calc import add\n")
+    _write(repo, "pkg/unused.py", "X = 1\n")
+    _write(repo, "tests/test_program.py", "import subprocess, sys\n\n\ndef test_x():\n    subprocess.run([sys.executable, '-m', 'pkg'])\n")
+    _write(repo, "tests/test_git.py", "import subprocess\n\n\ndef test_x():\n    subprocess.run(['git', 'commit', '-m', 'pkg'])\n")
+    graph = pyimports.ImportGraph(str(repo), snapshot.snapshot(str(repo)))
+    assert "tests/test_program.py" in graph.importers(["pkg/calc.py"])          # through __main__
+    assert "tests/test_program.py" not in graph.importers(["pkg/unused.py"])
+    assert "tests/test_git.py" not in graph.importers(["pkg/calc.py"])
+
+
 def test_test_detecting_source_is_fix_or_justify():
     signs = gaming._signs("import os, sys\n\n\ndef f():\n    if 'PYTEST_CURRENT_TEST' in os.environ:\n        return 1\n"
                           "    if 'pytest' in sys.modules:\n        return 2\n    return sys.modules.get('pytest')\n\n\n"

@@ -118,3 +118,20 @@ def test_names_listed_in_all_or_called_from_a_script_are_used(repo):
     _write(repo, "pkg/calc.py", "__all__ = ['add', 'sub', 'mean']\n" + CALC + "\n\ndef mean(xs):\n    return sum(xs) / len(xs)\n")
     _write(repo, "scripts/report.py", "def main():\n    print('report')\n\n\nif __name__ == '__main__':\n    main()\n")
     assert not {"unwired-code", "only-tests-use"} & set(check(repo, session))
+
+
+def test_the_word_in_prose_data_or_a_comment_is_not_a_caller(repo):
+    # found on a real pull request: `rounded` was "used" by a README string, a JSON result and a `# rounded up` comment
+    _write(repo, "README.md", "Amounts are rounded half up.\n")
+    _write(repo, "results.json", '{"says": "rounded"}\n')
+    _write(repo, "pkg/other.py", "X = 1    # rounded up\nNAMES = {'rounded': None}  # a string names it\n")
+    session = start(repo)
+    _write(repo, "pkg/other.py", "X = 1    # rounded up\n")
+    _write(repo, "pkg/calc.py", CALC + "\n\ndef rounded(x):\n    return round(x, 2)\n")
+    assert "unwired-code" in check(repo, session)
+    _write(repo, "pkg/other.py", "X = 1    # rounded up\nNAMES = {'rounded': None}  # a string names it\n")
+    assert "unwired-code" not in check(repo, session)
+    # docs that name it as code document public API
+    _write(repo, "pkg/other.py", "X = 1    # rounded up\n")
+    _write(repo, "README.md", "Amounts are rounded half up. Use `rounded` for display.\n")
+    assert "unwired-code" not in check(repo, session)
