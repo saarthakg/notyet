@@ -9,7 +9,8 @@ No model reads the request. Two things in it can be checked as they are:
 - **Documentation.** A request that asks for docs ("document it", "update the README", "docs as before") and a change
   that touches no documentation file.
 
-A name right after a negation ("don't add a --force flag", "without a config.py") isn't asked for. Fenced code blocks
+A name right after a negation ("don't add a --force flag", "without a config.py") isn't asked for, nor one named as
+something to read or imitate ("follow the conventions in PRINCIPLES.md", "like the one in utils.py"). Fenced code blocks
 in the request (pasted logs, tracebacks) are left out. This only ever reports what's missing; whether what exists is
 right is for the tests and the user.
 """
@@ -28,6 +29,10 @@ _NEGATED = re.compile(r"\b(don'?t|do not|doesn'?t|never|without|no need|instead 
                       r"(\W+\w+){0,4}\W*$", re.IGNORECASE)
 # asking for docs, not mentioning them: "document it", "update the README", "tests and docs", "docs as before"
 _DOC = r"(the |a |its |some )?(readme|docs?|documentation|changelog|usage notes|decisions? (log|record)s?)"
+# a name after these is something to read or imitate, not something to make: "follow the conventions in X.md"
+_CONTEXT = re.compile(r"\b(follow(ing)?|see|per|according to|as (in|described in|done in)|like|similar to|based on|"
+                      r"conventions? (in|of|from)|described in|defined in|documented in|from|read|look at|check)\b"
+                      r"(\W+\w+){0,3}\W*$", re.IGNORECASE)
 _DOCS = re.compile(r"\bdocument(s|ed|ing)?\b(?! (says?|said|states?))|"
                    r"\b(update|add|write|extend|mention|note|describe|explain|record|log)\b[^.\n]{0,40}?\b(in|to|into)? ?" + _DOC + r"\b|"
                    r"\b(and|plus|with|also|,)\s+" + _DOC + r"\b|"
@@ -43,7 +48,7 @@ def requested(prompt: str) -> tuple[list[str], bool]:
     names: list[str] = []
     for pattern in (_TICKED, _FLAG, _FILE, _IDENT):
         for m in pattern.finditer(text):
-            if _negated(text, m.start()):
+            if _negated(text, m.start()) or _context(text, m.start()):
                 continue
             name = m.group(1).strip()
             if pattern is _TICKED and not re.fullmatch(r"[\w./-]+(\(\))?", name):
@@ -59,8 +64,13 @@ def requested(prompt: str) -> tuple[list[str], bool]:
 
 def _negated(text: str, at: int) -> bool:
     """Does a negation lead up to position `at`, within its own sentence?"""
-    before = re.split(r"[.;:!?\n]", text[max(0, at - 60):at])[-1]
+    before = re.split(r"[.;:!?](?=\s)|\n", text[max(0, at - 60):at])[-1]
     return bool(_NEGATED.search(before))
+
+
+def _context(text: str, at: int) -> bool:
+    before = re.split(r"[.;:!?](?=\s)|\n", text[max(0, at - 60):at])[-1]
+    return bool(_CONTEXT.search(before))
 
 
 def run(ctx: Context) -> EngineResult:

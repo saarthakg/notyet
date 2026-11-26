@@ -23,7 +23,9 @@ def check(repo, session):
 def test_what_a_request_asks_for():
     assert asked.requested("Add a --dry-run flag: fetch everything but don't commit. Tests and README.") == (["--dry-run"], True)
     assert asked.requested("Add a start_return tool like lookup_order that writes to logs/returns.jsonl.") == (
-        ["returns.jsonl", "start_return", "lookup_order"], False)
+        ["returns.jsonl", "start_return"], False)
+    # named as something to read or imitate, not to make
+    assert asked.requested("Add `halve`. Follow the conventions in PRINCIPLES.md and STYLE.md.") == (["halve"], False)
     # negated, pasted, or docs only mentioned
     assert asked.requested("Don't add a --force flag. The docs say retries cap at 3; fix the code.") == ([], False)
     assert asked.requested("Here:\n```\nfoo_bar --verbose failed\n```\nfix it") == ([], False)

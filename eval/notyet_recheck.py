@@ -59,7 +59,9 @@ def recheck(work: Path) -> list[tuple]:
                 subprocess.run(["git", "-C", str(copy), "clean", "-qfd", "-e", ".venv", "-e", ".claude"], check=True)
                 turns = [t for t in session.turns if t["at"] <= run.at]
                 acks = {k: a for k, a in session.acks.items() if a["at"] <= run.at}
-                then = dataclasses.replace(session, session_id=f"recheck-{n}", runs=session.runs[:n], turns=turns, acks=acks)
+                # one prompt per turn, recorded together: the gate then knew only the requests made so far
+                then = dataclasses.replace(session, session_id=f"recheck-{n}", runs=session.runs[:n], turns=turns, acks=acks,
+                                           prompts=session.prompts[:len(turns)])
                 then.runs = [dataclasses.replace(r) for r in then.runs]
                 then.consecutive_blocks = 0
                 stop = run.at - run.seconds
