@@ -124,7 +124,7 @@ ALSO = {"suppression-added": "suppression comment", "lint-new": "lint", "type-er
         "test-vacuous": "no new test fails without the change", "test-not-collected": "new test never collected",
         "source-detects-tests": "source checks whether it's tested", "always-equal": "an __eq__ that's always true",
         "commented-out-code": "commented-out code", "plan-dropped": "plan steps dropped unfinished"}
-NOT_DONE = ("plan-unfinished", "todo-added", "placeholder")
+NOT_DONE = ("asked-missing", "docs-missing", "plan-unfinished", "todo-added", "placeholder")
 UNUSED = ("unwired-code", "only-tests-use")
 LEFT_IN = ("debugger-left", "debug-print")
 MAX_BRIEF = 5

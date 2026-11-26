@@ -14,6 +14,9 @@ inputs:
   fail-on:
     description: "block: fail on execution evidence only. resolve: also on items that need a reason. never: report only."
     default: block
+  comment:
+    description: "On a pull request, keep one comment with the brief up to date (needs `pull-requests: write`). true or false."
+    default: "true"
   version:
     description: What to install notyet from (anything pip accepts).
     default: git+https://github.com/saarthakg/notyet
@@ -22,16 +25,45 @@ runs:
   using: composite
   steps:
     - name: Check the change
+      id: check
       shell: bash
       env:
         NOTYET_BASE: ${{ inputs.base || github.event.pull_request.base.sha || github.event.before }}
         NOTYET_TEST_COMMAND: ${{ inputs.test-command }}
         NOTYET_FAIL_ON: ${{ inputs.fail-on }}
         NOTYET_VERSION: ${{ inputs.version }}
+        NOTYET_COMMENT: ${{ inputs.comment == 'true' && github.event.pull_request.number || '' }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_BODY: ${{ github.event.pull_request.body }}
       run: |
         # its own environment: notyet runs the project's tests, it doesn't join them
         python -m venv "$RUNNER_TEMP/notyet"
         "$RUNNER_TEMP/notyet/bin/pip" install -q "$NOTYET_VERSION"
         git cat-file -e "$NOTYET_BASE^{commit}" 2>/dev/null || git fetch -q --depth=200 origin "$NOTYET_BASE"
+        printf '%s\n\n%s\n' "$PR_TITLE" "$PR_BODY" > "$RUNNER_TEMP/notyet-request.md"
+        status=0
         "$RUNNER_TEMP/notyet/bin/notyet" check --base "$NOTYET_BASE" --merge-base --format github \
-          --fail-on "$NOTYET_FAIL_ON" ${NOTYET_TEST_COMMAND:+--test-command "$NOTYET_TEST_COMMAND"}
+          --fail-on "$NOTYET_FAIL_ON" ${NOTYET_TEST_COMMAND:+--test-command "$NOTYET_TEST_COMMAND"} \
+          ${PR_BODY:+--request-file "$RUNNER_TEMP/notyet-request.md"} \
+          ${NOTYET_COMMENT:+--comment-file "$RUNNER_TEMP/notyet-comment.md"} || status=$?
+        echo "status=$status" >> "$GITHUB_OUTPUT"
+    - name: Comment on the pull request
+      if: always() && inputs.comment == 'true' && github.event.pull_request.number
+      continue-on-error: true      # a fork's token can't comment; the job summary still has it
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        test -s "$RUNNER_TEMP/notyet-comment.md" || exit 0
+        existing=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+          --jq '.[] | select(.body | startswith("<!-- notyet -->")) | .id' | head -1)
+        if [ -n "$existing" ]; then
+          gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F "body=@$RUNNER_TEMP/notyet-comment.md" > /dev/null
+        else
+          gh api "repos/$REPO/issues/$PR/comments" -F "body=@$RUNNER_TEMP/notyet-comment.md" > /dev/null
+        fi
+    - name: Result
+      shell: bash
+      run: exit ${{ steps.check.outputs.status }}

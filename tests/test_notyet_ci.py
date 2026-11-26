@@ -49,6 +49,22 @@ def test_github_annotations_and_summary(repo, capsys, tmp_path, monkeypatch):
     assert "# notyet receipt" in (tmp_path / "summary.md").read_text()
 
 
+def test_the_brief_as_a_pull_request_comment_and_the_description_as_the_request(repo, capsys, tmp_path):
+    _write(repo, "README.md", "# calc\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "readme")
+    branch_with_a_bug(repo)
+    request = tmp_path / "pr.md"
+    request.write_text("Count from one\n\nadd() now counts from one. Adds a --one-based flag and documents it in the README.")
+    comment = tmp_path / "comment.md"
+    code, _ = check(repo, capsys, "--request-file", str(request), "--comment-file", str(comment))
+    text = comment.read_text()
+    assert code == 1 and text.startswith("<!-- notyet -->\n**notyet: FAILED.**")
+    assert "```text" in text and "Not done:" in text and "`--one-based`" in text
+    assert "no documentation file changed" in text and "What the tests say has changed:" in text
+    assert "Notyet-Ack: <id> <reason>" in text and "<details><summary>Full receipt</summary>" in text
+
+
 def test_fail_on_never_and_resolve(repo, capsys):
     _git(repo, "switch", "-qc", "feature")
     _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + "\n\ndef mul(a, b):\n    return a * b\n")

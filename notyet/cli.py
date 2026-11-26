@@ -160,8 +160,12 @@ def cmd_check(args) -> int:
         print(str(e), file=sys.stderr)
         return 2
     cfg = ci.settings(root, session, args.test_command)
+    if args.request_file:       # what was asked for (a pull request's description): checked like a prompt
+        session.prompts = [Path(args.request_file).read_text(errors="replace")[:4000]]
     decision = gate.check(root, session, cfg=cfg)
     failed = ci.failing(decision, session, "resolve" if args.strict else args.fail_on)
+    if args.comment_file:
+        Path(args.comment_file).write_text(ci.comment(decision, session, failed))
     if args.format == "json":
         print(ci.as_json(decision, session, failed))
     elif args.format == "github":
@@ -260,6 +264,8 @@ def main(argv=None) -> int:
     p.add_argument("--strict", action="store_true", help="the same as --fail-on resolve")
     p.add_argument("--format", choices=["text", "json", "github"], default="text")
     p.add_argument("--test-command", help="a pytest invocation, when the repo has no .notyet.toml")
+    p.add_argument("--request-file", help="what the change was asked to do (e.g. the pull request's description)")
+    p.add_argument("--comment-file", help="also write the brief as a pull request comment (Markdown) to this file")
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_check)
 

@@ -144,7 +144,7 @@ _WORD = re.compile(r"[a-z0-9_]{3,}")
 _STOP = {"add", "the", "and", "for", "all", "new", "use", "with", "that", "this", "from", "into", "when", "then", "them", "have", "make", "sure", "each", "they", "will",
          "should", "would", "also", "than", "more", "only", "file", "files", "code", "test", "tests", "update"}
 _LEFT = re.compile(r"\b(not (yet )?(done|finished|complete|implemented|started)|left (to do|for|undone|open)|remain|"
-                   r"still (need|to do|todo|pending|open)|next steps?|didn'?t (get|finish|do)|haven'?t|not addressed|"
+                   r"still (need|to do|todo|pending|open)|next steps?|didn'?t (get|finish|do|update|add|write|change|touch)|haven'?t|not (updated|changed|documented|added)|not addressed|"
                    r"follow.?up|out of scope|skipp|deferr|postpon|todo|pending|incomplete|unfinished|dropp|no longer|not needed|won'?t)", re.IGNORECASE)
 
 

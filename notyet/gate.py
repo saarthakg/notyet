@@ -34,20 +34,21 @@ SEND_BACK = {"untested-change", "test-failing", "tests-failing-unverified", "typ
              "source-detects-tests", "always-equal",
              # unfinished work: the most reported way a "done" isn't (docs/RESEARCH.md); sent back unless the closing
              # message says what's left
-             "plan-unfinished", "todo-added", "placeholder", "debugger-left", "debug-print", "unwired-code"}
+             "plan-unfinished", "todo-added", "placeholder", "debugger-left", "debug-print", "unwired-code",
+             "asked-missing", "docs-missing"}
 TEST_CHANGES = {"test-changed-to-pass", "test-removed", "test-disabled", "failing-test-changed", "assertions-removed"}
 HANDED_OVER = ("needs-human", "disclosed")
 # what the agent can hand to the user by saying it in its closing message
-SAID_LEFT = {"plan-unfinished", "todo-added"}
+SAID_LEFT = {"plan-unfinished", "todo-added", "asked-missing", "docs-missing"}
 # handed over, the user has to look before calling the work done
-REVIEW = {"failing-test-changed", "plan-unfinished"}
+REVIEW = {"failing-test-changed", "plan-unfinished", "asked-missing", "docs-missing"}
 
 Engine = Callable[[Context], EngineResult]
 
 
 def default_engines() -> list[Engine]:
-    from notyet.engines import execution, finish, gaming, history, integrity, static, undone
-    return [execution.run, integrity.run, gaming.run, finish.run, static.run, undone.run, history.run]
+    from notyet.engines import asked, execution, finish, gaming, history, integrity, static, undone
+    return [execution.run, integrity.run, gaming.run, finish.run, asked.run, static.run, undone.run, history.run]
 
 
 @dataclass
@@ -154,7 +155,8 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
         if f.rule in TEST_CHANGES and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []), f.diff)):
             session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title,
                                   "rule": f.rule, "tests": f.tests or [f.location]}
-        elif f.rule in SAID_LEFT and (said := plan_mod.mentioned(message, _left_items(f))):
+        elif f.rule in SAID_LEFT and (said := plan_mod.mentioned(_docs_as_one_word(message) if f.rule == "docs-missing"
+                                                                 else message, _left_items(f))):
             session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title}
             if f.covers:
                 session.acks[f.id].update(group=group(f), covers=f.covers)
@@ -200,8 +202,16 @@ def _plan_news(session: store.Session, planned: list[Finding], previous: Optiona
     return bool(open_) and (previous is None or not open_ <= set(previous.finding_ids) | set(session.acks))
 
 
+def _docs_as_one_word(message: str) -> str:
+    return re.sub(r"\b(readme|documentation|changelog|design notes|decisions(\.md)?)\b", "docs", message, flags=re.IGNORECASE)
+
+
 def _left_items(f: Finding) -> list[str]:
     """What a closing message has to name to hand `f` over: each unfinished step, or the TODO comments."""
+    if f.rule == "docs-missing":
+        return ["docs"]
+    if f.rule == "asked-missing":
+        return [e.strip("`") for e in f.evidence]
     texts = [e.split(": ", 1)[-1] for e in f.evidence]
     if f.rule == "todo-added":
         return [re.sub(r".*?\b(TODO|FIXME|XXX|HACK)\b[:\s]*", "", t) or t for t in texts]

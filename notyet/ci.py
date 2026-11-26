@@ -83,6 +83,37 @@ def github(decision: gate.Decision, session: store.Session, failed: list[Finding
     return "\n".join(out)
 
 
+COMMENT_MARK = "<!-- notyet -->"
+MAX_COMMENT = 60_000        # GitHub's limit is 65,536 characters
+
+
+def comment(decision: gate.Decision, session: store.Session, failed: list[Finding]) -> str:
+    """The brief where the change is reviewed: one comment on the pull request, replaced on each push (the marker
+    finds it). The verdict and its evidence, what isn't done, what broke, what the tests now say, then the full
+    receipt folded away."""
+    if decision.verdict == "no-change":
+        return f"{COMMENT_MARK}\n**notyet:** no change to check.\n"
+    head, *brief = (decision.summary or "").splitlines()
+    brief = [line for line in brief if not line.strip().startswith("Receipt:")]
+    verdict = "FAILED" if failed else VERDICT_TEXT.get(decision.verdict, decision.verdict)
+    head = re.sub(r"^notyet: [^.]*\.", "", head).strip()
+    out = [COMMENT_MARK, f"**notyet: {verdict}.** {head}", ""]
+    if brief:
+        out += ["```text", *(line[2:] if line.startswith("  ") else line for line in brief), "```", ""]
+    if failed:
+        out += [f"{len(failed)} item(s) fail this check: " + ", ".join(f"`{f.id}` {f.title}" for f in failed[:8]), ""]
+    open_ = [f for f in decision.findings if f.severity != "note" and f.id not in session.acks]
+    if open_:
+        out += ["To accept an item, give the reason in a commit message: `Notyet-Ack: <id> <reason>`.", ""]
+    if decision.receipt_path:
+        receipt = open(decision.receipt_path).read()
+        room = MAX_COMMENT - sum(len(x) + 1 for x in out) - 200
+        if len(receipt) > room:
+            receipt = receipt[:max(0, room)] + "\n\n... (cut; the full receipt is in the job summary)"
+        out += ["<details><summary>Full receipt</summary>", "", receipt, "", "</details>"]
+    return "\n".join(out) + "\n"
+
+
 def _place(f: Finding) -> tuple[str, str]:
     path = f.location.split("::")[0]
     path, _, line = path.partition(":")
