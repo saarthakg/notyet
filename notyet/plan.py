@@ -140,8 +140,8 @@ def findings(steps: list[Step]) -> tuple[list[Finding], dict[str, int]]:
     return out, facts
 
 
-_WORD = re.compile(r"[a-z0-9_]{4,}")
-_STOP = {"with", "that", "this", "from", "into", "when", "then", "them", "have", "make", "sure", "each", "they", "will",
+_WORD = re.compile(r"[a-z0-9_]{3,}")
+_STOP = {"add", "the", "and", "for", "all", "new", "use", "with", "that", "this", "from", "into", "when", "then", "them", "have", "make", "sure", "each", "they", "will",
          "should", "would", "also", "than", "more", "only", "file", "files", "code", "test", "tests", "update"}
 _LEFT = re.compile(r"\b(not (yet )?(done|finished|complete|implemented|started)|left (to do|for|undone|open)|remain|"
                    r"still (need|to do|todo|pending|open)|next steps?|didn'?t (get|finish|do)|haven'?t|not addressed|"
@@ -164,12 +164,23 @@ def mentioned(message: str, subjects: list[str]) -> Optional[str]:
             words |= set(_WORD.findall(block.lower()))
         else:
             words, said = set(), ""
-        if said and all(_recognized(s, words) for s in subjects):
+        if said and all(_recognized(s, words, subjects) for s in subjects):
             return re.sub(r"\s+", " ", said).strip(" -*|#")[:240]
     return None
 
 
-def _recognized(subject: str, words: set[str]) -> bool:
+_CODE = re.compile(r"`([^`]+)`|([A-Za-z_][\w.]*)\(|\b([a-z]\w*_\w+|[A-Za-z]\w*\.[A-Za-z]\w*)\b")
+
+
+def _recognized(subject: str, words: set[str], subjects: list[str]) -> bool:
+    """Is `subject` named among `words`? By a name from its code (`mul(`, `retry_policy`, `config.py`) that no other
+    step has, or by most of its words."""
+    others = " ".join(s for s in subjects if s != subject).lower()
+    for m in _CODE.finditer(subject):
+        name = next(g for g in m.groups() if g).lower()
+        parts = _WORD.findall(name)
+        if parts and name not in others and all(p in words for p in parts):
+            return True
     key = [w for w in _WORD.findall(subject.lower()) if w not in _STOP]
     if not key:
         return False

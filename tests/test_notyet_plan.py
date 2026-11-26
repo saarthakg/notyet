@@ -77,6 +77,10 @@ def test_a_closing_message_that_says_what_is_left_hands_it_over():
                           steps)
     # a summary that names the steps as finished doesn't
     assert plan.mentioned("All done: I used it in the client and documented the setting in the README.", steps) is None
+    # a step is named by the code it's about, when no other step shares that name
+    coded = ["Add mul(a, b) to calc.py with a test", "Add div(a, b) to calc.py with a test"]
+    assert plan.mentioned("Step 1 is done.\n\nSteps 2 (`mul`) and 3 (`div`) are pending as you asked.", coded)
+    assert plan.mentioned("Still to do: more tests for calc.py.", coded) is None
     # nor one that names only some of them
     assert plan.mentioned("Remaining: using it in the client.", steps) is None
 
