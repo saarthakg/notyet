@@ -10,8 +10,9 @@ Leftovers, in lines the session added (not moved: a line counts only if the file
   "# implement this");
 - commented-out code: two or more added comment lines in a row that parse as Python.
 
-Code nothing calls: a new function, method or class in source (not tests) whose name appears nowhere else in the
-repo, or, for a private name, only in tests. A new public name only tests use is shown to the user: in a library
+Code nothing calls: a new function, class or private method in source (not tests) whose name appears nowhere else in
+the repo, or, for a private name, only in tests. A public method isn't reported for having no caller here: code
+outside the repo may call it by protocol (http.client calls a socket's `makefile`). A new public name only tests use is shown to the user: in a library
 that's the API, in an application it's a feature that was built and never connected (claude-code #60451).
 Names are matched as words in every tracked text file, so any mention (a string, a config file, an entry point)
 counts as a use: this errs towards silence.
@@ -32,10 +33,16 @@ DEBUGGER = re.compile(r"(?<![\w.])(breakpoint\(\)|(i?pdb|pudb|ipdb|pdbpp|pytest|
                       r"import (i?pdb|pudb)\b|from (i?pdb|pudb) import|debugpy\.wait_for_client\()")
 DUMP = re.compile(r"""print\(\s*(f?["'](debug|DEBUG|>>>|---|\*\*\*|XXX|here|HERE)|f["'][^"']*=\}|(repr|vars|dir|type|locals)\()""")
 MARKER = re.compile(r"#.*?\b(TODO|FIXME|XXX|HACK)\b")
-ELISION = re.compile(r"#\s*(\.\.\.|…)?\s*(\(?\s*(rest|remainder) of|(existing|remaining|other|previous|same) "
-                     r"(code|logic|implementation|methods|functions|tests)|(implement|add|insert|put|write) "
-                     r"(this|me|it|your|the|actual|real)\b.*\b(here|later|logic|implementation)|"
-                     r"(your|actual|real) (code|logic|implementation) (goes )?here|placeholder\b|stub\b)", re.IGNORECASE)
+# the comments models put where they left code out; the whole comment, so prose that mentions "existing code" isn't one
+ELISION = re.compile(r"#\s*(\.\.\.|…)?\s*\(?\s*("
+                     r"(the )?rest of (the )?(code|file|implementation|method|function|class|logic|tests?)( (goes )?here| unchanged| remains( the same)?)?|"
+                     r"(existing|remaining|unchanged|original|other) (code|logic|implementation|methods|functions|tests|fields|cases)"
+                     r"( (goes )?here| unchanged| remains( the same)?| as before)?|"
+                     r"(implement|add|insert|write|put) (this|me|it|your (code|logic|implementation)|(the )?(actual|real) "
+                     r"(code|logic|implementation))( here| later)?|"
+                     r"(your|actual|real) (code|logic|implementation) (goes )?here|"
+                     r"(placeholder|stub)( (code|implementation|logic|for now|value))?"
+                     r")\s*\)?\s*(\.\.\.|…)?\s*[.:]?\s*$", re.IGNORECASE)
 REGISTERING_OK = {"staticmethod", "classmethod", "property", "cached_property", "cache", "lru_cache", "wraps",
                   "functools.cache", "functools.lru_cache", "functools.cached_property", "functools.wraps",
                   "override", "typing.override", "typing_extensions.override"}
@@ -125,12 +132,14 @@ def _placeholders(text: str, added: set[int], old_text: str) -> list[tuple[int, 
         if _qual(node, parent) in had or _decorated(node, {"abstractmethod", "abc.abstractmethod", "overload",
                                                            "typing.overload"}):
             continue
-        if isinstance(parent, ast.ClassDef) and any(_name(b) in ("Protocol", "ABC", "typing.Protocol")
-                                                    for b in parent.bases):
+        if isinstance(parent, ast.ClassDef) and any(_name(b.value if isinstance(b, ast.Subscript) else b).rsplit(".", 1)[-1]
+                                                    in ("Protocol", "ABC") for b in parent.bases):
             continue
         body = node.body[1:] if node.body and _is_docstring(node.body[0]) else node.body
         if not body or not all(_empty(s) for s in body):
             continue
+        if len(body) == 1 and isinstance(body[0], ast.Expr) and body[0].lineno == (node.returns or node.args).end_lineno:
+            continue        # `def f(...) -> T: ...` on one line declares a signature (for type checkers), it isn't a stub
         # a method that raises NotImplementedError or does nothing is often a base class's hook to override;
         # one that promises a value and returns none isn't
         promises = node.returns is not None and not (isinstance(node.returns, ast.Constant) and node.returns.value is None)
@@ -247,6 +256,8 @@ def _unwired(ctx: Context, sources: dict[str, str], before: dict[str, str], adde
         product = [(p, n) for p, n in elsewhere if not ctx.layout.is_test_side(p)]
         what = f"{'class' if isinstance(node, ast.ClassDef) else 'method' if parent else 'function'} " \
                f"{(parent.name + '.') if parent else ''}{name}"
+        if not elsewhere and parent is not None and not name.startswith("_"):
+            continue        # a public method can be called by code that isn't here: duck typing (a file-like `read`)
         if not elsewhere:
             out.append(Finding(
                 rule="unwired-code", severity="resolve", location=f"{path}:{node.lineno}",

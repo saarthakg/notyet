@@ -81,13 +81,15 @@ def test_new_code_nothing_calls(repo):
         "\n\ndef retry_policy():\n    return 3\n"                 # nothing at all
         "\n\ndef fact(n):\n    return 1 if n < 2 else n * fact(n - 1)\n"   # only itself
         "\n\nclass Helper(dict):\n    def lookup(self, k):\n        return self[k]\n"   # subclass method: may be an override
-        "\n\n@register\ndef plugin():\n    return 1\n"))
+        "\n\n@register\ndef plugin():\n    return 1\n"
+        "\n\nclass FakeSocket:\n    def makefile(self, mode):\n        return None\n\n    def _unused(self):\n        return 1\n"))
     _write(repo, "pkg/shapes.py", "from pkg.calc import add, mul\n\n\ndef perimeter(w, h):\n    return mul(add(w, h), 2)\n")
-    _write(repo, "tests/test_more.py", "from pkg.calc import power, _clamp, Helper\n\n\ndef test_power():\n"
-                                       "    assert power(2, 3) == 8 and _clamp(-1) == 0 and Helper\n")
+    _write(repo, "tests/test_more.py", "from pkg.calc import power, _clamp, Helper, FakeSocket\n\n\ndef test_power():\n"
+                                       "    assert power(2, 3) == 8 and _clamp(-1) == 0 and Helper and FakeSocket\n")
     rules = {f.key.split("|")[1]: f.rule for f in findings(repo, session) if f.rule in ("unwired-code", "only-tests-use")}
     assert rules == {"power": "only-tests-use", "_clamp": "unwired-code", "retry_policy": "unwired-code",
-                     "fact": "unwired-code", "Helper": "only-tests-use"}
+                     "fact": "unwired-code", "Helper": "only-tests-use",
+                     "FakeSocket": "only-tests-use", "_unused": "unwired-code"}     # not makefile: a protocol's method
 
 
 def test_names_listed_in_all_or_called_from_a_script_are_used(repo):
