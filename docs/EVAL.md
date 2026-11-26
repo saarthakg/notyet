@@ -217,6 +217,12 @@ debugging left in, new code nothing calls.
   fixtures and a scenario written as a string. In enforce mode the agent would have been sent back for all six. A marker
   now has to open its comment, and code is read with its strings blanked out. The 600 human commits hadn't shown this:
   few repos write about these things in their own source.
+- **The request against the change** (`engines/asked.py`): new names the request gives (a flag, a file, an identifier)
+  that exist nowhere when the agent stops, and docs it asked for that weren't touched. Replayed on all 12 recorded
+  sessions (49 checks) with only the prompts made so far: nothing raised, which matches the hand review (every agent
+  built what was named and updated the docs asked for). The first replay found one false alarm, a file the prompt
+  named as something to follow ("the conventions in AGENT_PRINCIPLES.md", which doesn't exist), and one bug in the
+  replay itself (it gave each check the whole session's prompts). In CI the pull request's description is the request.
 - **What this doesn't show:** how often agents stop short in real use. Requests that fit in one turn of `claude -p`
   were finished every time here; the reports in RESEARCH.md §12 come from long interactive sessions with a to-do list,
   which this harness doesn't reproduce.
