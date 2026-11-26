@@ -32,7 +32,8 @@ from notyet.source import parse
 DEBUGGER = re.compile(r"(?<![\w.])(breakpoint\(\)|(i?pdb|pudb|ipdb|pdbpp|pytest|rpdb|web_pdb|debugpy)\.set_trace\(|"
                       r"import (i?pdb|pudb)\b|from (i?pdb|pudb) import|debugpy\.wait_for_client\()")
 DUMP = re.compile(r"""print\(\s*(f?["'](debug|DEBUG|>>>|---|\*\*\*|XXX|here|HERE)|f["'][^"']*=\}|(repr|vars|dir|type|locals)\()""")
-MARKER = re.compile(r"#.*?\b(TODO|FIXME|XXX|HACK)\b")
+# a marker opens the comment ("# TODO: ...", "# FIXME(ana)"); a comment that only mentions the word isn't one
+MARKER = re.compile(r"#+\s*(TODO|FIXME|XXX|HACK)\b")
 # the comments models put where they left code out; the whole comment, so prose that mentions "existing code" isn't one
 ELISION = re.compile(r"#\s*(\.\.\.|…)?\s*\(?\s*("
                      r"(the )?rest of (the )?(code|file|implementation|method|function|class|logic|tests?)( (goes )?here| unchanged| remains( the same)?)?|"
@@ -69,13 +70,13 @@ def run(ctx: Context) -> EngineResult:
         test_side = ctx.layout.is_test_side(path)
         lines = text.splitlines()
         gained = Counter(x.strip() for x in lines) - Counter(x.strip() for x in before[path].splitlines())
-        comments = _comments(text)
+        comments, code = _scan(text)
         logs = bool(re.search(r"\blogging\.getLogger\(|\blogger\s*=|\blog\s*=\s*logging", text))
         for n in sorted(added[path]):
             if n > len(lines) or gained[lines[n - 1].strip()] <= 0:
                 continue
             col, comment = comments.get(n, (len(lines[n - 1]), None))
-            kind = _leftover(lines[n - 1][:col], comment, test_side, logs)
+            kind = _leftover(code.get(n, "")[:col], lines[n - 1][:col], comment, test_side, logs)
             if kind:
                 gained[lines[n - 1].strip()] -= 1
                 leftovers.setdefault(kind, []).append((path, n, lines[n - 1].strip()[:140]))
@@ -94,28 +95,42 @@ def run(ctx: Context) -> EngineResult:
 
 # ── Leftovers ────────────────────────────────────────────────────────────────
 
-def _leftover(code: str, comment: Optional[str], test_side: bool, logs: bool) -> Optional[str]:
+def _leftover(code: str, raw: str, comment: Optional[str], test_side: bool, logs: bool) -> Optional[str]:
+    """`code`: the line with its strings blanked; `raw`: as written (what a print prints is in its strings)."""
     if DEBUGGER.search(code):
         return "debugger-left"
-    if comment and MARKER.search(comment):
+    if comment and MARKER.match(comment):
         return "todo-added"
     if comment and ELISION.match(comment.strip()):
         return "placeholder"
-    if not test_side and code.lstrip().startswith("print(") and (DUMP.search(code) or logs):
+    if not test_side and code.lstrip().startswith("print(") and (DUMP.search(raw) or logs):
         return "debug-print"
     return None
 
 
-def _comments(text: str) -> dict[int, tuple[int, str]]:
-    """Line number -> (column, the comment on it): from the tokenizer, so a `#` in a string isn't one."""
-    out: dict[int, tuple[int, str]] = {}
+_TEXT = {tokenize.STRING} | {getattr(tokenize, "FSTRING_MIDDLE", -1), getattr(tokenize, "TSTRING_MIDDLE", -1)}
+
+
+def _scan(text: str) -> tuple[dict[int, tuple[int, str]], dict[int, str]]:
+    """From the tokenizer: line number -> (column, the comment on it), and line number -> the line with the text of its
+    strings blanked out. A `breakpoint()` in a docstring or a test's fixture string isn't a call, and a `#` in a string
+    isn't a comment. Source that doesn't tokenize gives no code at all: better silent than wrong."""
+    comments: dict[int, tuple[int, str]] = {}
+    lines = text.splitlines()
+    masked = [list(x) for x in lines]
     try:
         for tok in tokenize.generate_tokens(io.StringIO(text).readline):
             if tok.type == tokenize.COMMENT:
-                out[tok.start[0]] = (tok.start[1], tok.string)
+                comments[tok.start[0]] = (tok.start[1], tok.string)
+            elif tok.type in _TEXT:
+                (r0, c0), (r1, c1) = tok.start, tok.end
+                for r in range(r0, min(r1, len(lines)) + 1):
+                    row = masked[r - 1]
+                    start, end = (c0 if r == r0 else 0), (c1 if r == r1 else len(row))
+                    row[start:end] = " " * (end - start)
     except (tokenize.TokenError, IndentationError, SyntaxError):
-        pass
-    return out
+        return comments, {}
+    return comments, {n: "".join(row) for n, row in enumerate(masked, 1)}
 
 
 def _placeholders(text: str, added: set[int], old_text: str) -> list[tuple[int, str]]:
@@ -168,7 +183,7 @@ def _commented_code(lines: list[str], comments: dict[int, tuple[int, str]], adde
     runs: list[list[int]] = []
     for n in sorted(added):
         whole = n <= len(lines) and n in comments and not lines[n - 1][:comments[n][0]].strip() \
-            and not MARKER.search(comments[n][1])      # a TODO above the code is reported as a TODO
+            and not MARKER.match(comments[n][1])      # a TODO above the code is reported as a TODO
         if not whole:
             continue
         if runs and runs[-1][-1] == n - 1:

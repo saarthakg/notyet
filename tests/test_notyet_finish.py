@@ -49,6 +49,27 @@ def test_leftovers_in_added_lines(repo):
     assert "def div(...) has no body" in found["placeholder"].evidence[0]
 
 
+MENTIONS = '''
+import logging
+log = logging.getLogger(__name__)
+DOC = """Leftovers: `breakpoint()`, `pdb.set_trace()`."""
+SCRIPT = """
+print(sku, level(sku))
+breakpoint()
+"""
+# a comment that mentions TODO markers isn't one
+X = 1  # see the FIXME convention in CONTRIBUTING
+'''
+
+
+def test_words_in_strings_and_comments_that_only_mention_a_marker_are_not_leftovers(repo):
+    # found on notyet's own session: its docstrings, fixtures and comments talk about these things
+    session = start(repo)
+    _write(repo, "pkg/calc.py", CALC + MENTIONS)
+    _write(repo, "tests/test_more.py", 'CASE = "    breakpoint()\\n"\n\n\ndef test_case():\n    assert "breakpoint()" in CASE\n')
+    assert not {"debugger-left", "debug-print", "todo-added"} & set(check(repo, session))
+
+
 def test_what_was_there_before_or_only_moved_is_not_a_leftover(repo):
     _write(repo, "pkg/calc.py", CALC + "\n\n# TODO: support complex numbers\ndef neg(a):\n    print(a)\n    return -a\n")
     _write(repo, "pkg/cli.py", "import sys\n\n\ndef main():\n    print('usage: calc A B')\n")

@@ -93,13 +93,13 @@ def test_the_gate_sends_the_agent_back_for_its_own_unfinished_plan(repo, monkeyp
     transcript = task_transcript(tmp_path, done=1)
 
     out = hook(repo, "stop", transcript_path=transcript, last_assistant_message="All done!")
-    assert out["decision"] == "block" and "2 of 3 step(s) in your own plan" in out["reason"]
+    assert out is not None and out["decision"] == "block" and "2 of 3 step(s) in your own plan" in out["reason"]
     assert "not started: Use it in the client" in out["reason"]
 
     # same tree, the agent says what's left: handed to the user, who has to look
     out = hook(repo, "stop", transcript_path=transcript, last_assistant_message=(
         "I added the setting.\n\nNot done: using it in the client, and documenting the setting in the README."))
-    assert "decision" not in out and out["systemMessage"].startswith("notyet: NEEDS YOUR REVIEW")
+    assert out is not None and "decision" not in out and out["systemMessage"].startswith("notyet: NEEDS YOUR REVIEW")
     assert "all 3 steps" not in out["systemMessage"] and "1 of 3 steps done" in out["systemMessage"]
     assert "Not done:" in out["systemMessage"] and "agent: Not done: using it in the client" in out["systemMessage"]
 
@@ -110,6 +110,6 @@ def test_an_unfinished_plan_is_checked_even_when_no_file_changed(repo, monkeypat
     hook(repo, "session-start", source="startup")
     assert hook(repo, "stop", transcript_path=task_transcript(tmp_path, done=3)) is None     # nothing to say
     out = hook(repo, "stop", transcript_path=task_transcript(tmp_path, done=0))
-    assert out["decision"] == "block" and "3 of 3 step(s)" in out["reason"]
+    assert out is not None and out["decision"] == "block" and "3 of 3 step(s)" in out["reason"]
     # the agent finishes them all: nothing changed in the repo, nothing left to say
     assert hook(repo, "stop", transcript_path=task_transcript(tmp_path, done=3)) is None
