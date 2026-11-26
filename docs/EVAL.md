@@ -212,6 +212,11 @@ debugging left in, new code nothing calls.
   aren't done". Its second closing message said steps 2 (`mul`) and 3 (`div`) were pending as asked, which notyet failed
   to count as saying so (step names were too short for the word match); a step is now recognized by the code name it's
   about.
+- **notyet on its own session.** On the session that built these checks, the receipt listed 2 TODOs and 4 debugging
+  leftovers, all false: comments that mentioned the word TODO, and `breakpoint()` and `print(...)` inside docstrings, test
+  fixtures and a scenario written as a string. In enforce mode the agent would have been sent back for all six. A marker
+  now has to open its comment, and code is read with its strings blanked out. The 600 human commits hadn't shown this:
+  few repos write about these things in their own source.
 - **What this doesn't show:** how often agents stop short in real use. Requests that fit in one turn of `claude -p`
   were finished every time here; the reports in RESEARCH.md §12 come from long interactive sessions with a to-do list,
   which this harness doesn't reproduce.
