@@ -122,15 +122,23 @@ BROKEN = {"test-regression", "new-test-failing", "test-run-broken", "test-hangs"
 EXPECTATIONS = {"test-changed-to-pass", "test-removed", "test-disabled", "failing-test-changed", "assertions-removed"}
 ALSO = {"suppression-added": "suppression comment", "lint-new": "lint", "type-error-new": "type error", "undone-work": "undone earlier work",
         "test-vacuous": "no new test fails without the change", "test-not-collected": "new test never collected",
-        "source-detects-tests": "source checks whether it's tested", "always-equal": "an __eq__ that's always true"}
+        "source-detects-tests": "source checks whether it's tested", "always-equal": "an __eq__ that's always true",
+        "commented-out-code": "commented-out code", "plan-dropped": "plan steps dropped unfinished"}
+NOT_DONE = ("plan-unfinished", "todo-added", "placeholder")
+UNUSED = ("unwired-code", "only-tests-use")
+LEFT_IN = ("debugger-left", "debug-print")
 MAX_BRIEF = 5
 
 
 def evidence(result: EngineResult) -> str:
     """The checks in one line: what a reader needs to know how far to trust the verdict."""
     f = result.facts
+    plan = []
+    if f.get("plan"):
+        plan = [f"the agent's plan: {f['plan_done']} of {f['plan']} steps done" if f["plan_done"] < f["plan"]
+                else f"all {f['plan']} steps of the agent's plan done"]
     if not f.get("ran"):
-        return "; ".join(result.checks[:2])
+        return "; ".join(plan + result.checks[:2])
     parts = [f"{f['passed']} of {f['ran']} tests pass" if f["passed"] != f["ran"] else f"{f['ran']} tests pass"]
     parts[0] += " (the whole suite)" if f.get("whole") else " (the ones this change reaches)"
     if f.get("earlier"):
@@ -139,7 +147,7 @@ def evidence(result: EngineResult) -> str:
         parts.append(f"{f['new_tell']} of {f['new']} new or edited tests fail without the change")
     if f.get("lines_checked") and not any(x.rule == "untested-change" for x in result.findings):
         parts.append("every changed line ran")
-    return "; ".join(parts)
+    return "; ".join(plan + parts)
 
 
 def brief(session: store.Session, result: EngineResult, standing: list[Finding]) -> list[str]:
@@ -154,6 +162,15 @@ def brief(session: store.Session, result: EngineResult, standing: list[Finding])
 
     live = [f for f in result.findings if shown(f)]
     out: list[str] = []
+    if not_done := [f for f in live if f.rule in NOT_DONE]:
+        out.append("Not done:")
+        for f in not_done[:MAX_BRIEF]:
+            ack = find_ack(f, session.acks) or {}
+            out.append(f"  {f.title}")
+            out += [f"    {e}" for e in f.evidence[:4]]
+            if ack.get("reason"):
+                out.append(f"    agent: {re.sub(r'[*`_]{2,}', '', ack['reason']).strip()[:200]}")
+        out += _more(not_done)
     if broken := [f for f in live if f.rule in BROKEN]:
         out.append("Broken:")
         out += [f"  {f.title}" for f in broken[:MAX_BRIEF]] + _more(broken)
@@ -177,7 +194,14 @@ def brief(session: store.Session, result: EngineResult, standing: list[Finding])
     if untested := [f for f in live if f.rule == "untested-change"]:
         out.append("No test runs:")
         out += [f"  {f.title.split(' never ran')[0]}: {(f.evidence or [''])[0]}" for f in untested[:MAX_BRIEF]] + _more(untested)
+    if unused := [f for f in live if f.rule in UNUSED]:
+        out.append("Nothing calls it:")
+        out += [f"  {f.title.removeprefix('new ')}" for f in unused[:MAX_BRIEF]] + _more(unused)
+    if left := [f for f in live if f.rule in LEFT_IN]:
+        out.append("Left in:")
+        out += [f"  {f.location.split(':')[0]} {e}" for f in left[:MAX_BRIEF] for e in f.evidence[:2]] + _more(left)
     rest = [f for f in live if f not in broken and f not in tests and f not in untested
+            and f not in not_done and f not in unused and f not in left
             and not (f.rule == "assertions-removed" and f.location in changed)]
     counts: dict[str, int] = {}
     for f in rest:

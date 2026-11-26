@@ -4,6 +4,8 @@ Hook contract (code.claude.com/docs/en/hooks, checked Sept 2026):
 - every hook gets JSON on stdin with session_id, cwd, hook_event_name, ...;
 - SessionStart has `source` (startup | resume | clear | compact | fork);
 - UserPromptSubmit has `prompt`;
+- every hook also gets `transcript_path`: the session's JSONL log, where the agent's
+  to-do list is (see plan.py);
 - Stop has `stop_hook_active`, `last_assistant_message` and `background_tasks`,
   and may answer {"decision": "block", "reason": ...}; 8 consecutive blocks
   are the host's cap;
@@ -81,7 +83,8 @@ def _dispatch(root: str, event: str, payload: dict) -> Optional[dict]:
         session.stops = (session.stops + [{"at": time.time(), "busy": busy,
                                            "tasks": [t.get("id") for t in tasks][:20]}])[-50:]
         store.save_session(root, session)
-        decision = gate.check(root, session, background_busy=busy, message=payload.get("last_assistant_message") or "")
+        decision = gate.check(root, session, background_busy=busy, message=payload.get("last_assistant_message") or "",
+                              transcript=payload.get("transcript_path"))
         if decision.verdict == "blocked":
             return {"decision": "block", "reason": decision.block_reason}
         if decision.summary:

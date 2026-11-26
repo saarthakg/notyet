@@ -9,6 +9,7 @@ Loop safety (docs/PLAN.md §3.6):
 - never more than MAX_BLOCKS consecutive blocks (Claude Code's own cap is 8);
 - never blocks while background work is running.
 """
+import re
 import time
 import traceback
 from dataclasses import asdict, dataclass, field, replace
@@ -16,10 +17,11 @@ from typing import Callable, Optional
 
 from notyet import config as config_mod
 from notyet import receipt as receipt_mod
+from notyet import plan as plan_mod
 from notyet import snapshot, store
 from notyet.disclosure import disclosed
 from notyet.source import printable
-from notyet.findings import Context, EngineResult, Finding, find_ack
+from notyet.findings import Context, EngineResult, Finding, find_ack, group
 
 MAX_BLOCKS = 6
 SEVERITY_ORDER = {"block": 0, "resolve": 1, "note": 2}
@@ -29,16 +31,23 @@ MAX_SAME_SET_BLOCKS = 2
 # for it mostly produced acknowledgments, and once worse code (docs/EVAL.md §6).
 SEND_BACK = {"untested-change", "test-failing", "tests-failing-unverified", "type-error-new", "test-not-collected",
              "failing-test-changed", "test-removed", "test-disabled", "assertions-removed",      # when not told to the user
-             "source-detects-tests", "always-equal"}
+             "source-detects-tests", "always-equal",
+             # unfinished work: the most reported way a "done" isn't (docs/RESEARCH.md); sent back unless the closing
+             # message says what's left
+             "plan-unfinished", "todo-added", "placeholder", "debugger-left", "debug-print", "unwired-code"}
 TEST_CHANGES = {"test-changed-to-pass", "test-removed", "test-disabled", "failing-test-changed", "assertions-removed"}
 HANDED_OVER = ("needs-human", "disclosed")
+# what the agent can hand to the user by saying it in its closing message
+SAID_LEFT = {"plan-unfinished", "todo-added"}
+# handed over, the user has to look before calling the work done
+REVIEW = {"failing-test-changed", "plan-unfinished"}
 
 Engine = Callable[[Context], EngineResult]
 
 
 def default_engines() -> list[Engine]:
-    from notyet.engines import execution, gaming, history, integrity, static, undone
-    return [execution.run, integrity.run, gaming.run, static.run, undone.run, history.run]
+    from notyet.engines import execution, finish, gaming, history, integrity, static, undone
+    return [execution.run, integrity.run, gaming.run, finish.run, static.run, undone.run, history.run]
 
 
 @dataclass
@@ -94,14 +103,22 @@ def run_engines(ctx: Context, engines: Optional[list[Engine]] = None) -> EngineR
 
 
 def check(root: str, session: store.Session, engines: Optional[list[Engine]] = None,
-          background_busy: bool = False, cfg: Optional[config_mod.Config] = None, message: str = "") -> Decision:
-    """`message`: what the agent told the user as it tried to stop."""
+          background_busy: bool = False, cfg: Optional[config_mod.Config] = None, message: str = "",
+          transcript: Optional[str] = None) -> Decision:
+    """`message`: what the agent told the user as it tried to stop. `transcript`: the session's transcript file,
+    for the agent's own plan."""
     if background_busy:
         return Decision(verdict="no-change")  # the session isn't done; check when it is
     current = snapshot.snapshot(root)
-    # back where the session started: nothing to check, unless this turn got there by undoing earlier ones
+    planned, plan_facts = plan_mod.findings(plan_mod.read(transcript))
+    # back where the session started: nothing to check, unless this turn got there by undoing earlier ones,
+    # or the agent's own plan says it isn't done
     undid = bool(session.turns) and session.turns[-1]["tree"] != current
-    if current == session.baseline_tree and not undid:
+    unchanged = current == session.baseline_tree and not undid
+    previous = session.runs[-1] if session.runs else None
+    again = previous is not None and previous.tree == current and previous.verdict == "blocked"
+    open_plan = any(f.rule == "plan-unfinished" for f in planned)
+    if unchanged and (not open_plan or not again and not _plan_news(session, planned, previous)):
         return Decision(verdict="no-change")
     cfg = cfg or config_mod.load(root, session.baseline_tree)
     started = time.monotonic()
@@ -109,11 +126,12 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
                   deadline=time.monotonic() + cfg.check_seconds,
                   current_tree=current, deltas=snapshot.diff_trees(root, session.baseline_tree, current))
 
-    previous = session.runs[-1] if session.runs else None
-    if previous is not None and previous.tree == current:
-        if previous.verdict != "blocked":
+    if unchanged:
+        result = EngineResult()
+    elif previous is not None and previous.tree == current:
+        if previous.verdict != "blocked" and not _plan_news(session, planned, previous):
             return Decision(verdict="no-change")      # this exact tree was already checked
-        result = _result_from(previous.result)       # re-decide with current acknowledgments
+        result = _result_from(previous.result)       # re-decide with current acknowledgments and plan
     else:
         try:
             result = run_engines(ctx, engines)
@@ -126,19 +144,27 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
             result.advice.append(f"{config_mod.CONFIG_FILE} changed during this session; "
                                  f"the gate used the version from session start")
 
+    result.findings = [f for f in result.findings if f.rule not in PLAN_RULES] + \
+        _as_configured(planned, cfg.rules)
+    result.facts = {k: v for k, v in result.facts.items() if not k.startswith("plan")} | plan_facts
     result.findings.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))   # blocks first, for agent and receipt
     for f in result.findings:       # already told to the user: theirs to review, no reason to send the agent back
-        if f.rule in TEST_CHANGES and f.severity != "note" and not find_ack(f, session.acks) \
-                and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []), f.diff)):
+        if f.severity == "note" or find_ack(f, session.acks):
+            continue
+        if f.rule in TEST_CHANGES and (said := disclosed(message, f.tests or ([f.location] if "::" in f.location else []), f.diff)):
             session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title,
                                   "rule": f.rule, "tests": f.tests or [f.location]}
+        elif f.rule in SAID_LEFT and (said := plan_mod.mentioned(message, _left_items(f))):
+            session.acks[f.id] = {"category": "disclosed", "reason": said, "at": time.time(), "title": f.title}
+            if f.covers:
+                session.acks[f.id].update(group=group(f), covers=f.covers)
     standing = outstanding(result.findings, session.acks)
     send = [f for f in standing if cfg.send_back == "all" or f.severity == "block" or f.rule in SEND_BACK]
     repeats = _same_set_streak(session, [f.id for f in send])
 
     if not standing and not result.checks and not result.gaps:
         verdict = "not-checked"
-    elif not send and any((f.severity == "block" or f.rule == "failing-test-changed")
+    elif not send and any((f.severity == "block" or f.rule in REVIEW)
                           and handed_over_now(session, find_ack(f, session.acks)) for f in result.findings):
         verdict = "needs-review"      # the agent may stop, but this is not a pass
     elif not send:
@@ -163,6 +189,23 @@ def check(root: str, session: store.Session, engines: Optional[list[Engine]] = N
         decision.block_reason = receipt_mod.agent_message(send, last_chance=repeats + 1 >= MAX_SAME_SET_BLOCKS,
                                                             advice=result.advice)
     return decision
+
+
+PLAN_RULES = {"plan-unfinished", "plan-dropped"}
+
+
+def _plan_news(session: store.Session, planned: list[Finding], previous: Optional[store.GateRun]) -> bool:
+    """Is there something in the plan that the last check didn't already decide?"""
+    open_ = {f.id for f in planned if f.rule == "plan-unfinished"}
+    return bool(open_) and (previous is None or not open_ <= set(previous.finding_ids) | set(session.acks))
+
+
+def _left_items(f: Finding) -> list[str]:
+    """What a closing message has to name to hand `f` over: each unfinished step, or the TODO comments."""
+    texts = [e.split(": ", 1)[-1] for e in f.evidence]
+    if f.rule == "todo-added":
+        return [re.sub(r".*?\b(TODO|FIXME|XXX|HACK)\b[:\s]*", "", t) or t for t in texts]
+    return texts
 
 
 def _as_configured(findings: list[Finding], rules: dict[str, str]) -> list[Finding]:
