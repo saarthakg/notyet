@@ -25,9 +25,14 @@ in the design since this was written:
 - **Interrupt for the unknown, show the rest.** Agents disclose the tests they change and don't know what they broke, so an enforcing gate
   sends them back only for what they don't know or didn't say; everything else goes to the user as a short review brief.
 
+- **Unfinished work, not just broken work** ([RESEARCH.md §12](RESEARCH.md)). The most reported false "done" is an
+  agent stopping partway through its own plan. The plan is in the transcript the Stop hook gets (`plan.py`); TODOs,
+  placeholders, debugging left in and new code nothing calls are in the added lines (`engines/finish.py`). Sent back
+  unless the closing message says what's left; the brief leads with "Not done".
+
 Next, in order: (1) a developer using it for real work for a week, with the questions in docs/DOGFOOD.md;
-(2) TypeScript (vitest/jest), where the same four-way comparison applies; (3) `declare()` (§3.8), which is the only
-idea here for the failure the evaluation shows the gate can't see: work that is incomplete rather than broken.
+(2) the request against the change: requirements in the prompt that no plan step, test or changed file answers
+(needs a model, so advisory); (3) the brief where review happens (a PR comment); (4) TypeScript (vitest/jest).
 
 ## 1. The problem
 
