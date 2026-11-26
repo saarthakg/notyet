@@ -8,6 +8,7 @@ version = "0.2.0"
 description = "A completion gate for AI coding agents: when the agent says it's done, check whether it is."
 readme = "README.md"
 requires-python = ">=3.11"  # tomllib
+license = {text = "MIT"}
 dependencies = []            # standard library only: it runs inside other projects' environments
 
 [project.optional-dependencies]

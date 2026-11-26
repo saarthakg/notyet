@@ -247,3 +247,7 @@ PYTHONPATH=. python eval/notyet_scenarios.py /tmp/out.json      # sessions with 
 
 [docs/EVAL.md](docs/EVAL.md) has the results and how they were measured, [eval/README.md](eval/README.md)
 how to rerun them, and [docs/PLAN.md](docs/PLAN.md) what's next.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
