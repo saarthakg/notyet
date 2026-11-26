@@ -12,6 +12,7 @@
   notyet hook AGENT EVENT     hook entry point (used by the installed hooks)
 """
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -62,11 +63,20 @@ def _try_command(root: str, command: str) -> str:
     """Does the test command work at all? Better found out now than at the end of a session."""
     from notyet import testrun
     from notyet.engines.execution import source_path_env
+    from notyet.pyresolve import find_python_source_roots
     found = testrun.collect(testrun.anchored(command, root), root, [], timeout=60, env=source_path_env(root))
     if found is None:
         return f"Warning: `{command} --collect-only` didn't work here. Fix the command in {config_mod.CONFIG_FILE} before relying on the gate."
     broken = f"; {len(found.errors)} file(s) can't be collected: {', '.join(sorted(found.errors)[:3])}" if found.errors else ""
-    return f"The test command finds {len(found)} test(s){broken}."
+    out = f"The test command finds {len(found)} test(s){broken}."
+    # notyet puts the source roots on PYTHONPATH itself; you and the agent, running the same command, don't
+    plain = testrun.collect(testrun.anchored(command, root), root, [], timeout=60, env=dict(os.environ))
+    if found and (plain is None or len(plain.errors) > len(found.errors)):
+        roots = [os.path.relpath(r, root) for r in find_python_source_roots(root) if os.path.relpath(r, root) != "."]
+        hint = f'`pythonpath = ["{roots[0]}"]` under [tool.pytest.ini_options]' if roots else "the package installed"
+        out += (f"\nWarning: run by hand, the same command can't import the code (notyet sets PYTHONPATH for its own runs). "
+                f"You and your agent will see import errors until the repo has {hint}, or `pip install -e .`.")
+    return out
 
 
 def cmd_install(args) -> int:

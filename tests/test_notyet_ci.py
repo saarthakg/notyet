@@ -180,3 +180,15 @@ def test_init_says_whether_the_test_command_works(repo, capsys):
     assert "The test command finds 4 test(s)." in capsys.readouterr().out
     assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", "python3 -c 'raise SystemExit(3)'"]) == 0
     assert "Warning" in capsys.readouterr().out
+
+
+def test_init_warns_when_the_command_only_works_with_notyets_import_path(repo, capsys, monkeypatch):
+    # a src layout that isn't installed: notyet's own runs import it, a person or an agent running the command don't
+    from tests.conftest import PYTEST
+    (repo / "src").mkdir()
+    _git(repo, "mv", "pkg", "src/pkg")
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", PYTEST]) == 0
+    out = capsys.readouterr().out
+    assert "The test command finds 4 test(s)." in out
+    assert 'run by hand, the same command can\'t import the code' in out and 'pythonpath = ["src"]' in out
