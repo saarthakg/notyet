@@ -4,8 +4,10 @@
 
 notyet is a completion gate for AI coding agents working in Python repos with pytest. When the
 agent tries to stop, notyet runs the tests its change reaches, compares them with the tree as it
-was when the session started, and sends the agent back if something that worked is broken, or was
-made to look like it works. You get a receipt: what was checked, what was found, what wasn't checked.
+was when the session started, and sends the agent back if something that worked is broken, was
+made to look like it works, or isn't finished: steps of its own plan left undone, TODOs and
+placeholders, debugging left in, new code nothing calls. You get a short brief: what isn't done, what
+changed in what the tests check, and what wasn't checked.
 
 It is deterministic. No model judges anything; every block is backed by a test that passed before
 and fails now. It has no dependencies, and keeps its state in `.git/notyet/`.
@@ -95,6 +97,10 @@ that turns failures into passes: if the original would fail on the new code, tha
 | Changed lines that no test ran | fix or justify |
 | Work from an earlier turn, or your uncommitted edits, was undone | fix or justify |
 | Source that checks whether it's being tested; an `__eq__` that is always true | fix or justify |
+| Steps of the agent's own to-do list still pending when it stops | fix or justify |
+| New TODO/FIXME comments, empty functions, "rest of the code here" comments | fix or justify |
+| `breakpoint()` and debugger calls, debug prints, commented-out code | fix or justify |
+| New functions or classes nothing calls; new public ones only tests call | fix or justify |
 | New ruff or pyright errors (also in the callers); new `# noqa`, `# type: ignore`, ... | fix or justify |
 | Failures that were there before; flaky tests | note |
 
@@ -107,10 +113,11 @@ that turns failures into passes: if the original would fail on the new code, tha
 Only for what the agent **doesn't know or didn't say**. In recorded sessions agents nearly always told the user about the
 tests they had changed, and almost never about the regressions they had caused, because they didn't know. So in enforce mode:
 
-- **sent back:** broken or hanging tests, new code no test runs, new type errors, and test changes the agent's closing
-  message doesn't mention. Mentioning them is enough; no command needed.
-- **not sent back, shown to you:** test changes it did mention (as a diff of what they check), moves and renames, lint,
-  suppressions, undone work.
+- **sent back:** broken or hanging tests, new code no test runs, new type errors, test changes the agent's closing
+  message doesn't mention, and unfinished work: plan steps and TODOs it doesn't mention, placeholders, debugger calls
+  and debug prints, new code nothing calls. Mentioning a test change, or what's left, is enough; no command needed.
+- **not sent back, shown to you:** test changes and unfinished steps it did mention, moves and renames, lint,
+  suppressions, commented-out code, new public code only tests call, undone work.
 
 `send_back = "all"` under `[gate]` sends it back for everything: for agents nobody is watching.
 
@@ -216,8 +223,9 @@ reported.
 ## Limits
 
 - Python and pytest only, for now.
-- It knows what the tests know. Work that is *incomplete* in a way no test expresses, or hard-coded to
-  the exact inputs the tests use, gets through.
+- It knows what the tests know, what the agent planned, and what the code says about itself. Work that is
+  incomplete against your request in a way none of those shows (a requirement nobody wrote down as a step or a
+  test), or hard-coded to the exact inputs the tests use, gets through.
 - Tampering with `.git/notyet/` or the hook settings is not prevented, only harder than fixing the bug.
 - Your own edits *during* a session count as part of the change.
 

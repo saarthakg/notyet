@@ -373,3 +373,60 @@ An independent review of the plan checked key claims against their sources:
     81–86% of the time (arXiv 2607.18057).
 - **Most F5 examples (undone work) are in-session or uncommitted:** earlier turns and the user's own
   edits. Git blame can't see these; session snapshots can.
+
+---
+
+## 12. November 2026: unfinished work, the other half of a false "done"
+
+After two rounds of dogfooding showed that agents almost always mention the tests they changed and almost never the
+regressions they caused, a second look at what developers report found that the most common complaint isn't breakage
+at all: it's work handed over unfinished, presented as finished.
+
+**Stopping partway through its own plan.** The agent writes a to-do list, does part of it, and summarizes as if the
+job were done; the user has to notice and prompt it again.
+- [#6159](https://github.com/anthropics/claude-code/issues/6159): phases 4a–6 of the agent's own plan left pending,
+  the test suite never run, summary written as if complete. Closed as a duplicate of
+  [#1632](https://github.com/anthropics/claude-code/issues/1632), where telling it not to stop doesn't keep it from
+  stopping "at about 80%".
+- [claude-code-action #599](https://github.com/anthropics/claude-code-action/issues/599): 5 of 10 to-dos done;
+  formatting, linting, type checking and opening the PR skipped.
+- [#69488](https://github.com/anthropics/claude-code/issues/69488): the agent knew only 3 specs were done and
+  reported "all done"; the user made an irreversible submission on the strength of it.
+- [#111470](https://github.com/anthropics/claude-code/issues/111470) (Nov 2026): merged treated as done while the
+  post-merge migration was skipped. "'Done' means verified on the live system, not merged."
+- A method built, tested and marked supported with no caller from any entry point (claude-code #60451, seen only
+  through a search snippet; the page didn't load).
+
+**What reviewers then have to finish.** The measured part:
+- Of merged Claude Code PRs, 45.1% needed human revision: bug fixes 47.7%, docs 29.0%, refactoring 27.1%, style
+  23.4%, tests 16.4% (Watanabe et al. 2025, §2).
+- METR: 0 of 15 test-passing agent PRs mergeable as they stood; test-coverage gaps in all, docs in 75%, lint and
+  typing in 75%; 26–42 minutes of human fixing each (§2).
+- Follow-up fixes at 1.62× the odds of human PRs, 69.6% by the same agent: the re-prompting loop (§2).
+- Addy Osmani, [the 80% problem](https://addyosmani.com/blog/the-80-problem-in-agentic-coding/): dead code left
+  behind, comments removed as side effects, assumptions propagated; [comprehension
+  debt](https://addyosmani.com/blog/comprehension-debt/): code merged before anyone can explain it.
+
+**Understanding what happened.** The most common frustration in Stack Overflow's 2025 survey is answers that are
+"almost right, but not quite" (66%); 16% find it hard to see why the code works. Sonar's 2026 survey: 96% don't fully
+trust AI code, 48% consistently check it before committing. Review time +91% and PR size +154% on teams that adopted
+AI heavily (Faros, **[vendor]**).
+
+**Other done gates.** [DoneSpec](https://github.com/xryv/DoneSpec), prove-it, [DoneGate](https://github.com/thtwz/DoneGate)
+(advisory), Hermes's `pre_verify` hook, and the harnesses in [this
+survey](https://redreamality.com/blog/coding-agent-done-claims-verification-survey/) nearly all run the tests or a
+script and block if it fails. None reads the agent's own plan, compares with the session's starting point, or tells a
+test that was changed to pass from one that passes.
+
+**What follows for notyet.**
+1. The agent's to-do list is in the transcript the Stop hook already gets: a step still pending when it stops is
+   unfinished by the agent's own account. No model, no guessing. Sent back unless the closing message says what's
+   left, in which case it goes to the user as NEEDS YOUR REVIEW.
+2. What reviewers send back before reading further is checkable in the added lines: TODOs, placeholders and "rest of
+   the code here" comments, debugger calls, debug prints, commented-out code, new code nothing calls.
+3. The brief leads with what isn't done. The comparison of the request with what changed (a requirement no step and
+   no test names) is still out of reach without a model, and is next.
+
+Evidence quality: the issue reports are hand-picked anecdotes and say nothing about prevalence; the METR, Watanabe and
+follow-up-fix studies are the solid ones, and they agree that the cost after "done" is mostly unfinished and
+unpolished work rather than broken work.

@@ -3,7 +3,8 @@
   python eval/notyet_recheck.py WORKDIR [WORKDIR ...]      # session copies left by notyet_dogfood.py
 
 Each recorded check is repeated in a copy: same starting point, same turns so far, same tree, the
-acknowledgments that existed then, and what the agent had just told the user (from Claude Code's transcript).
+acknowledgments that existed then, what the agent had just told the user and its to-do list then (from Claude Code's
+transcript).
 --show prints what the user would see.
 """
 import argparse
@@ -34,6 +35,18 @@ def closing_message(session_id: str, at: float) -> str:
     return said
 
 
+def transcript_until(session_id: str, at: float, dest: Path) -> str:
+    """The session's transcript as it was at `at`: the agent's plan then, not at the end of the session."""
+    with dest.open("w") as out:
+        for path in (Path.home() / ".claude/projects").glob(f"*/{session_id}.jsonl"):
+            for line in path.open():
+                stamp = json.loads(line).get("timestamp")
+                if stamp and datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp() > at:
+                    break
+                out.write(line)
+    return str(dest)
+
+
 def recheck(work: Path) -> list[tuple]:
     rows = []
     for session in store.all_sessions(str(work)):
@@ -49,7 +62,9 @@ def recheck(work: Path) -> list[tuple]:
                 then = dataclasses.replace(session, session_id=f"recheck-{n}", runs=session.runs[:n], turns=turns, acks=acks)
                 then.runs = [dataclasses.replace(r) for r in then.runs]
                 then.consecutive_blocks = 0
-                decision = gate.check(str(copy), then, message=closing_message(session.session_id, run.at - run.seconds))
+                stop = run.at - run.seconds
+                decision = gate.check(str(copy), then, message=closing_message(session.session_id, stop),
+                                      transcript=transcript_until(session.session_id, stop, Path(tmp) / f"t{n}.jsonl"))
                 old = [Finding(**f) for f in run.result["findings"] if f["severity"] != "note"]
                 new = [f for f in decision.findings if f.severity != "note"]
                 rows.append((work.name, n + 1, run.verdict, decision.verdict, old, new, decision.summary))
