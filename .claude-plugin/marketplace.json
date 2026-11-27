@@ -1,5 +1,5 @@
 {
   "name": "notyet",
   "owner": {"name": "Saarthak Gupta"},
-  "plugins": [{"name": "notyet", "source": "./", "description": "A completion gate for Python repos with pytest"}]
+  "plugins": [{"name": "notyet", "source": "./", "description": "A completion gate for Python repos with pytest: when Claude says it is done, check whether it is"}]
 }
