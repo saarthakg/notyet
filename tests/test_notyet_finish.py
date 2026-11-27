@@ -135,3 +135,12 @@ def test_the_word_in_prose_data_or_a_comment_is_not_a_caller(repo):
     _write(repo, "pkg/other.py", "X = 1    # rounded up\n")
     _write(repo, "README.md", "Amounts are rounded half up. Use `rounded` for display.\n")
     assert "unwired-code" not in check(repo, session)
+
+
+def test_a_public_name_in_a_packages_init_is_its_api(repo):
+    # found running the plugin: "add mul to calc" put it in calc/__init__.py, and it was called unused
+    _write(repo, "pkg/__init__.py", "")
+    session = start(repo)
+    _write(repo, "pkg/__init__.py", "def mul(a, b):\n    return a * b\n\n\ndef _helper():\n    return 1\n")
+    rules = {f.key.split("|")[1]: f.rule for f in findings(repo, session) if f.rule == "unwired-code"}
+    assert rules == {"_helper": "unwired-code"}

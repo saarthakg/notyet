@@ -177,7 +177,7 @@ def test_undoing_everything_back_to_the_start_is_still_seen(repo):
 def test_init_says_whether_the_test_command_works(repo, capsys):
     from tests.conftest import PYTEST
     assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", PYTEST]) == 0
-    assert "The test command finds 4 test(s)." in capsys.readouterr().out
+    assert "The test command works: it finds 4 test(s)." in capsys.readouterr().out
     assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", "python3 -c 'raise SystemExit(3)'"]) == 0
     assert "Warning" in capsys.readouterr().out
 
@@ -190,5 +190,23 @@ def test_init_warns_when_the_command_only_works_with_notyets_import_path(repo, c
     monkeypatch.delenv("PYTHONPATH", raising=False)
     assert cli.main(["init", str(repo), "--force", "--yes", "--test-command", PYTEST]) == 0
     out = capsys.readouterr().out
-    assert "The test command finds 4 test(s)." in out
+    assert "The test command works: it finds 4 test(s)." in out
     assert 'run by hand, the same command can\'t import the code' in out and 'pythonpath = ["src"]' in out
+
+
+def test_status_and_ack_from_a_new_session_reach_the_last_check(repo, capsys):
+    # /notyet:status in a fresh window: that session has no check yet, the one before does
+    root = str(repo)
+    first = {"cwd": root, "session_id": "one"}
+    claude.handle("session-start", {**first, "source": "startup"})
+    claude.handle("prompt", {**first, "prompt": "add mul"})
+    _write(repo, "pkg/calc.py", (repo / "pkg/calc.py").read_text() + "\n\ndef mul(a, b):\n    return a * b\n")
+    claude.handle("stop", first)
+    claude.handle("session-start", {"cwd": root, "session_id": "two", "source": "startup"})
+    capsys.readouterr()
+    assert cli.main(["status", "--path", root]) == 0
+    out = capsys.readouterr().out
+    assert "The last check was in session one" in out and "No test runs:" in out
+    fid = out.split("Open items")[1].splitlines()[1].split()[0]
+    assert cli.main(["ack", fid, "mul is tested by the next pull request", "--path", root]) == 0
+    assert fid in store.load_session(root, "one").acks

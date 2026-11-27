@@ -254,6 +254,9 @@ def _unwired(ctx: Context, sources: dict[str, str], before: dict[str, str], adde
         if tree is None:
             continue
         exported = _exported(tree)
+        if path.endswith("__init__.py"):     # what a package defines in its __init__ is its public API
+            exported |= {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+                         and not n.name.startswith("_")}
         for parent, node in _defs(tree):
             name = node.name
             if node.lineno not in added.get(path, ()) or name in old_names or name in exported \

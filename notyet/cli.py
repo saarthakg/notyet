@@ -13,6 +13,7 @@
 """
 import argparse
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -55,7 +56,10 @@ def cmd_init(args) -> int:
         return 1
     path.write_text(text)
     print(_try_command(root, command))
-    print(f"Wrote {path}. Review the test command, then run `notyet install claude`.")
+    if os.environ.get("CLAUDE_PLUGIN_ROOT"):      # run by the plugin's /notyet:init: its hooks are already there
+        print(f"Wrote {path}. The plugin's hooks check from the next prompt on, in report mode.")
+    else:
+        print(f"Wrote {path}. Review the test command, then run `notyet install claude` (or `notyet install codex`).")
     return 0
 
 
@@ -68,7 +72,8 @@ def _try_command(root: str, command: str) -> str:
     if found is None:
         return f"Warning: `{command} --collect-only` didn't work here. Fix the command in {config_mod.CONFIG_FILE} before relying on the gate."
     broken = f"; {len(found.errors)} file(s) can't be collected: {', '.join(sorted(found.errors)[:3])}" if found.errors else ""
-    out = f"The test command finds {len(found)} test(s){broken}."
+    out = (f"The test command works: it finds {len(found)} test(s){broken}." if found else
+           f"The test command runs but finds no tests{broken}. Check it in {config_mod.CONFIG_FILE}.")
     # notyet puts the source roots on PYTHONPATH itself; you and the agent, running the same command, don't
     plain = testrun.collect(testrun.anchored(command, root), root, [], timeout=60, env=dict(os.environ))
     if found and (plain is None or len(plain.errors) > len(found.errors)):
@@ -109,15 +114,35 @@ def cmd_status(args) -> int:
     cfg = config_mod.load(root, session.baseline_tree)
     print(f"Session {session.session_id} · started {time.strftime('%Y-%m-%d %H:%M', time.localtime(session.started))} "
           f"· baseline: {session.baseline_source} · mode: {cfg.mode}")
-    if session.runs:
-        last = session.runs[-1]
-        print(f"Last check: {last.verdict} · {len(last.finding_ids)} open finding(s) · receipt: {last.receipt}")
-    else:
-        print("No checks run yet.")
     if session.stops:
         skipped = sum(1 for st in session.stops if st.get("busy"))
         print(f"Stop hook fired {len(session.stops)} time(s); {skipped} skipped because background tasks were running")
+    checked = session if session.runs else _last_checked(root)
+    if checked is None:
+        print("No checks run yet.")
+        return 0
+    last = checked.runs[-1]
+    if checked is not session:
+        print(f"No checks in this session yet. The last check was in session {checked.session_id}:")
+    print(f"Last check: {last.verdict} · {len(last.finding_ids)} open finding(s) · receipt: {last.receipt}")
+    text = Path(last.receipt).read_text() if last.receipt and Path(last.receipt).exists() else ""
+    short = re.search(r"^## In short\n+```\n(.*?)```", text, re.MULTILINE | re.DOTALL)
+    if short:
+        print("\n" + short.group(1).rstrip())
+    open_items = re.findall(r"^- \[(\w+)\] `([0-9a-f]+)` (.*): open$", text, re.MULTILINE)
+    if open_items:
+        print("\nOpen items (accept one with `notyet ack <id> <reason>`):")
+        for severity, fid, title in open_items:
+            print(f"  {fid} [{severity}] {title}")
     return 0
+
+
+def _last_checked(root: str) -> "store.Session | None":
+    """The latest session that has a check: a new session (a /notyet:status in a fresh window) has none yet."""
+    latest = store.latest_session(root)
+    if latest is not None and latest.runs:
+        return latest
+    return next((s for s in reversed(store.all_sessions(root)) if s.runs), None)
 
 
 EXPORT_COLUMNS = ["repo", "session", "check", "at", "verdict", "finding_id", "rule", "severity", "location",
@@ -195,7 +220,7 @@ def cmd_stats(args) -> int:
 
 def cmd_ack(args) -> int:
     root = _root(args.path)
-    session = store.load_session(root, args.session) if args.session else store.latest_session(root)
+    session = store.load_session(root, args.session) if args.session else _last_checked(root)
     if session is None or not session.runs:
         print("No gate run to acknowledge findings from.", file=sys.stderr)
         return 1

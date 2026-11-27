@@ -45,11 +45,16 @@ The evidence behind that is in [docs/RESEARCH.md](docs/RESEARCH.md).
 
 ## Install
 
-In Claude Code:
+In Claude Code, as a plugin (nothing to pip install; it needs Python 3.11+ on the machine):
 
 ```
-/plugin install notyet --marketplace saarthakg/notyet
+/plugin marketplace add saarthakg/notyet
+/plugin install notyet@notyet
+/notyet:init                # in your repo: finds your pytest command, writes .notyet.toml
 ```
+
+The plugin's hooks do nothing in a repo without `.notyet.toml`. Then `/notyet:status` says what the last check found,
+and `/notyet:ack <id> <reason>` accepts an item with the reason.
 
 Or as a command, for Claude Code, Codex or CI:
 
@@ -61,7 +66,7 @@ Then, in your repo:
 
 ```sh
 notyet init                 # writes .notyet.toml: finds your pytest command, shows it, asks first
-notyet install claude       # not needed with the plugin. Shows the settings diff, asks first
+notyet install claude       # adds the hooks to Claude Code's settings. Shows the diff, asks first
 notyet install codex        # the same for Codex CLI (then trust the hooks with /hooks)
 ```
 
@@ -185,7 +190,7 @@ built to have couplings; and real use over weeks hasn't been measured yet. The m
 ## Commands
 
 ```sh
-notyet status               # the current session and its last check
+notyet status               # the last check: what it found, and the open items' ids
 notyet receipt              # the latest receipt
 notyet check [--base REF]   # run the checks now, without an agent
 notyet stats                # what findings led to: fixed, justified, handed over
