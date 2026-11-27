@@ -164,3 +164,9 @@ def test_user_diff_settings_and_hidden_files_change_nothing(repo):
     assert snapshot.added_lines(root, base, now, deltas) == {"pkg/calc.py": {7}}
 
 
+
+
+def test_docstrings_are_not_lines_a_test_should_run():
+    # found on a real pull request: a new module's docstring was the example of untested code
+    source = '"""A module."""\n\n\nclass A:\n    """A class."""\n\n    def f(self):\n        """A method."""\n        return 1\n'
+    assert coverage.executable_lines(source) == {4, 7, 9}

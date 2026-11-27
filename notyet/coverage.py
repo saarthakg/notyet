@@ -150,7 +150,8 @@ def _excluded(tree: ast.AST, source: str) -> set[int]:
             body = [s for s in node.body if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))]
             if all(isinstance(s, ast.Pass) for s in body):
                 out |= set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
-            for s in node.body:  # docstrings aren't code a test should hit
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            for s in node.body:    # docstrings (and bare strings) aren't code a test should hit
                 if isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant) and isinstance(s.value.value, str):
                     out |= set(range(s.lineno, (s.end_lineno or s.lineno) + 1))
     return out
